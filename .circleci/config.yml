@@ -173,7 +173,6 @@ workflows:
   version: 2.1
   test_all:
     jobs:
-      - ensure_groth_parameters_and_keys_linux
       - cargo_fetch
       - rustfmt:
           requires:
@@ -184,9 +183,7 @@ workflows:
       - test:
           requires:
             - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
       - test_nightly:
           requires:
             - cargo_fetch
-            - ensure_groth_parameters_and_keys_linux
       - test_nightly_darwin
