@@ -12,5 +12,7 @@ anyhow = "1.0.26"
 
 [dependencies.filecoin-proofs-v1]
 version = "1.0.0-alpha.0"
+git = "https://github.com/filecoin-project/rust-fil-proofs"
+branch = "feat/versioning"
 path = "../rust-proofs/filecoin-proofs"
 package = "filecoin-proofs"
