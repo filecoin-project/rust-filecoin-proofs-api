@@ -4,7 +4,7 @@ use anyhow::{ensure, Result};
 
 use crate::{
     Candidate, ChallengeSeed, PrivateReplicaInfo, ProverId, PublicReplicaInfo, RegisteredPoStProof,
-    RegisteredSealProof, SectorId, SnarkProof,
+    SectorId, SnarkProof,
 };
 
 pub fn generate_candidates(
@@ -100,11 +100,14 @@ fn split_replicas(
             comm_r,
             cache_dir,
         } = info;
+
+        use RegisteredPoStProof::*;
+
         match registered_proof {
-            RegisteredSealProof::StackedDrg32GiBV1 => {
+            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            | StackedDrg32GiBV1 => {
                 if config_v1.is_none() {
-                    let post_proof: RegisteredPoStProof = (*registered_proof).into();
-                    config_v1 = Some(post_proof.as_v1_config());
+                    config_v1 = Some(registered_proof.as_v1_config());
                 }
 
                 let info_v1 = filecoin_proofs_v1::PrivateReplicaInfo::new(
@@ -134,11 +137,13 @@ fn split_public_replicas(
             registered_proof,
             comm_r,
         } = info;
+
+        use RegisteredPoStProof::*;
         match registered_proof {
-            RegisteredSealProof::StackedDrg32GiBV1 => {
+            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            | StackedDrg32GiBV1 => {
                 if config_v1.is_none() {
-                    let post_proof: RegisteredPoStProof = (*registered_proof).into();
-                    config_v1 = Some(post_proof.as_v1_config());
+                    config_v1 = Some(registered_proof.as_v1_config());
                 }
 
                 let info_v1 = filecoin_proofs_v1::PublicReplicaInfo::new(*comm_r)?;

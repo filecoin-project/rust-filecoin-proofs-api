@@ -1,13 +1,13 @@
 use std::path::PathBuf;
 
-use crate::{Commitment, RegisteredSealProof};
+use crate::{Commitment, RegisteredPoStProof};
 
 /// The minimal information required about a replica, in order to be able to generate
 /// a PoSt over it.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PrivateReplicaInfo {
     /// The version of this replica.
-    pub(crate) registered_proof: RegisteredSealProof,
+    pub(crate) registered_proof: RegisteredPoStProof,
     /// Path to the replica.
     pub(crate) access: String,
     /// The replica commitment.
@@ -18,7 +18,7 @@ pub struct PrivateReplicaInfo {
 
 impl PrivateReplicaInfo {
     pub fn new(
-        registered_proof: RegisteredSealProof,
+        registered_proof: RegisteredPoStProof,
         access: String,
         comm_r: Commitment,
         cache_dir: PathBuf,
@@ -35,13 +35,13 @@ impl PrivateReplicaInfo {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PublicReplicaInfo {
     /// The version of this replica.
-    pub(crate) registered_proof: RegisteredSealProof,
+    pub(crate) registered_proof: RegisteredPoStProof,
     /// The replica commitment.
     pub(crate) comm_r: Commitment,
 }
 
 impl PublicReplicaInfo {
-    pub fn new(registered_proof: RegisteredSealProof, comm_r: Commitment) -> Self {
+    pub fn new(registered_proof: RegisteredPoStProof, comm_r: Commitment) -> Self {
         PublicReplicaInfo {
             registered_proof,
             comm_r,
