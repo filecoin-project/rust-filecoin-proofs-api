@@ -12,5 +12,7 @@ pub use crate::types::{PrivateReplicaInfo, PublicReplicaInfo};
 
 pub use filecoin_proofs_v1::storage_proofs::election_post::Candidate;
 pub use filecoin_proofs_v1::storage_proofs::sector::SectorId;
-pub use filecoin_proofs_v1::types::{ChallengeSeed, Commitment, PieceInfo, ProverId, Ticket};
+pub use filecoin_proofs_v1::types::{
+    ChallengeSeed, Commitment, PieceInfo, ProverId, Ticket, UnpaddedByteIndex, UnpaddedBytesAmount,
+};
 pub use filecoin_proofs_v1::SnarkProof;

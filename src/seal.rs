@@ -1,8 +1,12 @@
-use std::path::Path;
+use std::io::{Read, Seek, Write};
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 
-use crate::{Commitment, PieceInfo, ProverId, RegisteredSealProof, SectorId, Ticket};
+use crate::{
+    Commitment, PieceInfo, ProverId, RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex,
+    UnpaddedBytesAmount,
+};
 
 /// The output of `seal_pre_commit`.
 #[derive(Clone, Debug)]
@@ -114,6 +118,85 @@ pub fn verify_seal(
             filecoin_proofs_v1::verify_seal(
                 config, comm_r_in, comm_d_in, prover_id, sector_id, ticket, seed, proof_vec,
             )
+        }
+    }
+}
+
+pub fn get_unsealed_range<T: Into<PathBuf> + AsRef<Path>>(
+    registered_proof: RegisteredSealProof,
+    cache_path: T,
+    sealed_path: T,
+    output_path: T,
+    prover_id: ProverId,
+    sector_id: SectorId,
+    comm_d: Commitment,
+    ticket: Ticket,
+    offset: UnpaddedByteIndex,
+    num_bytes: UnpaddedBytesAmount,
+) -> Result<UnpaddedBytesAmount> {
+    match registered_proof {
+        RegisteredSealProof::StackedDrg32GiBV1 => {
+            let config = registered_proof.as_v1_config();
+
+            filecoin_proofs_v1::get_unsealed_range(
+                config,
+                cache_path,
+                sealed_path,
+                output_path,
+                prover_id,
+                sector_id,
+                comm_d,
+                ticket,
+                offset,
+                num_bytes,
+            )
+        }
+    }
+}
+
+pub fn generate_piece_commitment<T: Read>(
+    registered_proof: RegisteredSealProof,
+    source: T,
+    piece_size: UnpaddedBytesAmount,
+) -> Result<PieceInfo> {
+    match registered_proof {
+        RegisteredSealProof::StackedDrg32GiBV1 => {
+            filecoin_proofs_v1::generate_piece_commitment(source, piece_size)
+        }
+    }
+}
+
+pub fn add_piece<R, W>(
+    registered_proof: RegisteredSealProof,
+    source: R,
+    target: W,
+    piece_size: UnpaddedBytesAmount,
+    piece_lengths: &[UnpaddedBytesAmount],
+) -> Result<(UnpaddedBytesAmount, Commitment)>
+where
+    R: Read,
+    W: Read + Write + Seek,
+{
+    match registered_proof {
+        RegisteredSealProof::StackedDrg32GiBV1 => {
+            filecoin_proofs_v1::add_piece(source, target, piece_size, piece_lengths)
+        }
+    }
+}
+
+pub fn write_and_preprocess<R, W>(
+    registered_proof: RegisteredSealProof,
+    source: R,
+    target: W,
+    piece_size: UnpaddedBytesAmount,
+) -> Result<(UnpaddedBytesAmount, Commitment)>
+where
+    R: Read,
+    W: Read + Write + Seek,
+{
+    match registered_proof {
+        RegisteredSealProof::StackedDrg32GiBV1 => {
+            filecoin_proofs_v1::write_and_preprocess(source, target, piece_size)
         }
     }
 }
