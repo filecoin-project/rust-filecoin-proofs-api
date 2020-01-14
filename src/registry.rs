@@ -11,7 +11,7 @@ pub enum RegisteredSealProof {
 
 impl RegisteredSealProof {
     /// Return the sector size for this proof.
-    pub fn sector_size(&self) -> SectorSize {
+    pub fn sector_size(self) -> SectorSize {
         match self {
             RegisteredSealProof::StackedDrg32GiBV1 => {
                 SectorSize(filecoin_proofs_v1::constants::SECTOR_SIZE_32_GIB)
@@ -20,7 +20,7 @@ impl RegisteredSealProof {
     }
 
     /// Return the number of partitions for this proof.
-    pub fn partitions(&self) -> u8 {
+    pub fn partitions(self) -> u8 {
         match self {
             RegisteredSealProof::StackedDrg32GiBV1 => {
                 filecoin_proofs_v1::constants::DEFAULT_POREP_PROOF_PARTITIONS
@@ -29,7 +29,7 @@ impl RegisteredSealProof {
         }
     }
 
-    pub fn as_v1_config(&self) -> PoRepConfig {
+    pub fn as_v1_config(self) -> PoRepConfig {
         match self {
             RegisteredSealProof::StackedDrg32GiBV1 => PoRepConfig {
                 sector_size: self.sector_size(),

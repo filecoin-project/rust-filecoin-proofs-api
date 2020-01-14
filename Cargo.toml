@@ -3,6 +3,9 @@ name = "filecoin-proofs-api"
 version = "0.1.0"
 authors = ["dignifiedquire <me@dignifiedquire.com>"]
 edition = "2018"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/filecoin-project/rust-filecoin-proofs-api"
+readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.26"

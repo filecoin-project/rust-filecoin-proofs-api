@@ -1,3 +1,6 @@
+#![deny(clippy::all, clippy::perf, clippy::correctness)]
+#![allow(clippy::too_many_arguments)]
+
 pub mod seal;
 
 mod registry;
