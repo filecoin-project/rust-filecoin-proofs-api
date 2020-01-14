@@ -55,54 +55,8 @@ jobs:
           keys:
             - cargo-v13-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
       - run:
-          name: Test (stable)
-          command: cargo +stable test --verbose --all
-          no_output_timeout: 15m
-      - run:
-          name: Prune the output files
-          command: |
-            for file in target/debug/* target/debug/.??*; do
-              [ -d $file -o ! -x $file ] && rm -r $file
-            done
-      - persist_to_workspace:
-          root: "."
-          paths:
-            - target/debug/*
-
-  test_nightly:
-    docker:
-      - image: filecoin/rust:latest
-    working_directory: /mnt/crate
-    resource_class: 2xlarge+
-    steps:
-      - configure_environment_variables
-      - checkout
-      - attach_workspace:
-          at: "."
-      - restore_cache:
-          keys:
-            - cargo-v13-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
-      - run:
           name: Test (nightly)
           command: cargo +$(cat rust-toolchain) test --verbose --all
-          no_output_timeout: 15m
-
-  bench_nightly:
-    docker:
-      - image: filecoin/rust:latest
-    working_directory: /mnt/crate
-    resource_class: 2xlarge+
-    steps:
-      - configure_environment_variables
-      - checkout
-      - attach_workspace:
-          at: "."
-      - restore_cache:
-          keys:
-            - cargo-v13-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
-      - run:
-          name: Benchmarks (nightly)
-          command: cargo +$(cat rust-toolchain) build --benches --verbose --all
           no_output_timeout: 15m
 
   rustfmt:
@@ -138,7 +92,8 @@ jobs:
       - run:
           name: Run cargo clippy
           command: cargo clippy --all
-  test_nightly_darwin:
+          
+  test_darwin:
     macos:
       xcode: "10.0.0"
     working_directory: ~/crate
@@ -183,7 +138,4 @@ workflows:
       - test:
           requires:
             - cargo_fetch
-      - test_nightly:
-          requires:
-            - cargo_fetch
-      - test_nightly_darwin
+      - test_darwin
