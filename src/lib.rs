@@ -18,7 +18,3 @@ pub use filecoin_proofs_v1::types::{
     UnpaddedBytesAmount,
 };
 pub use filecoin_proofs_v1::SnarkProof;
-
-/// The size (in bytes) of a single partition proof.
-pub const SINGLE_PARTITION_PROOF_LEN: usize =
-    filecoin_proofs_v1::constants::SINGLE_PARTITION_PROOF_LEN;
