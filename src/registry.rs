@@ -1,6 +1,7 @@
+use std::path::PathBuf;
 use std::sync::atomic::Ordering;
 
-use anyhow::Result;
+use anyhow::{ensure, Result};
 use filecoin_proofs_v1::types::{PoRepConfig, PoRepProofPartitions, PoStConfig, SectorSize};
 
 /// Available seal proofs.
@@ -78,10 +79,47 @@ impl RegisteredSealProof {
         }
     }
 
-    /// Returns the cache identifier.
-    pub fn cache_identifier(self) -> Result<String> {
+    /// Returns the circuit identifier.
+    pub fn circuit_identifier(self) -> Result<String> {
         match self.version() {
             Version::V1 => self.as_v1_config().get_cache_identifier(),
+        }
+    }
+
+    pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
+        match self.version() {
+            Version::V1 => self.as_v1_config().get_cache_verifying_key_path(),
+        }
+    }
+
+    pub fn cache_params_path(self) -> Result<PathBuf> {
+        match self.version() {
+            Version::V1 => self.as_v1_config().get_cache_params_path(),
+        }
+    }
+
+    pub fn verifying_key_cid(self) -> Result<String> {
+        match self.version() {
+            Version::V1 => {
+                let id = self.as_v1_config().get_cache_identifier()?;
+                let params = filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.vk", &id));
+                ensure!(params.is_some(), "missing params for {}", &id);
+
+                Ok(params.unwrap().cid.clone())
+            }
+        }
+    }
+
+    pub fn params_cid(self) -> Result<String> {
+        match self.version() {
+            Version::V1 => {
+                let id = self.as_v1_config().get_cache_identifier()?;
+                let params =
+                    filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.params", &id));
+                ensure!(params.is_some(), "missing params for {}", &id);
+
+                Ok(params.unwrap().cid.clone())
+            }
         }
     }
 }
@@ -157,10 +195,47 @@ impl RegisteredPoStProof {
         }
     }
 
-    /// Returns the cache identifier.
-    pub fn cache_identifier(self) -> Result<String> {
+    /// Returns the circuit identifier.
+    pub fn circuit_identifier(self) -> Result<String> {
         match self.version() {
             Version::V1 => self.as_v1_config().get_cache_identifier(),
+        }
+    }
+
+    pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
+        match self.version() {
+            Version::V1 => self.as_v1_config().get_cache_verifying_key_path(),
+        }
+    }
+
+    pub fn cache_params_path(self) -> Result<PathBuf> {
+        match self.version() {
+            Version::V1 => self.as_v1_config().get_cache_params_path(),
+        }
+    }
+
+    pub fn verifying_key_cid(self) -> Result<String> {
+        match self.version() {
+            Version::V1 => {
+                let id = self.as_v1_config().get_cache_identifier()?;
+                let params = filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.vk", &id));
+                ensure!(params.is_some(), "missing params for {}", &id);
+
+                Ok(params.unwrap().cid.clone())
+            }
+        }
+    }
+
+    pub fn params_cid(self) -> Result<String> {
+        match self.version() {
+            Version::V1 => {
+                let id = self.as_v1_config().get_cache_identifier()?;
+                let params =
+                    filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.params", &id));
+                ensure!(params.is_some(), "missing params for {}", &id);
+
+                Ok(params.unwrap().cid.clone())
+            }
         }
     }
 }
