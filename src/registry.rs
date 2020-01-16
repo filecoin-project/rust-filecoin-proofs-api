@@ -1,5 +1,6 @@
 use std::sync::atomic::Ordering;
 
+use anyhow::Result;
 use filecoin_proofs_v1::types::{PoRepConfig, PoRepProofPartitions, PoStConfig, SectorSize};
 
 /// Available seal proofs.
@@ -76,6 +77,13 @@ impl RegisteredSealProof {
             // _ => panic!("Can only be called on V1 configs"),
         }
     }
+
+    /// Returns the cache identifier.
+    pub fn cache_identifier(self) -> Result<String> {
+        match self.version() {
+            Version::V1 => self.as_v1_config().get_cache_identifier(),
+        }
+    }
 }
 
 /// Available seal proofs.
@@ -146,6 +154,13 @@ impl RegisteredPoStProof {
                 challenged_nodes: filecoin_proofs_v1::constants::POST_CHALLENGED_NODES,
             },
             // _ => panic!("Can only be called on V1 configs"),
+        }
+    }
+
+    /// Returns the cache identifier.
+    pub fn cache_identifier(self) -> Result<String> {
+        match self.version() {
+            Version::V1 => self.as_v1_config().get_cache_identifier(),
         }
     }
 }
