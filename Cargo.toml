@@ -11,8 +11,7 @@ readme = "README.md"
 anyhow = "1.0.26"
 
 [dependencies.filecoin-proofs-v1]
-version = "1.0.0-alpha.0"
+version = "1.0.0-alpha.1"
 git = "https://github.com/filecoin-project/rust-fil-proofs"
-branch = "feat/versioning"
-path = "../rust-proofs/filecoin-proofs"
+branch = "experiments"
 package = "filecoin-proofs"
