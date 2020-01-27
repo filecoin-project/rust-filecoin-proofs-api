@@ -21,15 +21,15 @@ pub struct SealCommitOutput {
     pub proof: Vec<u8>,
 }
 
-pub fn seal_pre_commit<R: AsRef<Path>, T: AsRef<Path>, S: AsRef<Path>>(
+pub fn seal_pre_commit(
     registered_proof: RegisteredSealProof,
-    cache_path: R,
-    in_path: T,
-    out_path: S,
+    cache_path: PathBuf,
+    in_path: PathBuf,
+    out_path: PathBuf,
     prover_id: ProverId,
     sector_id: SectorId,
     ticket: Ticket,
-    piece_infos: &[PieceInfo],
+    piece_infos: Vec<PieceInfo>,
 ) -> Result<SealPreCommitOutput> {
     use RegisteredSealProof::*;
 
@@ -55,6 +55,50 @@ pub fn seal_pre_commit<R: AsRef<Path>, T: AsRef<Path>, S: AsRef<Path>>(
                 comm_r,
                 comm_d,
             })
+        }
+    }
+}
+
+pub fn seal_pre_commit_many(
+    registered_proof: RegisteredSealProof,
+    cache_path: &[PathBuf],
+    in_path: &[PathBuf],
+    out_path: &[PathBuf],
+    prover_id: &[ProverId],
+    sector_id: &[SectorId],
+    ticket: &[Ticket],
+    piece_infos: &[Vec<PieceInfo>],
+) -> Result<Vec<SealPreCommitOutput>> {
+    use RegisteredSealProof::*;
+
+    match registered_proof {
+        StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+        | StackedDrg32GiBV1 => {
+            let config = registered_proof.as_v1_config();
+            let output = filecoin_proofs_v1::seal_pre_commit_many(
+                config,
+                cache_path,
+                in_path,
+                out_path,
+                prover_id,
+                sector_id,
+                ticket,
+                piece_infos,
+            )?;
+
+            let outputs = output
+                .into_iter()
+                .map(|out| {
+                    let filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d } = out;
+                    SealPreCommitOutput {
+                        registered_proof,
+                        comm_r,
+                        comm_d,
+                    }
+                })
+                .collect();
+
+            Ok(outputs)
         }
     }
 }
