@@ -3,9 +3,10 @@ use std::sync::atomic::Ordering;
 
 use anyhow::{ensure, Result};
 use filecoin_proofs_v1::types::{PoRepConfig, PoRepProofPartitions, PoStConfig, SectorSize};
+use serde::{Deserialize, Serialize};
 
 /// Available seal proofs.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredSealProof {
     StackedDrg1KiBV1,
     StackedDrg16MiBV1,
@@ -14,7 +15,7 @@ pub enum RegisteredSealProof {
     StackedDrg32GiBV1,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Version {
     V1,
 }
@@ -125,7 +126,7 @@ impl RegisteredSealProof {
 }
 
 /// Available seal proofs.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredPoStProof {
     StackedDrg1KiBV1,
     StackedDrg16MiBV1,

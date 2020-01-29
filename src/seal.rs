@@ -2,6 +2,8 @@ use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
+use filecoin_proofs_v1::storage_proofs::hasher::Hasher;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     Commitment, PieceInfo, ProverId, RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex,
@@ -19,15 +21,26 @@ pub struct SealPreCommitPhase1Output {
 }
 
 /// The output of `seal_pre_commit_phase2`.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SealPreCommitPhase2Output {
     pub registered_proof: RegisteredSealProof,
     pub comm_r: Commitment,
     pub comm_d: Commitment,
 }
 
-#[derive(Clone, Debug)]
-pub struct SealCommitOutput {
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SealCommitPhase1Output {
+    pub registered_proof: RegisteredSealProof,
+    pub vanilla_proofs: Vec<Vec<filecoin_proofs_v1::types::VanillaSealProof>>,
+    pub comm_r: Commitment,
+    pub comm_d: Commitment,
+    pub replica_id: <filecoin_proofs_v1::constants::DefaultTreeHasher as Hasher>::Domain,
+    pub seed: Ticket,
+    pub ticket: Ticket,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SealCommitPhase2Output {
     pub proof: Vec<u8>,
 }
 
@@ -132,7 +145,7 @@ pub fn compute_comm_d(
     filecoin_proofs_v1::compute_comm_d(registered_proof.sector_size(), piece_infos)
 }
 
-pub fn seal_commit<T: AsRef<Path>>(
+pub fn seal_commit_phase1<T: AsRef<Path>>(
     cache_path: T,
     prover_id: ProverId,
     sector_id: SectorId,
@@ -140,7 +153,7 @@ pub fn seal_commit<T: AsRef<Path>>(
     seed: Ticket,
     pre_commit: SealPreCommitPhase2Output,
     piece_infos: &[PieceInfo],
-) -> Result<SealCommitOutput> {
+) -> Result<SealCommitPhase1Output> {
     let SealPreCommitPhase2Output {
         comm_r,
         comm_d,
@@ -153,7 +166,7 @@ pub fn seal_commit<T: AsRef<Path>>(
             let config = registered_proof.as_v1_config();
             let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
 
-            let output = filecoin_proofs_v1::seal_commit(
+            let output = filecoin_proofs_v1::seal_commit_phase1(
                 config,
                 cache_path,
                 prover_id,
@@ -164,7 +177,59 @@ pub fn seal_commit<T: AsRef<Path>>(
                 piece_infos,
             )?;
 
-            Ok(SealCommitOutput {
+            let filecoin_proofs_v1::types::SealCommitPhase1Output {
+                vanilla_proofs,
+                comm_r,
+                comm_d,
+                replica_id,
+                seed,
+                ticket,
+            } = output;
+
+            Ok(SealCommitPhase1Output {
+                registered_proof,
+                vanilla_proofs,
+                comm_r,
+                comm_d,
+                replica_id,
+                seed,
+                ticket,
+            })
+        }
+    }
+}
+
+pub fn seal_commit_phase2<T: AsRef<Path>>(
+    phase1_output: SealCommitPhase1Output,
+    prover_id: ProverId,
+    sector_id: SectorId,
+) -> Result<SealCommitPhase2Output> {
+    let SealCommitPhase1Output {
+        vanilla_proofs,
+        comm_r,
+        comm_d,
+        replica_id,
+        seed,
+        ticket,
+        registered_proof,
+    } = phase1_output;
+    use RegisteredSealProof::*;
+    match registered_proof {
+        StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+        | StackedDrg32GiBV1 => {
+            let config = registered_proof.as_v1_config();
+            let co = filecoin_proofs_v1::types::SealCommitPhase1Output {
+                vanilla_proofs,
+                comm_r,
+                comm_d,
+                replica_id,
+                seed,
+                ticket,
+            };
+
+            let output = filecoin_proofs_v1::seal_commit_phase2(config, co, prover_id, sector_id)?;
+
+            Ok(SealCommitPhase2Output {
                 proof: output.proof,
             })
         }
