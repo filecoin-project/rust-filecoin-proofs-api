@@ -8,9 +8,19 @@ use crate::{
     UnpaddedBytesAmount,
 };
 
-/// The output of `seal_pre_commit`.
+/// The output of `seal_pre_commit_phase1`.
 #[derive(Clone, Debug)]
-pub struct SealPreCommitOutput {
+pub struct SealPreCommitPhase1Output {
+    pub registered_proof: RegisteredSealProof,
+    pub labels: filecoin_proofs_v1::Labels,
+    pub config: filecoin_proofs_v1::StoreConfig,
+    pub comm_d: filecoin_proofs_v1::Commitment,
+    pub data_tree: filecoin_proofs_v1::DataTree,
+}
+
+/// The output of `seal_pre_commit_phase2`.
+#[derive(Clone, Debug)]
+pub struct SealPreCommitPhase2Output {
     pub registered_proof: RegisteredSealProof,
     pub comm_r: Commitment,
     pub comm_d: Commitment,
@@ -21,23 +31,28 @@ pub struct SealCommitOutput {
     pub proof: Vec<u8>,
 }
 
-pub fn seal_pre_commit(
+pub fn seal_pre_commit_phase1<R, S, T>(
     registered_proof: RegisteredSealProof,
-    cache_path: PathBuf,
-    in_path: PathBuf,
-    out_path: PathBuf,
+    cache_path: R,
+    in_path: S,
+    out_path: T,
     prover_id: ProverId,
     sector_id: SectorId,
     ticket: Ticket,
-    piece_infos: Vec<PieceInfo>,
-) -> Result<SealPreCommitOutput> {
+    piece_infos: &[PieceInfo],
+) -> Result<SealPreCommitPhase1Output>
+where
+    R: AsRef<Path>,
+    S: AsRef<Path>,
+    T: AsRef<Path>,
+{
     use RegisteredSealProof::*;
 
     match registered_proof {
         StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
         | StackedDrg32GiBV1 => {
             let config = registered_proof.as_v1_config();
-            let output = filecoin_proofs_v1::seal_pre_commit(
+            let output = filecoin_proofs_v1::seal_pre_commit_phase1(
                 config,
                 cache_path,
                 in_path,
@@ -48,57 +63,64 @@ pub fn seal_pre_commit(
                 piece_infos,
             )?;
 
-            let filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d } = output;
-
-            Ok(SealPreCommitOutput {
-                registered_proof,
-                comm_r,
+            let filecoin_proofs_v1::types::SealPreCommitPhase1Output {
+                labels,
+                config,
                 comm_d,
+                data_tree,
+            } = output;
+
+            Ok(SealPreCommitPhase1Output {
+                registered_proof,
+                labels,
+                config,
+                comm_d,
+                data_tree,
             })
         }
     }
 }
 
-pub fn seal_pre_commit_many(
-    registered_proof: RegisteredSealProof,
-    cache_path: &[PathBuf],
-    in_path: &[PathBuf],
-    out_path: &[PathBuf],
-    prover_id: &[ProverId],
-    sector_id: &[SectorId],
-    ticket: &[Ticket],
-    piece_infos: &[Vec<PieceInfo>],
-) -> Result<Vec<SealPreCommitOutput>> {
+pub fn seal_pre_commit_phase2<R, S, T>(
+    phase1_output: SealPreCommitPhase1Output,
+    cache_path: R,
+    out_path: S,
+) -> Result<SealPreCommitPhase2Output>
+where
+    R: AsRef<Path>,
+    S: AsRef<Path>,
+{
     use RegisteredSealProof::*;
+    let SealPreCommitPhase1Output {
+        registered_proof,
+        labels,
+        config,
+        comm_d,
+        data_tree,
+    } = phase1_output;
 
     match registered_proof {
         StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
         | StackedDrg32GiBV1 => {
-            let config = registered_proof.as_v1_config();
-            let output = filecoin_proofs_v1::seal_pre_commit_many(
-                config,
+            let output = filecoin_proofs_v1::seal_pre_commit_phase2(
+                registered_proof.as_v1_config(),
+                filecoin_proofs_v1::types::SealPreCommitPhase1Output {
+                    labels,
+                    config,
+                    comm_d,
+                    data_tree,
+                },
                 cache_path,
-                in_path,
                 out_path,
-                prover_id,
-                sector_id,
-                ticket,
-                piece_infos,
             )?;
 
-            let outputs = output
-                .into_iter()
-                .map(|out| {
-                    let filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d } = out;
-                    SealPreCommitOutput {
-                        registered_proof,
-                        comm_r,
-                        comm_d,
-                    }
-                })
-                .collect();
+            let filecoin_proofs_v1::types::SealPreCommitOutput { comm_d, comm_r } = output;
 
-            Ok(outputs)
+            Ok(SealPreCommitPhase2Output {
+                registered_proof,
+                comm_d,
+                comm_r,
+            })
         }
     }
 }
@@ -116,10 +138,10 @@ pub fn seal_commit<T: AsRef<Path>>(
     sector_id: SectorId,
     ticket: Ticket,
     seed: Ticket,
-    pre_commit: SealPreCommitOutput,
+    pre_commit: SealPreCommitPhase2Output,
     piece_infos: &[PieceInfo],
 ) -> Result<SealCommitOutput> {
-    let SealPreCommitOutput {
+    let SealPreCommitPhase2Output {
         comm_r,
         comm_d,
         registered_proof,
