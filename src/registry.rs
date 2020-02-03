@@ -1,5 +1,4 @@
 use std::path::PathBuf;
-use std::sync::atomic::Ordering;
 
 use anyhow::{ensure, Result};
 use filecoin_proofs_v1::types::{PoRepConfig, PoRepProofPartitions, PoStConfig, SectorSize};
@@ -47,12 +46,34 @@ impl RegisteredSealProof {
 
     /// Return the number of partitions for this proof.
     pub fn partitions(self) -> u8 {
+        use filecoin_proofs_v1::constants;
         use RegisteredSealProof::*;
-
         match self {
-            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
-            | StackedDrg32GiBV1 => filecoin_proofs_v1::constants::DEFAULT_POREP_PROOF_PARTITIONS
-                .load(Ordering::Relaxed),
+            StackedDrg1KiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .unwrap()
+                .get(&constants::SECTOR_SIZE_ONE_KIB)
+                .expect("invalid sector size"),
+            StackedDrg16MiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .unwrap()
+                .get(&constants::SECTOR_SIZE_16_MIB)
+                .expect("invalid sector size"),
+            StackedDrg256MiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .unwrap()
+                .get(&constants::SECTOR_SIZE_256_MIB)
+                .expect("invalid sector size"),
+            StackedDrg1GiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .unwrap()
+                .get(&constants::SECTOR_SIZE_1_GIB)
+                .expect("invalid sector size"),
+            StackedDrg32GiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .unwrap()
+                .get(&constants::SECTOR_SIZE_32_GIB)
+                .expect("invalid sector size"),
         }
     }
 
