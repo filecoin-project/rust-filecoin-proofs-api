@@ -11,13 +11,12 @@ use crate::{
 };
 
 /// The output of `seal_pre_commit_phase1`.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SealPreCommitPhase1Output {
     pub registered_proof: RegisteredSealProof,
     pub labels: filecoin_proofs_v1::Labels,
     pub config: filecoin_proofs_v1::StoreConfig,
     pub comm_d: filecoin_proofs_v1::Commitment,
-    pub data_tree: filecoin_proofs_v1::DataTree,
 }
 
 /// The output of `seal_pre_commit_phase2`.
@@ -80,7 +79,6 @@ where
                 labels,
                 config,
                 comm_d,
-                data_tree,
             } = output;
 
             Ok(SealPreCommitPhase1Output {
@@ -88,7 +86,6 @@ where
                 labels,
                 config,
                 comm_d,
-                data_tree,
             })
         }
     }
@@ -109,7 +106,6 @@ where
         labels,
         config,
         comm_d,
-        data_tree,
     } = phase1_output;
 
     match registered_proof {
@@ -121,7 +117,6 @@ where
                     labels,
                     config,
                     comm_d,
-                    data_tree,
                 },
                 cache_path,
                 out_path,
