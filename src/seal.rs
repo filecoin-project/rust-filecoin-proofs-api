@@ -194,7 +194,7 @@ pub fn seal_commit_phase1<T: AsRef<Path>>(
     }
 }
 
-pub fn seal_commit_phase2<T: AsRef<Path>>(
+pub fn seal_commit_phase2(
     phase1_output: SealCommitPhase1Output,
     prover_id: ProverId,
     sector_id: SectorId,
