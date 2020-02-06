@@ -91,7 +91,7 @@ where
     }
 }
 
-pub fn seal_pre_commit_phase2<R, S, T>(
+pub fn seal_pre_commit_phase2<R, S>(
     phase1_output: SealPreCommitPhase1Output,
     cache_path: R,
     out_path: S,
@@ -194,7 +194,7 @@ pub fn seal_commit_phase1<T: AsRef<Path>>(
     }
 }
 
-pub fn seal_commit_phase2<T: AsRef<Path>>(
+pub fn seal_commit_phase2(
     phase1_output: SealCommitPhase1Output,
     prover_id: ProverId,
     sector_id: SectorId,
