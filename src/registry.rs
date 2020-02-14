@@ -212,6 +212,7 @@ impl RegisteredPoStProof {
                 sector_size: self.sector_size(),
                 challenge_count: filecoin_proofs_v1::constants::POST_CHALLENGE_COUNT,
                 challenged_nodes: filecoin_proofs_v1::constants::POST_CHALLENGED_NODES,
+                priority: true,
             },
             // _ => panic!("Can only be called on V1 configs"),
         }
