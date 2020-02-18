@@ -254,6 +254,29 @@ pub fn verify_seal(
     }
 }
 
+pub fn verify_batch_seal(
+    registered_proof: RegisteredSealProof,
+    comm_r_ins: &[Commitment],
+    comm_d_ins: &[Commitment],
+    prover_ids: &[ProverId],
+    sector_ids: &[SectorId],
+    tickets: &[Ticket],
+    seeds: &[Ticket],
+    proof_vecs: &[&[u8]],
+) -> Result<bool> {
+    use RegisteredSealProof::*;
+    match registered_proof {
+        StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+        | StackedDrg32GiBV1 => {
+            let config = registered_proof.as_v1_config();
+
+            filecoin_proofs_v1::verify_batch_seal(
+                config, comm_r_ins, comm_d_ins, prover_ids, sector_ids, tickets, seeds, proof_vecs,
+            )
+        }
+    }
+}
+
 pub fn get_unsealed_range<T: Into<PathBuf> + AsRef<Path>>(
     registered_proof: RegisteredSealProof,
     cache_path: T,
