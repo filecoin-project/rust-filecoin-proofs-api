@@ -7,10 +7,9 @@ use serde::{Deserialize, Serialize};
 /// Available seal proofs.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredSealProof {
-    StackedDrg1KiBV1,
-    StackedDrg16MiBV1,
-    StackedDrg256MiBV1,
-    StackedDrg1GiBV1,
+    StackedDrg2KiBV1,
+    StackedDrg8MiBV1,
+    StackedDrg512MiBV1,
     StackedDrg32GiBV1,
 }
 
@@ -25,7 +24,7 @@ impl RegisteredSealProof {
         use RegisteredSealProof::*;
 
         match self {
-            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
             | StackedDrg32GiBV1 => Version::V1,
         }
     }
@@ -35,10 +34,9 @@ impl RegisteredSealProof {
         use filecoin_proofs_v1::constants;
         use RegisteredSealProof::*;
         let size = match self {
-            StackedDrg1KiBV1 => constants::SECTOR_SIZE_ONE_KIB,
-            StackedDrg16MiBV1 => constants::SECTOR_SIZE_16_MIB,
-            StackedDrg256MiBV1 => constants::SECTOR_SIZE_256_MIB,
-            StackedDrg1GiBV1 => constants::SECTOR_SIZE_1_GIB,
+            StackedDrg2KiBV1 => constants::SECTOR_SIZE_2_KIB,
+            StackedDrg8MiBV1 => constants::SECTOR_SIZE_8_MIB,
+            StackedDrg512MiBV1 => constants::SECTOR_SIZE_512_MIB,
             StackedDrg32GiBV1 => constants::SECTOR_SIZE_32_GIB,
         };
         SectorSize(size)
@@ -49,25 +47,20 @@ impl RegisteredSealProof {
         use filecoin_proofs_v1::constants;
         use RegisteredSealProof::*;
         match self {
-            StackedDrg1KiBV1 => *constants::POREP_PARTITIONS
+            StackedDrg2KiBV1 => *constants::POREP_PARTITIONS
                 .read()
                 .unwrap()
-                .get(&constants::SECTOR_SIZE_ONE_KIB)
+                .get(&constants::SECTOR_SIZE_2_KIB)
                 .expect("invalid sector size"),
-            StackedDrg16MiBV1 => *constants::POREP_PARTITIONS
+            StackedDrg8MiBV1 => *constants::POREP_PARTITIONS
                 .read()
                 .unwrap()
-                .get(&constants::SECTOR_SIZE_16_MIB)
+                .get(&constants::SECTOR_SIZE_8_MIB)
                 .expect("invalid sector size"),
-            StackedDrg256MiBV1 => *constants::POREP_PARTITIONS
+            StackedDrg512MiBV1 => *constants::POREP_PARTITIONS
                 .read()
                 .unwrap()
-                .get(&constants::SECTOR_SIZE_256_MIB)
-                .expect("invalid sector size"),
-            StackedDrg1GiBV1 => *constants::POREP_PARTITIONS
-                .read()
-                .unwrap()
-                .get(&constants::SECTOR_SIZE_1_GIB)
+                .get(&constants::SECTOR_SIZE_512_MIB)
                 .expect("invalid sector size"),
             StackedDrg32GiBV1 => *constants::POREP_PARTITIONS
                 .read()
@@ -81,7 +74,7 @@ impl RegisteredSealProof {
         use RegisteredSealProof::*;
 
         match self {
-            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
             | StackedDrg32GiBV1 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
         }
     }
@@ -92,7 +85,7 @@ impl RegisteredSealProof {
         assert_eq!(self.version(), Version::V1);
 
         match self {
-            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
             | StackedDrg32GiBV1 => PoRepConfig {
                 sector_size: self.sector_size(),
                 partitions: PoRepProofPartitions(self.partitions()),
@@ -149,10 +142,9 @@ impl RegisteredSealProof {
 /// Available seal proofs.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredPoStProof {
-    StackedDrg1KiBV1,
-    StackedDrg16MiBV1,
-    StackedDrg256MiBV1,
-    StackedDrg1GiBV1,
+    StackedDrg2KiBV1,
+    StackedDrg8MiBV1,
+    StackedDrg512MiBV1,
     StackedDrg32GiBV1,
 }
 
@@ -162,7 +154,7 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
             | StackedDrg32GiBV1 => Version::V1,
         }
     }
@@ -173,10 +165,9 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         let size = match self {
-            StackedDrg1KiBV1 => constants::SECTOR_SIZE_ONE_KIB,
-            StackedDrg16MiBV1 => constants::SECTOR_SIZE_16_MIB,
-            StackedDrg256MiBV1 => constants::SECTOR_SIZE_256_MIB,
-            StackedDrg1GiBV1 => constants::SECTOR_SIZE_1_GIB,
+            StackedDrg2KiBV1 => constants::SECTOR_SIZE_2_KIB,
+            StackedDrg8MiBV1 => constants::SECTOR_SIZE_8_MIB,
+            StackedDrg512MiBV1 => constants::SECTOR_SIZE_512_MIB,
             StackedDrg32GiBV1 => constants::SECTOR_SIZE_32_GIB,
         };
         SectorSize(size)
@@ -187,7 +178,7 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
             | StackedDrg32GiBV1 => 1,
         }
     }
@@ -196,7 +187,7 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
             | StackedDrg32GiBV1 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
         }
     }
@@ -207,7 +198,7 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
             | StackedDrg32GiBV1 => PoStConfig {
                 sector_size: self.sector_size(),
                 challenge_count: filecoin_proofs_v1::constants::POST_CHALLENGE_COUNT,

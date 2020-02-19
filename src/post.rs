@@ -104,7 +104,7 @@ fn split_replicas(
         use RegisteredPoStProof::*;
 
         match registered_proof {
-            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
             | StackedDrg32GiBV1 => {
                 if config_v1.is_none() {
                     config_v1 = Some(registered_proof.as_v1_config());
@@ -140,7 +140,7 @@ fn split_public_replicas(
 
         use RegisteredPoStProof::*;
         match registered_proof {
-            StackedDrg1KiBV1 | StackedDrg16MiBV1 | StackedDrg256MiBV1 | StackedDrg1GiBV1
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
             | StackedDrg32GiBV1 => {
                 if config_v1.is_none() {
                     config_v1 = Some(registered_proof.as_v1_config());
