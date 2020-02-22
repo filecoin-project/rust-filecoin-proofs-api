@@ -24,8 +24,9 @@ impl RegisteredSealProof {
         use RegisteredSealProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
-            | StackedDrg32GiBV1 => Version::V1,
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+                Version::V1
+            }
         }
     }
 
@@ -74,8 +75,9 @@ impl RegisteredSealProof {
         use RegisteredSealProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
-            | StackedDrg32GiBV1 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+                filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN
+            }
         }
     }
 
@@ -85,12 +87,12 @@ impl RegisteredSealProof {
         assert_eq!(self.version(), Version::V1);
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
-            | StackedDrg32GiBV1 => PoRepConfig {
-                sector_size: self.sector_size(),
-                partitions: PoRepProofPartitions(self.partitions()),
-            },
-            // _ => panic!("Can only be called on V1 configs"),
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+                PoRepConfig {
+                    sector_size: self.sector_size(),
+                    partitions: PoRepProofPartitions(self.partitions()),
+                }
+            } // _ => panic!("Can only be called on V1 configs"),
         }
     }
 
@@ -154,8 +156,9 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
-            | StackedDrg32GiBV1 => Version::V1,
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+                Version::V1
+            }
         }
     }
 
@@ -178,8 +181,7 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
-            | StackedDrg32GiBV1 => 1,
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => 1,
         }
     }
 
@@ -187,8 +189,9 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
-            | StackedDrg32GiBV1 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+                filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN
+            }
         }
     }
 
@@ -198,14 +201,14 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1
-            | StackedDrg32GiBV1 => PoStConfig {
-                sector_size: self.sector_size(),
-                challenge_count: filecoin_proofs_v1::constants::POST_CHALLENGE_COUNT,
-                challenged_nodes: filecoin_proofs_v1::constants::POST_CHALLENGED_NODES,
-                priority: true,
-            },
-            // _ => panic!("Can only be called on V1 configs"),
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+                PoStConfig {
+                    sector_size: self.sector_size(),
+                    challenge_count: filecoin_proofs_v1::constants::POST_CHALLENGE_COUNT,
+                    challenged_nodes: filecoin_proofs_v1::constants::POST_CHALLENGED_NODES,
+                    priority: true,
+                }
+            } // _ => panic!("Can only be called on V1 configs"),
         }
     }
 
