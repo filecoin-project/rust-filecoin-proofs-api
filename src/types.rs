@@ -12,8 +12,6 @@ pub struct PrivateReplicaInfo {
     pub(crate) comm_r: Commitment,
     /// Contains sector-specific (e.g. merkle trees) assets
     pub(crate) cache_dir: PathBuf,
-    /// Contains the replica.
-    pub(crate) replica_path: PathBuf,
 }
 
 impl PrivateReplicaInfo {
@@ -21,13 +19,11 @@ impl PrivateReplicaInfo {
         registered_proof: RegisteredPoStProof,
         comm_r: Commitment,
         cache_dir: PathBuf,
-        replica_path: PathBuf,
     ) -> Self {
         PrivateReplicaInfo {
             registered_proof,
             comm_r,
             cache_dir,
-            replica_path,
         }
     }
 }

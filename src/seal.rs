@@ -109,13 +109,22 @@ where
 
     match registered_proof {
         StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-            let output = filecoin_proofs_v1::seal_pre_commit_phase2(
-                registered_proof.as_v1_config(),
+            let seal_pre_commit_phase1_output =
                 filecoin_proofs_v1::types::SealPreCommitPhase1Output {
                     labels,
                     config,
                     comm_d,
-                },
+                };
+
+            filecoin_proofs_v1::validate_cache_for_precommit_phase2(
+                cache_path.as_ref().to_path_buf(),
+                out_path.as_ref().to_path_buf(),
+                &seal_pre_commit_phase1_output,
+            )?;
+
+            let output = filecoin_proofs_v1::seal_pre_commit_phase2(
+                registered_proof.as_v1_config(),
+                seal_pre_commit_phase1_output,
                 cache_path,
                 out_path,
             )?;
@@ -158,6 +167,11 @@ pub fn seal_commit_phase1<T: AsRef<Path>>(
         StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
             let config = registered_proof.as_v1_config();
             let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
+
+            filecoin_proofs_v1::validate_cache_for_commit(
+                cache_path.as_ref().to_path_buf(),
+                replica_path.as_ref().to_path_buf(),
+            )?;
 
             let output = filecoin_proofs_v1::seal_commit_phase1(
                 config,
