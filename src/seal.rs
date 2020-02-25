@@ -147,6 +147,10 @@ pub fn compute_comm_d(
     filecoin_proofs_v1::compute_comm_d(registered_proof.sector_size(), piece_infos)
 }
 
+pub fn clear_cache(cache_path: &Path) -> Result<()> {
+    filecoin_proofs_v1::clear_cache(cache_path)
+}
+
 pub fn seal_commit_phase1<T: AsRef<Path>>(
     cache_path: T,
     replica_path: T,
@@ -175,8 +179,8 @@ pub fn seal_commit_phase1<T: AsRef<Path>>(
 
             let output = filecoin_proofs_v1::seal_commit_phase1(
                 config,
-                cache_path,
-                replica_path,
+                cache_path.as_ref(),
+                replica_path.as_ref(),
                 prover_id,
                 sector_id,
                 ticket,
