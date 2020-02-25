@@ -95,11 +95,10 @@ fn split_replicas(
     let mut config_v1 = None;
     for (id, info) in replicas.iter() {
         let PrivateReplicaInfo {
+            replica,
             registered_proof,
-            access,
             comm_r,
             cache_dir,
-            replica_path,
         } = info;
 
         use RegisteredPoStProof::*;
@@ -111,10 +110,9 @@ fn split_replicas(
                 }
 
                 let info_v1 = filecoin_proofs_v1::PrivateReplicaInfo::new(
-                    access.clone(),
+                    replica.into(),
                     *comm_r,
                     cache_dir.into(),
-                    replica_path.into(),
                 )?;
                 replicas_v1.insert(*id, info_v1);
             }

@@ -8,30 +8,26 @@ use crate::{Commitment, RegisteredPoStProof};
 pub struct PrivateReplicaInfo {
     /// The version of this replica.
     pub(crate) registered_proof: RegisteredPoStProof,
-    /// Path to the replica.
-    pub(crate) access: String,
+    /// Path the replica.
+    pub(crate) replica: PathBuf,
     /// The replica commitment.
     pub(crate) comm_r: Commitment,
     /// Contains sector-specific (e.g. merkle trees) assets
     pub(crate) cache_dir: PathBuf,
-    /// Contains the replica.
-    pub(crate) replica_path: PathBuf,
 }
 
 impl PrivateReplicaInfo {
     pub fn new(
         registered_proof: RegisteredPoStProof,
-        access: String,
+        replica: PathBuf,
         comm_r: Commitment,
         cache_dir: PathBuf,
-        replica_path: PathBuf,
     ) -> Self {
         PrivateReplicaInfo {
             registered_proof,
-            access,
+            replica,
             comm_r,
             cache_dir,
-            replica_path,
         }
     }
 }
