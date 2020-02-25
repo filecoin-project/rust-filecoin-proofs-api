@@ -55,9 +55,11 @@ pub fn generate_post(
         prover_id,
     )?;
 
-    let post_tuples = posts_v1.into_iter().zip(iter::repeat(rpp_v1)).map(|(snark_proof, rpp)| {
-        (rpp, snark_proof)
-    }).collect();
+    let post_tuples = posts_v1
+        .into_iter()
+        .zip(iter::repeat(rpp_v1))
+        .map(|(snark_proof, rpp)| (rpp, snark_proof))
+        .collect();
 
     // once there are multiple versions, merge them before returning
 
