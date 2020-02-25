@@ -179,8 +179,8 @@ pub fn seal_commit_phase1<T: AsRef<Path>>(
 
             let output = filecoin_proofs_v1::seal_commit_phase1(
                 config,
-                cache_path.as_ref(),
-                replica_path.as_ref(),
+                cache_path,
+                replica_path,
                 prover_id,
                 sector_id,
                 ticket,
