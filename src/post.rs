@@ -6,6 +6,7 @@ use crate::{
     Candidate, ChallengeSeed, PrivateReplicaInfo, ProverId, PublicReplicaInfo, RegisteredPoStProof,
     SectorId, SnarkProof,
 };
+use std::iter;
 
 pub fn generate_candidates(
     randomness: &ChallengeSeed,
@@ -17,7 +18,7 @@ pub fn generate_candidates(
     ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
 
     let candidates_v1 = filecoin_proofs_v1::generate_candidates(
-        config_v1.expect("checked before"),
+        config_v1.expect("checked before").as_v1_config(),
         randomness,
         challenge_count,
         &replicas_v1,
@@ -38,23 +39,29 @@ pub fn generate_post(
     replicas: &BTreeMap<SectorId, PrivateReplicaInfo>,
     winners: Vec<Candidate>,
     prover_id: ProverId,
-) -> Result<Vec<SnarkProof>> {
-    let (replicas_v1, config_v1) = split_replicas(replicas)?;
+) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
+    let (replicas_v1, registered_post_proof_type_v1) = split_replicas(replicas)?;
     ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
 
     let winners_v1 = filter_candidates(&winners, &replicas_v1);
 
+    let rpp_v1 = registered_post_proof_type_v1.expect("already checked");
+
     let posts_v1 = filecoin_proofs_v1::generate_post(
-        config_v1.expect("already checked"),
+        rpp_v1.as_v1_config(),
         randomness,
         &replicas_v1,
         winners_v1,
         prover_id,
     )?;
 
+    let post_tuples = posts_v1.into_iter().zip(iter::repeat(rpp_v1)).map(|(snark_proof, rpp)| {
+        (rpp, snark_proof)
+    }).collect();
+
     // once there are multiple versions, merge them before returning
 
-    Ok(posts_v1)
+    Ok(post_tuples)
 }
 
 pub fn verify_post(
@@ -88,15 +95,15 @@ fn split_replicas(
     replicas: &BTreeMap<SectorId, PrivateReplicaInfo>,
 ) -> Result<(
     BTreeMap<SectorId, filecoin_proofs_v1::PrivateReplicaInfo>,
-    Option<filecoin_proofs_v1::types::PoStConfig>,
+    Option<RegisteredPoStProof>,
 )> {
     let mut replicas_v1 = BTreeMap::new();
 
-    let mut config_v1 = None;
+    let mut registered_post_proof_type_v1 = None;
+
     for (id, info) in replicas.iter() {
         let PrivateReplicaInfo {
             registered_proof,
-            access,
             comm_r,
             cache_dir,
             replica_path,
@@ -106,22 +113,22 @@ fn split_replicas(
 
         match registered_proof {
             StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-                if config_v1.is_none() {
-                    config_v1 = Some(registered_proof.as_v1_config());
+                if registered_post_proof_type_v1.is_none() {
+                    registered_post_proof_type_v1 = Some(*registered_proof);
                 }
 
                 let info_v1 = filecoin_proofs_v1::PrivateReplicaInfo::new(
-                    access.clone(),
+                    replica_path.clone(),
                     *comm_r,
                     cache_dir.into(),
-                    replica_path.into(),
                 )?;
+
                 replicas_v1.insert(*id, info_v1);
             }
         }
     }
 
-    Ok((replicas_v1, config_v1))
+    Ok((replicas_v1, registered_post_proof_type_v1))
 }
 
 fn split_public_replicas(
