@@ -340,7 +340,7 @@ pub fn add_piece<R, W>(
     target: W,
     piece_size: UnpaddedBytesAmount,
     piece_lengths: &[UnpaddedBytesAmount],
-) -> Result<(UnpaddedBytesAmount, Commitment)>
+) -> Result<PieceInfo>
 where
     R: Read,
     W: Read + Write + Seek,
@@ -358,7 +358,7 @@ pub fn write_and_preprocess<R, W>(
     source: R,
     target: W,
     piece_size: UnpaddedBytesAmount,
-) -> Result<(UnpaddedBytesAmount, Commitment)>
+) -> Result<PieceInfo>
 where
     R: Read,
     W: Read + Write + Seek,
