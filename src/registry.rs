@@ -18,6 +18,17 @@ pub enum Version {
     V1,
 }
 
+impl From<RegisteredSealProof> for RegisteredPoStProof {
+    fn from(p: RegisteredSealProof) -> Self {
+        match p {
+            RegisteredSealProof::StackedDrg2KiBV1 => RegisteredPoStProof::StackedDrg2KiBV1,
+            RegisteredSealProof::StackedDrg8MiBV1 => RegisteredPoStProof::StackedDrg8MiBV1,
+            RegisteredSealProof::StackedDrg512MiBV1 => RegisteredPoStProof::StackedDrg512MiBV1,
+            RegisteredSealProof::StackedDrg32GiBV1 => RegisteredPoStProof::StackedDrg32GiBV1,
+        }
+    }
+}
+
 impl RegisteredSealProof {
     /// Return the version for this proof.
     pub fn version(self) -> Version {
