@@ -71,6 +71,45 @@ fn convert_labels<Tree: 'static + MerkleTreeTrait>(
     }
 }
 
+// TODO: avoid panic and use try_into
+impl<Tree: 'static + MerkleTreeTrait> Into<RawLabels<Tree>> for Labels {
+    fn into(self) -> RawLabels<Tree> {
+        use std::any::Any;
+        use Labels::*;
+
+        match self {
+            StackedDrg2KiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
+                    raw.clone()
+                } else {
+                    panic!("cannot convert 2kib into different structure")
+                }
+            }
+            StackedDrg8MiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
+                    raw.clone()
+                } else {
+                    panic!("cannot convert 8Mib into different structure")
+                }
+            }
+            StackedDrg512MiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
+                    raw.clone()
+                } else {
+                    panic!("cannot convert 512Mib into different structure")
+                }
+            }
+            StackedDrg32GiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
+                    raw.clone()
+                } else {
+                    panic!("cannot convert 32gib into different structure")
+                }
+            }
+        }
+    }
+}
+
 /// The output of `seal_pre_commit_phase2`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SealPreCommitPhase2Output {
@@ -123,7 +162,6 @@ where
     S: AsRef<Path>,
     T: AsRef<Path>,
 {
-    use RegisteredSealProof::*;
     ensure!(
         registered_proof.version() == Version::V1,
         "unusupported version"
@@ -189,7 +227,25 @@ where
     R: AsRef<Path>,
     S: AsRef<Path>,
 {
-    todo!();
+    ensure!(
+        phase1_output.registered_proof.version() == Version::V1,
+        "unusupported version"
+    );
+
+    with_shape!(
+        u64::from(phase1_output.registered_proof.sector_size()),
+        seal_pre_commit_phase2_inner,
+        phase1_output,
+        cache_path.as_ref(),
+        out_path.as_ref(),
+    )
+}
+
+fn seal_pre_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
+    phase1_output: SealPreCommitPhase1Output,
+    cache_path: &Path,
+    out_path: &Path,
+) -> Result<SealPreCommitPhase2Output> {
     use RegisteredSealProof::*;
     let SealPreCommitPhase1Output {
         registered_proof,
@@ -198,37 +254,33 @@ where
         comm_d,
     } = phase1_output;
 
-    // match registered_proof {
-    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-    //         let seal_pre_commit_phase1_output =
-    //             filecoin_proofs_v1::types::SealPreCommitPhase1Output {
-    //                 labels,
-    //                 config,
-    //                 comm_d,
-    //             };
+    let seal_pre_commit_phase1_output =
+        filecoin_proofs_v1::types::SealPreCommitPhase1Output::<Tree> {
+            labels: labels.into(),
+            config,
+            comm_d,
+        };
 
-    //         filecoin_proofs_v1::validate_cache_for_precommit_phase2(
-    //             &cache_path,
-    //             &out_path,
-    //             &seal_pre_commit_phase1_output,
-    //         )?;
+    filecoin_proofs_v1::validate_cache_for_precommit_phase2::<_, _, Tree>(
+        &cache_path,
+        &out_path,
+        &seal_pre_commit_phase1_output,
+    )?;
 
-    //         let output = filecoin_proofs_v1::seal_pre_commit_phase2(
-    //             registered_proof.as_v1_config(),
-    //             seal_pre_commit_phase1_output,
-    //             cache_path,
-    //             out_path,
-    //         )?;
+    let output = filecoin_proofs_v1::seal_pre_commit_phase2::<_, _, Tree>(
+        registered_proof.as_v1_config(),
+        seal_pre_commit_phase1_output,
+        cache_path,
+        out_path,
+    )?;
 
-    //         let filecoin_proofs_v1::types::SealPreCommitOutput { comm_d, comm_r } = output;
+    let filecoin_proofs_v1::types::SealPreCommitOutput { comm_d, comm_r } = output;
 
-    //         Ok(SealPreCommitPhase2Output {
-    //             registered_proof,
-    //             comm_d,
-    //             comm_r,
-    //         })
-    //     }
-    // }
+    Ok(SealPreCommitPhase2Output {
+        registered_proof,
+        comm_d,
+        comm_r,
+    })
 }
 
 pub fn compute_comm_d(
