@@ -2,7 +2,13 @@ use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
+use filecoin_proofs_v1::constants::{
+    SectorShape2KiB, SectorShape32GiB, SectorShape512MiB, SectorShape8MiB,
+};
 use filecoin_proofs_v1::storage_proofs::hasher::Hasher;
+use filecoin_proofs_v1::types::MerkleTreeTrait;
+use filecoin_proofs_v1::types::VanillaSealProof as RawVanillaSealProof;
+use filecoin_proofs_v1::Labels as RawLabels;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -14,9 +20,17 @@ use crate::{
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SealPreCommitPhase1Output {
     pub registered_proof: RegisteredSealProof,
-    pub labels: filecoin_proofs_v1::Labels,
+    pub labels: Labels,
     pub config: filecoin_proofs_v1::StoreConfig,
     pub comm_d: filecoin_proofs_v1::Commitment,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Labels {
+    StackedDrg2KiBV1(RawLabels<SectorShape2KiB>),
+    StackedDrg8MiBV1(RawLabels<SectorShape8MiB>),
+    StackedDrg512MiBV1(RawLabels<SectorShape512MiB>),
+    StackedDrg32GiBV1(RawLabels<SectorShape32GiB>),
 }
 
 /// The output of `seal_pre_commit_phase2`.
@@ -30,7 +44,7 @@ pub struct SealPreCommitPhase2Output {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SealCommitPhase1Output {
     pub registered_proof: RegisteredSealProof,
-    pub vanilla_proofs: Vec<Vec<filecoin_proofs_v1::types::VanillaSealProof>>,
+    pub vanilla_proofs: Vec<Vec<VanillaSealProof>>,
     pub comm_r: Commitment,
     pub comm_d: Commitment,
     pub replica_id: <filecoin_proofs_v1::constants::DefaultTreeHasher as Hasher>::Domain,
@@ -39,12 +53,21 @@ pub struct SealCommitPhase1Output {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum VanillaSealProof {
+    StackedDrg2KiBV1(RawVanillaSealProof<SectorShape2KiB>),
+    StackedDrg8MiBV1(RawVanillaSealProof<SectorShape8MiB>),
+    StackedDrg512MiBV1(RawVanillaSealProof<SectorShape512MiB>),
+    StackedDrg32GiBV1(RawVanillaSealProof<SectorShape32GiB>),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SealCommitPhase2Output {
     pub proof: Vec<u8>,
 }
 
-pub fn clear_cache(cache_path: &Path) -> Result<()> {
-    filecoin_proofs_v1::clear_cache(cache_path)
+pub fn clear_cache(sector_size: u64, cache_path: &Path) -> Result<()> {
+    use filecoin_proofs_v1::{clear_cache, with_shape};
+    with_shape!(sector_size, clear_cache, cache_path)
 }
 
 pub fn seal_pre_commit_phase1<R, S, T>(
@@ -63,35 +86,35 @@ where
     T: AsRef<Path>,
 {
     use RegisteredSealProof::*;
+    todo!()
+    // match registered_proof {
+    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+    //         let config = registered_proof.as_v1_config();
+    //         let output = filecoin_proofs_v1::seal_pre_commit_phase1(
+    //             config,
+    //             cache_path,
+    //             in_path,
+    //             out_path,
+    //             prover_id,
+    //             sector_id,
+    //             ticket,
+    //             piece_infos,
+    //         )?;
 
-    match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-            let config = registered_proof.as_v1_config();
-            let output = filecoin_proofs_v1::seal_pre_commit_phase1(
-                config,
-                cache_path,
-                in_path,
-                out_path,
-                prover_id,
-                sector_id,
-                ticket,
-                piece_infos,
-            )?;
+    //         let filecoin_proofs_v1::types::SealPreCommitPhase1Output {
+    //             labels,
+    //             config,
+    //             comm_d,
+    //         } = output;
 
-            let filecoin_proofs_v1::types::SealPreCommitPhase1Output {
-                labels,
-                config,
-                comm_d,
-            } = output;
-
-            Ok(SealPreCommitPhase1Output {
-                registered_proof,
-                labels,
-                config,
-                comm_d,
-            })
-        }
-    }
+    //         Ok(SealPreCommitPhase1Output {
+    //             registered_proof,
+    //             labels,
+    //             config,
+    //             comm_d,
+    //         })
+    //     }
+    // }
 }
 
 pub fn seal_pre_commit_phase2<R, S>(
@@ -103,6 +126,7 @@ where
     R: AsRef<Path>,
     S: AsRef<Path>,
 {
+    todo!();
     use RegisteredSealProof::*;
     let SealPreCommitPhase1Output {
         registered_proof,
@@ -111,37 +135,37 @@ where
         comm_d,
     } = phase1_output;
 
-    match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-            let seal_pre_commit_phase1_output =
-                filecoin_proofs_v1::types::SealPreCommitPhase1Output {
-                    labels,
-                    config,
-                    comm_d,
-                };
+    // match registered_proof {
+    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+    //         let seal_pre_commit_phase1_output =
+    //             filecoin_proofs_v1::types::SealPreCommitPhase1Output {
+    //                 labels,
+    //                 config,
+    //                 comm_d,
+    //             };
 
-            filecoin_proofs_v1::validate_cache_for_precommit_phase2(
-                &cache_path,
-                &out_path,
-                &seal_pre_commit_phase1_output,
-            )?;
+    //         filecoin_proofs_v1::validate_cache_for_precommit_phase2(
+    //             &cache_path,
+    //             &out_path,
+    //             &seal_pre_commit_phase1_output,
+    //         )?;
 
-            let output = filecoin_proofs_v1::seal_pre_commit_phase2(
-                registered_proof.as_v1_config(),
-                seal_pre_commit_phase1_output,
-                cache_path,
-                out_path,
-            )?;
+    //         let output = filecoin_proofs_v1::seal_pre_commit_phase2(
+    //             registered_proof.as_v1_config(),
+    //             seal_pre_commit_phase1_output,
+    //             cache_path,
+    //             out_path,
+    //         )?;
 
-            let filecoin_proofs_v1::types::SealPreCommitOutput { comm_d, comm_r } = output;
+    //         let filecoin_proofs_v1::types::SealPreCommitOutput { comm_d, comm_r } = output;
 
-            Ok(SealPreCommitPhase2Output {
-                registered_proof,
-                comm_d,
-                comm_r,
-            })
-        }
-    }
+    //         Ok(SealPreCommitPhase2Output {
+    //             registered_proof,
+    //             comm_d,
+    //             comm_r,
+    //         })
+    //     }
+    // }
 }
 
 pub fn compute_comm_d(
@@ -161,51 +185,52 @@ pub fn seal_commit_phase1<T: AsRef<Path>>(
     pre_commit: SealPreCommitPhase2Output,
     piece_infos: &[PieceInfo],
 ) -> Result<SealCommitPhase1Output> {
-    let SealPreCommitPhase2Output {
-        comm_r,
-        comm_d,
-        registered_proof,
-    } = pre_commit;
-    use RegisteredSealProof::*;
-    match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-            let config = registered_proof.as_v1_config();
-            let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
+    todo!()
+    // let SealPreCommitPhase2Output {
+    //     comm_r,
+    //     comm_d,
+    //     registered_proof,
+    // } = pre_commit;
+    // use RegisteredSealProof::*;
+    // match registered_proof {
+    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+    //         let config = registered_proof.as_v1_config();
+    //         let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
 
-            filecoin_proofs_v1::validate_cache_for_commit(&cache_path, &replica_path)?;
+    //         filecoin_proofs_v1::validate_cache_for_commit(&cache_path, &replica_path)?;
 
-            let output = filecoin_proofs_v1::seal_commit_phase1(
-                config,
-                cache_path,
-                replica_path,
-                prover_id,
-                sector_id,
-                ticket,
-                seed,
-                pc,
-                piece_infos,
-            )?;
+    //         let output = filecoin_proofs_v1::seal_commit_phase1(
+    //             config,
+    //             cache_path,
+    //             replica_path,
+    //             prover_id,
+    //             sector_id,
+    //             ticket,
+    //             seed,
+    //             pc,
+    //             piece_infos,
+    //         )?;
 
-            let filecoin_proofs_v1::types::SealCommitPhase1Output {
-                vanilla_proofs,
-                comm_r,
-                comm_d,
-                replica_id,
-                seed,
-                ticket,
-            } = output;
+    //         let filecoin_proofs_v1::types::SealCommitPhase1Output {
+    //             vanilla_proofs,
+    //             comm_r,
+    //             comm_d,
+    //             replica_id,
+    //             seed,
+    //             ticket,
+    //         } = output;
 
-            Ok(SealCommitPhase1Output {
-                registered_proof,
-                vanilla_proofs,
-                comm_r,
-                comm_d,
-                replica_id,
-                seed,
-                ticket,
-            })
-        }
-    }
+    //         Ok(SealCommitPhase1Output {
+    //             registered_proof,
+    //             vanilla_proofs,
+    //             comm_r,
+    //             comm_d,
+    //             replica_id,
+    //             seed,
+    //             ticket,
+    //         })
+    //     }
+    // }
 }
 
 pub fn seal_commit_phase2(
@@ -213,35 +238,36 @@ pub fn seal_commit_phase2(
     prover_id: ProverId,
     sector_id: SectorId,
 ) -> Result<SealCommitPhase2Output> {
-    let SealCommitPhase1Output {
-        vanilla_proofs,
-        comm_r,
-        comm_d,
-        replica_id,
-        seed,
-        ticket,
-        registered_proof,
-    } = phase1_output;
-    use RegisteredSealProof::*;
-    match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-            let config = registered_proof.as_v1_config();
-            let co = filecoin_proofs_v1::types::SealCommitPhase1Output {
-                vanilla_proofs,
-                comm_r,
-                comm_d,
-                replica_id,
-                seed,
-                ticket,
-            };
+    todo!()
+    // let SealCommitPhase1Output {
+    //     vanilla_proofs,
+    //     comm_r,
+    //     comm_d,
+    //     replica_id,
+    //     seed,
+    //     ticket,
+    //     registered_proof,
+    // } = phase1_output;
+    // use RegisteredSealProof::*;
+    // match registered_proof {
+    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+    //         let config = registered_proof.as_v1_config();
+    //         let co = filecoin_proofs_v1::types::SealCommitPhase1Output {
+    //             vanilla_proofs,
+    //             comm_r,
+    //             comm_d,
+    //             replica_id,
+    //             seed,
+    //             ticket,
+    //         };
 
-            let output = filecoin_proofs_v1::seal_commit_phase2(config, co, prover_id, sector_id)?;
+    //         let output = filecoin_proofs_v1::seal_commit_phase2(config, co, prover_id, sector_id)?;
 
-            Ok(SealCommitPhase2Output {
-                proof: output.proof,
-            })
-        }
-    }
+    //         Ok(SealCommitPhase2Output {
+    //             proof: output.proof,
+    //         })
+    //     }
+    // }
 }
 
 pub fn verify_seal(
@@ -254,16 +280,17 @@ pub fn verify_seal(
     seed: Ticket,
     proof_vec: &[u8],
 ) -> Result<bool> {
-    use RegisteredSealProof::*;
-    match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-            let config = registered_proof.as_v1_config();
+    todo!()
+    // use RegisteredSealProof::*;
+    // match registered_proof {
+    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+    //         let config = registered_proof.as_v1_config();
 
-            filecoin_proofs_v1::verify_seal(
-                config, comm_r_in, comm_d_in, prover_id, sector_id, ticket, seed, proof_vec,
-            )
-        }
-    }
+    //         filecoin_proofs_v1::verify_seal(
+    //             config, comm_r_in, comm_d_in, prover_id, sector_id, ticket, seed, proof_vec,
+    //         )
+    //     }
+    // }
 }
 
 pub fn verify_batch_seal(
@@ -276,16 +303,17 @@ pub fn verify_batch_seal(
     seeds: &[Ticket],
     proof_vecs: &[&[u8]],
 ) -> Result<bool> {
-    use RegisteredSealProof::*;
-    match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-            let config = registered_proof.as_v1_config();
+    todo!()
+    // use RegisteredSealProof::*;
+    // match registered_proof {
+    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+    //         let config = registered_proof.as_v1_config();
 
-            filecoin_proofs_v1::verify_batch_seal(
-                config, comm_r_ins, comm_d_ins, prover_ids, sector_ids, tickets, seeds, proof_vecs,
-            )
-        }
-    }
+    //         filecoin_proofs_v1::verify_batch_seal(
+    //             config, comm_r_ins, comm_d_ins, prover_ids, sector_ids, tickets, seeds, proof_vecs,
+    //         )
+    //     }
+    // }
 }
 
 pub fn get_unsealed_range<T: Into<PathBuf> + AsRef<Path>>(
@@ -300,25 +328,26 @@ pub fn get_unsealed_range<T: Into<PathBuf> + AsRef<Path>>(
     offset: UnpaddedByteIndex,
     num_bytes: UnpaddedBytesAmount,
 ) -> Result<UnpaddedBytesAmount> {
-    use RegisteredSealProof::*;
-    match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-            let config = registered_proof.as_v1_config();
+    todo!()
+    // use RegisteredSealProof::*;
+    // match registered_proof {
+    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
+    //         let config = registered_proof.as_v1_config();
 
-            filecoin_proofs_v1::get_unsealed_range(
-                config,
-                cache_path,
-                sealed_path,
-                output_path,
-                prover_id,
-                sector_id,
-                comm_d,
-                ticket,
-                offset,
-                num_bytes,
-            )
-        }
-    }
+    //         filecoin_proofs_v1::get_unsealed_range(
+    //             config,
+    //             cache_path,
+    //             sealed_path,
+    //             output_path,
+    //             prover_id,
+    //             sector_id,
+    //             comm_d,
+    //             ticket,
+    //             offset,
+    //             num_bytes,
+    //         )
+    //     }
+    // }
 }
 
 pub fn generate_piece_commitment<T: Read>(

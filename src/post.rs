@@ -1,107 +1,78 @@
 use std::collections::BTreeMap;
 
 use anyhow::{ensure, Result};
+use filecoin_proofs_v1::types::MerkleTreeTrait;
+use filecoin_proofs_v1::with_shape;
 
 use crate::{
-    Candidate, ChallengeSeed, PrivateReplicaInfo, ProverId, PublicReplicaInfo, RegisteredPoStProof,
-    SectorId, SnarkProof,
+    ChallengeSeed, OrderedSectorSet, PoStType, PrivateReplicaInfo, ProverId, PublicReplicaInfo,
+    RegisteredPoStProof, SectorId, SnarkProof,
 };
-use std::iter;
 
-pub fn generate_candidates(
+pub fn generate_winning_post_sector_challenge(
+    proof_type: RegisteredPoStProof,
     randomness: &ChallengeSeed,
-    challenge_count: u64,
-    replicas: &BTreeMap<SectorId, PrivateReplicaInfo>,
-    prover_id: ProverId,
-) -> Result<Vec<Candidate>> {
-    let (replicas_v1, config_v1) = split_replicas(replicas)?;
-    ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
+    sector_set: &OrderedSectorSet,
+) -> Result<Vec<SectorId>> {
+    ensure!(
+        proof_type.typ() == PoStType::Winning,
+        "invalid post type provide"
+    );
 
-    let candidates_v1 = filecoin_proofs_v1::generate_candidates(
-        config_v1.expect("checked before").as_v1_config(),
+    with_shape!(
+        u64::from(proof_type.sector_size()),
+        generate_winning_post_sector_challenge_inner,
+        proof_type,
         randomness,
-        challenge_count,
-        &replicas_v1,
-        prover_id,
-    )?;
-
-    // once there are multiple versions, merge them before returning
-
-    Ok(candidates_v1)
+        sector_set
+    )
 }
 
-pub fn finalize_ticket(partial_ticket: &[u8; 32]) -> Result<[u8; 32]> {
-    filecoin_proofs_v1::finalize_ticket(partial_ticket)
+fn generate_winning_post_sector_challenge_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof_v1: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    sector_set: &OrderedSectorSet,
+) -> Result<Vec<SectorId>> {
+    filecoin_proofs_v1::generate_winning_post_sector_challenge::<Tree>(
+        &registered_proof_v1.as_v1_config(),
+        randomness,
+        sector_set,
+    )
 }
 
-pub fn generate_post(
+pub fn generate_winning_post(
     randomness: &ChallengeSeed,
     replicas: &BTreeMap<SectorId, PrivateReplicaInfo>,
-    winners: Vec<Candidate>,
     prover_id: ProverId,
 ) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
-    let (replicas_v1, registered_post_proof_type_v1) = split_replicas(replicas)?;
-    ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
+    ensure!(!replicas.is_empty(), "no replicas supplied");
+    let registered_post_proof_type_v1 = replicas
+        .values()
+        .next()
+        .map(|v| v.registered_proof)
+        .unwrap();
+    ensure!(
+        registered_post_proof_type_v1.typ() == PoStType::Winning,
+        "invalid post type provide"
+    );
 
-    let winners_v1 = filter_candidates(&winners, &replicas_v1);
-
-    let rpp_v1 = registered_post_proof_type_v1.expect("already checked");
-
-    let posts_v1 = filecoin_proofs_v1::generate_post(
-        rpp_v1.as_v1_config(),
+    with_shape!(
+        u64::from(registered_post_proof_type_v1.sector_size()),
+        generate_winning_post_inner,
+        registered_post_proof_type_v1,
         randomness,
-        &replicas_v1,
-        winners_v1,
+        replicas,
         prover_id,
-    )?;
-
-    let post_tuples = posts_v1
-        .into_iter()
-        .zip(iter::repeat(rpp_v1))
-        .map(|(snark_proof, rpp)| (rpp, snark_proof))
-        .collect();
-
-    // once there are multiple versions, merge them before returning
-
-    Ok(post_tuples)
+    )
 }
 
-pub fn verify_post(
+fn generate_winning_post_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof_v1: RegisteredPoStProof,
     randomness: &ChallengeSeed,
-    challenge_count: u64,
-    proofs: &[Vec<u8>],
-    replicas: &BTreeMap<SectorId, PublicReplicaInfo>,
-    winners: &[Candidate],
-    prover_id: ProverId,
-) -> Result<bool> {
-    let (replicas_v1, config_v1) = split_public_replicas(replicas)?;
-    ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
-
-    let winners_v1 = filter_candidates(winners, &replicas_v1);
-    let valid_v1 = filecoin_proofs_v1::verify_post(
-        config_v1.expect("already checked"),
-        randomness,
-        challenge_count,
-        proofs,
-        &replicas_v1,
-        &winners_v1,
-        prover_id,
-    )?;
-
-    // once there are multiple versions, merge them before returning
-
-    Ok(valid_v1)
-}
-
-fn split_replicas(
     replicas: &BTreeMap<SectorId, PrivateReplicaInfo>,
-) -> Result<(
-    BTreeMap<SectorId, filecoin_proofs_v1::PrivateReplicaInfo>,
-    Option<RegisteredPoStProof>,
-)> {
-    let mut replicas_v1 = BTreeMap::new();
-
-    let mut registered_post_proof_type_v1 = None;
+    prover_id: ProverId,
+) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
+    let mut replicas_v1 = Vec::new();
 
     for (id, info) in replicas.iter() {
         let PrivateReplicaInfo {
@@ -111,66 +82,230 @@ fn split_replicas(
             replica_path,
         } = info;
 
-        use RegisteredPoStProof::*;
+        ensure!(
+            registered_proof == &registered_proof_v1,
+            "can only generate the same kind of PoSt"
+        );
+        let info_v1 = filecoin_proofs_v1::PrivateReplicaInfo::new(
+            replica_path.clone(),
+            *comm_r,
+            cache_dir.into(),
+        )?;
 
-        match registered_proof {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-                if registered_post_proof_type_v1.is_none() {
-                    registered_post_proof_type_v1 = Some(*registered_proof);
-                }
-
-                let info_v1 = filecoin_proofs_v1::PrivateReplicaInfo::new(
-                    replica_path.clone(),
-                    *comm_r,
-                    cache_dir.into(),
-                )?;
-
-                replicas_v1.insert(*id, info_v1);
-            }
-        }
+        replicas_v1.push((*id, info_v1));
     }
 
-    Ok((replicas_v1, registered_post_proof_type_v1))
+    ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
+    let posts_v1 = filecoin_proofs_v1::generate_winning_post::<Tree>(
+        &registered_proof_v1.as_v1_config(),
+        randomness,
+        &replicas_v1,
+        prover_id,
+    )?;
+
+    // once there are multiple versions, merge them before returning
+
+    Ok(vec![(registered_proof_v1, posts_v1)])
 }
 
-fn split_public_replicas(
+pub fn verify_winning_post(
+    randomness: &ChallengeSeed,
+    proof: &[u8],
     replicas: &BTreeMap<SectorId, PublicReplicaInfo>,
-) -> Result<(
-    BTreeMap<SectorId, filecoin_proofs_v1::PublicReplicaInfo>,
-    Option<filecoin_proofs_v1::types::PoStConfig>,
-)> {
-    let mut replicas_v1 = BTreeMap::new();
+    sector_set: &OrderedSectorSet,
+    prover_id: ProverId,
+) -> Result<bool> {
+    ensure!(!replicas.is_empty(), "no replicas supplied");
+    let registered_post_proof_type_v1 = replicas
+        .values()
+        .next()
+        .map(|v| v.registered_proof)
+        .unwrap();
+    ensure!(
+        registered_post_proof_type_v1.typ() == PoStType::Winning,
+        "invalid post type provide"
+    );
 
-    let mut config_v1 = None;
+    with_shape!(
+        u64::from(registered_post_proof_type_v1.sector_size()),
+        verify_winning_post_inner,
+        registered_post_proof_type_v1,
+        randomness,
+        proof,
+        replicas,
+        sector_set,
+        prover_id,
+    )
+}
+
+fn verify_winning_post_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof_v1: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    proof: &[u8],
+    replicas: &BTreeMap<SectorId, PublicReplicaInfo>,
+    sector_set: &OrderedSectorSet,
+    prover_id: ProverId,
+) -> Result<bool> {
+    let mut replicas_v1 = Vec::new();
+
     for (id, info) in replicas.iter() {
         let PublicReplicaInfo {
             registered_proof,
             comm_r,
         } = info;
 
-        use RegisteredPoStProof::*;
-        match registered_proof {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-                if config_v1.is_none() {
-                    config_v1 = Some(registered_proof.as_v1_config());
-                }
+        ensure!(
+            registered_proof == &registered_proof_v1,
+            "can only generate the same kind of PoSt"
+        );
 
-                let info_v1 = filecoin_proofs_v1::PublicReplicaInfo::new(*comm_r)?;
-                replicas_v1.insert(*id, info_v1);
-            }
-        }
+        let info_v1 = filecoin_proofs_v1::PublicReplicaInfo::new(*comm_r)?;
+        replicas_v1.push((*id, info_v1));
     }
 
-    Ok((replicas_v1, config_v1))
+    let valid_v1 = filecoin_proofs_v1::verify_winning_post::<Tree>(
+        &registered_proof_v1.as_v1_config(),
+        randomness,
+        &replicas_v1,
+        prover_id,
+        sector_set,
+        proof,
+    )?;
+
+    // once there are multiple versions, merge them before returning
+
+    Ok(valid_v1)
 }
 
-fn filter_candidates<T>(
-    candidates: &[Candidate],
-    replicas: &BTreeMap<SectorId, T>,
-) -> Vec<Candidate> {
-    candidates
-        .iter()
-        .filter(|c| replicas.contains_key(&c.sector_id))
-        .cloned()
-        .collect()
+pub fn generate_window_post(
+    randomness: &ChallengeSeed,
+    replicas: &BTreeMap<SectorId, PrivateReplicaInfo>,
+    prover_id: ProverId,
+) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
+    ensure!(!replicas.is_empty(), "no replicas supplied");
+    let registered_post_proof_type_v1 = replicas
+        .values()
+        .next()
+        .map(|v| v.registered_proof)
+        .unwrap();
+    ensure!(
+        registered_post_proof_type_v1.typ() == PoStType::Window,
+        "invalid post type provide"
+    );
+
+    with_shape!(
+        u64::from(registered_post_proof_type_v1.sector_size()),
+        generate_window_post_inner,
+        registered_post_proof_type_v1,
+        randomness,
+        replicas,
+        prover_id,
+    )
+}
+
+fn generate_window_post_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof_v1: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    replicas: &BTreeMap<SectorId, PrivateReplicaInfo>,
+    prover_id: ProverId,
+) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
+    let mut replicas_v1 = BTreeMap::new();
+
+    for (id, info) in replicas.iter() {
+        let PrivateReplicaInfo {
+            registered_proof,
+            comm_r,
+            cache_dir,
+            replica_path,
+        } = info;
+
+        ensure!(
+            registered_proof == &registered_proof_v1,
+            "can only generate the same kind of PoSt"
+        );
+        let info_v1 = filecoin_proofs_v1::PrivateReplicaInfo::new(
+            replica_path.clone(),
+            *comm_r,
+            cache_dir.into(),
+        )?;
+
+        replicas_v1.insert(*id, info_v1);
+    }
+
+    ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
+    let posts_v1 = filecoin_proofs_v1::generate_window_post::<Tree>(
+        &registered_proof_v1.as_v1_config(),
+        randomness,
+        &replicas_v1,
+        prover_id,
+    )?;
+
+    // once there are multiple versions, merge them before returning
+
+    Ok(vec![(registered_proof_v1, posts_v1)])
+}
+
+pub fn verify_window_post(
+    randomness: &ChallengeSeed,
+    proof: &[u8],
+    replicas: &BTreeMap<SectorId, PublicReplicaInfo>,
+    prover_id: ProverId,
+) -> Result<bool> {
+    ensure!(!replicas.is_empty(), "no replicas supplied");
+    let registered_post_proof_type_v1 = replicas
+        .values()
+        .next()
+        .map(|v| v.registered_proof)
+        .unwrap();
+    ensure!(
+        registered_post_proof_type_v1.typ() == PoStType::Window,
+        "invalid post type provide"
+    );
+
+    with_shape!(
+        u64::from(registered_post_proof_type_v1.sector_size()),
+        verify_window_post_inner,
+        registered_post_proof_type_v1,
+        randomness,
+        proof,
+        replicas,
+        prover_id,
+    )
+}
+
+fn verify_window_post_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof_v1: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    proof: &[u8],
+    replicas: &BTreeMap<SectorId, PublicReplicaInfo>,
+    prover_id: ProverId,
+) -> Result<bool> {
+    let mut replicas_v1 = BTreeMap::new();
+
+    for (id, info) in replicas.iter() {
+        let PublicReplicaInfo {
+            registered_proof,
+            comm_r,
+        } = info;
+
+        ensure!(
+            registered_proof == &registered_proof_v1,
+            "can only generate the same kind of PoSt"
+        );
+
+        let info_v1 = filecoin_proofs_v1::PublicReplicaInfo::new(*comm_r)?;
+        replicas_v1.insert(*id, info_v1);
+    }
+
+    let valid_v1 = filecoin_proofs_v1::verify_window_post::<Tree>(
+        &registered_proof_v1.as_v1_config(),
+        randomness,
+        &replicas_v1,
+        prover_id,
+        proof,
+    )?;
+
+    // once there are multiple versions, merge them before returning
+
+    Ok(valid_v1)
 }
