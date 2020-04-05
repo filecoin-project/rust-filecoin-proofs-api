@@ -443,26 +443,53 @@ pub fn get_unsealed_range<T: Into<PathBuf> + AsRef<Path>>(
     offset: UnpaddedByteIndex,
     num_bytes: UnpaddedBytesAmount,
 ) -> Result<UnpaddedBytesAmount> {
-    todo!()
-    // use RegisteredSealProof::*;
-    // match registered_proof {
-    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-    //         let config = registered_proof.as_v1_config();
+    ensure!(
+        registered_proof.version() == Version::V1,
+        "unusupported version"
+    );
 
-    //         filecoin_proofs_v1::get_unsealed_range(
-    //             config,
-    //             cache_path,
-    //             sealed_path,
-    //             output_path,
-    //             prover_id,
-    //             sector_id,
-    //             comm_d,
-    //             ticket,
-    //             offset,
-    //             num_bytes,
-    //         )
-    //     }
-    // }
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        get_unsealed_range_inner,
+        registered_proof,
+        cache_path.as_ref(),
+        sealed_path.as_ref(),
+        output_path.as_ref(),
+        prover_id,
+        sector_id,
+        comm_d,
+        ticket,
+        offset,
+        num_bytes,
+    )
+}
+
+fn get_unsealed_range_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof: RegisteredSealProof,
+    cache_path: &Path,
+    sealed_path: &Path,
+    output_path: &Path,
+    prover_id: ProverId,
+    sector_id: SectorId,
+    comm_d: Commitment,
+    ticket: Ticket,
+    offset: UnpaddedByteIndex,
+    num_bytes: UnpaddedBytesAmount,
+) -> Result<UnpaddedBytesAmount> {
+    let config = registered_proof.as_v1_config();
+
+    filecoin_proofs_v1::get_unsealed_range::<_, Tree>(
+        config,
+        cache_path,
+        sealed_path,
+        output_path,
+        prover_id,
+        sector_id,
+        comm_d,
+        ticket,
+        offset,
+        num_bytes,
+    )
 }
 
 pub fn generate_piece_commitment<T: Read>(
