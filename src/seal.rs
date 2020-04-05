@@ -1,19 +1,19 @@
 use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use anyhow::{ensure, Result};
 use filecoin_proofs_v1::constants::{
     SectorShape2KiB, SectorShape32GiB, SectorShape512MiB, SectorShape8MiB,
 };
 use filecoin_proofs_v1::storage_proofs::hasher::Hasher;
 use filecoin_proofs_v1::types::MerkleTreeTrait;
 use filecoin_proofs_v1::types::VanillaSealProof as RawVanillaSealProof;
-use filecoin_proofs_v1::Labels as RawLabels;
+use filecoin_proofs_v1::{with_shape, Labels as RawLabels};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     Commitment, PieceInfo, ProverId, RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex,
-    UnpaddedBytesAmount,
+    UnpaddedBytesAmount, Version,
 };
 
 /// The output of `seal_pre_commit_phase1`.
@@ -31,6 +31,44 @@ pub enum Labels {
     StackedDrg8MiBV1(RawLabels<SectorShape8MiB>),
     StackedDrg512MiBV1(RawLabels<SectorShape512MiB>),
     StackedDrg32GiBV1(RawLabels<SectorShape32GiB>),
+}
+
+fn convert_labels<Tree: 'static + MerkleTreeTrait>(
+    proof: RegisteredSealProof,
+    labels: &RawLabels<Tree>,
+) -> Labels {
+    use std::any::Any;
+    use RegisteredSealProof::*;
+    match proof {
+        StackedDrg2KiBV1 => {
+            if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape2KiB>>(labels) {
+                Labels::StackedDrg2KiBV1(labels.clone())
+            } else {
+                panic!("invalid labels provided")
+            }
+        }
+        StackedDrg8MiBV1 => {
+            if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape8MiB>>(labels) {
+                Labels::StackedDrg8MiBV1(labels.clone())
+            } else {
+                panic!("invalid labels provided")
+            }
+        }
+        StackedDrg512MiBV1 => {
+            if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape512MiB>>(labels) {
+                Labels::StackedDrg512MiBV1(labels.clone())
+            } else {
+                panic!("invalid labels provided")
+            }
+        }
+        StackedDrg32GiBV1 => {
+            if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape32GiB>>(labels) {
+                Labels::StackedDrg32GiBV1(labels.clone())
+            } else {
+                panic!("invalid labels provided")
+            }
+        }
+    }
 }
 
 /// The output of `seal_pre_commit_phase2`.
@@ -86,35 +124,60 @@ where
     T: AsRef<Path>,
 {
     use RegisteredSealProof::*;
-    todo!()
-    // match registered_proof {
-    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-    //         let config = registered_proof.as_v1_config();
-    //         let output = filecoin_proofs_v1::seal_pre_commit_phase1(
-    //             config,
-    //             cache_path,
-    //             in_path,
-    //             out_path,
-    //             prover_id,
-    //             sector_id,
-    //             ticket,
-    //             piece_infos,
-    //         )?;
+    ensure!(
+        registered_proof.version() == Version::V1,
+        "unusupported version"
+    );
 
-    //         let filecoin_proofs_v1::types::SealPreCommitPhase1Output {
-    //             labels,
-    //             config,
-    //             comm_d,
-    //         } = output;
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        seal_pre_commit_phase1_inner,
+        registered_proof,
+        cache_path.as_ref(),
+        in_path.as_ref(),
+        out_path.as_ref(),
+        prover_id,
+        sector_id,
+        ticket,
+        piece_infos
+    )
+}
 
-    //         Ok(SealPreCommitPhase1Output {
-    //             registered_proof,
-    //             labels,
-    //             config,
-    //             comm_d,
-    //         })
-    //     }
-    // }
+fn seal_pre_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof: RegisteredSealProof,
+    cache_path: &Path,
+    in_path: &Path,
+    out_path: &Path,
+    prover_id: ProverId,
+    sector_id: SectorId,
+    ticket: Ticket,
+    piece_infos: &[PieceInfo],
+) -> Result<SealPreCommitPhase1Output> {
+    let config = registered_proof.as_v1_config();
+
+    let output = filecoin_proofs_v1::seal_pre_commit_phase1::<_, _, _, Tree>(
+        config,
+        cache_path,
+        in_path,
+        out_path,
+        prover_id,
+        sector_id,
+        ticket,
+        piece_infos,
+    )?;
+
+    let filecoin_proofs_v1::types::SealPreCommitPhase1Output::<Tree> {
+        labels,
+        config,
+        comm_d,
+    } = output;
+
+    Ok(SealPreCommitPhase1Output {
+        registered_proof,
+        labels: convert_labels::<Tree>(registered_proof, &labels),
+        config,
+        comm_d,
+    })
 }
 
 pub fn seal_pre_commit_phase2<R, S>(
