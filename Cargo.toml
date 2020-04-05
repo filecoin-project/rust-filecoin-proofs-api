@@ -10,6 +10,7 @@ readme = "README.md"
 [dependencies]
 anyhow = "1.0.26"
 serde = "1.0.104"
+paired = "0.18.0"
 
 [dependencies.filecoin-proofs-v1]
 version = "1.0.0-alpha.0"

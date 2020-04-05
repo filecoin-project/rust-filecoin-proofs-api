@@ -1,7 +1,8 @@
+use std::convert::TryInto;
 use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
-use anyhow::{ensure, Result};
+use anyhow::{bail, ensure, Error, Result};
 use filecoin_proofs_v1::constants::{
     SectorShape2KiB, SectorShape32GiB, SectorShape512MiB, SectorShape8MiB,
 };
@@ -33,77 +34,80 @@ pub enum Labels {
     StackedDrg32GiBV1(RawLabels<SectorShape32GiB>),
 }
 
-fn convert_labels<Tree: 'static + MerkleTreeTrait>(
-    proof: RegisteredSealProof,
-    labels: &RawLabels<Tree>,
-) -> Labels {
-    use std::any::Any;
-    use RegisteredSealProof::*;
-    match proof {
-        StackedDrg2KiBV1 => {
-            if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape2KiB>>(labels) {
-                Labels::StackedDrg2KiBV1(labels.clone())
-            } else {
-                panic!("invalid labels provided")
+impl Labels {
+    fn from_raw<Tree: 'static + MerkleTreeTrait>(
+        proof: RegisteredSealProof,
+        labels: &RawLabels<Tree>,
+    ) -> Result<Self> {
+        use std::any::Any;
+        use RegisteredSealProof::*;
+        match proof {
+            StackedDrg2KiBV1 => {
+                if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape2KiB>>(labels) {
+                    Ok(Labels::StackedDrg2KiBV1(labels.clone()))
+                } else {
+                    bail!("invalid labels provided")
+                }
             }
-        }
-        StackedDrg8MiBV1 => {
-            if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape8MiB>>(labels) {
-                Labels::StackedDrg8MiBV1(labels.clone())
-            } else {
-                panic!("invalid labels provided")
+            StackedDrg8MiBV1 => {
+                if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape8MiB>>(labels) {
+                    Ok(Labels::StackedDrg8MiBV1(labels.clone()))
+                } else {
+                    bail!("invalid labels provided")
+                }
             }
-        }
-        StackedDrg512MiBV1 => {
-            if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape512MiB>>(labels) {
-                Labels::StackedDrg512MiBV1(labels.clone())
-            } else {
-                panic!("invalid labels provided")
+            StackedDrg512MiBV1 => {
+                if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape512MiB>>(labels) {
+                    Ok(Labels::StackedDrg512MiBV1(labels.clone()))
+                } else {
+                    bail!("invalid labels provided")
+                }
             }
-        }
-        StackedDrg32GiBV1 => {
-            if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape32GiB>>(labels) {
-                Labels::StackedDrg32GiBV1(labels.clone())
-            } else {
-                panic!("invalid labels provided")
+            StackedDrg32GiBV1 => {
+                if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape32GiB>>(labels) {
+                    Ok(Labels::StackedDrg32GiBV1(labels.clone()))
+                } else {
+                    bail!("invalid labels provided")
+                }
             }
         }
     }
 }
 
-// TODO: avoid panic and use try_into
-impl<Tree: 'static + MerkleTreeTrait> Into<RawLabels<Tree>> for Labels {
-    fn into(self) -> RawLabels<Tree> {
+impl<Tree: 'static + MerkleTreeTrait> TryInto<RawLabels<Tree>> for Labels {
+    type Error = Error;
+
+    fn try_into(self) -> Result<RawLabels<Tree>> {
         use std::any::Any;
         use Labels::*;
 
         match self {
             StackedDrg2KiBV1(raw) => {
                 if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
-                    raw.clone()
+                    Ok(raw.clone())
                 } else {
-                    panic!("cannot convert 2kib into different structure")
+                    bail!("cannot convert 2kib into different structure")
                 }
             }
             StackedDrg8MiBV1(raw) => {
                 if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
-                    raw.clone()
+                    Ok(raw.clone())
                 } else {
-                    panic!("cannot convert 8Mib into different structure")
+                    bail!("cannot convert 8Mib into different structure")
                 }
             }
             StackedDrg512MiBV1(raw) => {
                 if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
-                    raw.clone()
+                    Ok(raw.clone())
                 } else {
-                    panic!("cannot convert 512Mib into different structure")
+                    bail!("cannot convert 512Mib into different structure")
                 }
             }
             StackedDrg32GiBV1(raw) => {
                 if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
-                    raw.clone()
+                    Ok(raw.clone())
                 } else {
-                    panic!("cannot convert 32gib into different structure")
+                    bail!("cannot convert 32gib into different structure")
                 }
             }
         }
@@ -121,7 +125,7 @@ pub struct SealPreCommitPhase2Output {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SealCommitPhase1Output {
     pub registered_proof: RegisteredSealProof,
-    pub vanilla_proofs: Vec<Vec<VanillaSealProof>>,
+    pub vanilla_proofs: VanillaSealProof,
     pub comm_r: Commitment,
     pub comm_d: Commitment,
     pub replica_id: <filecoin_proofs_v1::constants::DefaultTreeHasher as Hasher>::Domain,
@@ -131,10 +135,100 @@ pub struct SealCommitPhase1Output {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum VanillaSealProof {
-    StackedDrg2KiBV1(RawVanillaSealProof<SectorShape2KiB>),
-    StackedDrg8MiBV1(RawVanillaSealProof<SectorShape8MiB>),
-    StackedDrg512MiBV1(RawVanillaSealProof<SectorShape512MiB>),
-    StackedDrg32GiBV1(RawVanillaSealProof<SectorShape32GiB>),
+    StackedDrg2KiBV1(Vec<Vec<RawVanillaSealProof<SectorShape2KiB>>>),
+    StackedDrg8MiBV1(Vec<Vec<RawVanillaSealProof<SectorShape8MiB>>>),
+    StackedDrg512MiBV1(Vec<Vec<RawVanillaSealProof<SectorShape512MiB>>>),
+    StackedDrg32GiBV1(Vec<Vec<RawVanillaSealProof<SectorShape32GiB>>>),
+}
+
+impl VanillaSealProof {
+    fn from_raw<Tree: 'static + MerkleTreeTrait>(
+        proof: RegisteredSealProof,
+        proofs: &Vec<Vec<RawVanillaSealProof<Tree>>>,
+    ) -> Result<Self> {
+        use std::any::Any;
+        use RegisteredSealProof::*;
+        match proof {
+            StackedDrg2KiBV1 => {
+                if let Some(proofs) =
+                    Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape2KiB>>>>(proofs)
+                {
+                    Ok(VanillaSealProof::StackedDrg2KiBV1(proofs.clone()))
+                } else {
+                    bail!("invalid proofs provided")
+                }
+            }
+            StackedDrg8MiBV1 => {
+                if let Some(proofs) =
+                    Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape8MiB>>>>(proofs)
+                {
+                    Ok(VanillaSealProof::StackedDrg8MiBV1(proofs.clone()))
+                } else {
+                    bail!("invalid proofs provided")
+                }
+            }
+            StackedDrg512MiBV1 => {
+                if let Some(proofs) =
+                    Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape512MiB>>>>(proofs)
+                {
+                    Ok(VanillaSealProof::StackedDrg512MiBV1(proofs.clone()))
+                } else {
+                    bail!("invalid proofs provided")
+                }
+            }
+            StackedDrg32GiBV1 => {
+                if let Some(proofs) =
+                    Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape32GiB>>>>(proofs)
+                {
+                    Ok(VanillaSealProof::StackedDrg32GiBV1(proofs.clone()))
+                } else {
+                    bail!("invalid proofs provided")
+                }
+            }
+        }
+    }
+}
+
+impl<Tree: 'static + MerkleTreeTrait> TryInto<Vec<Vec<RawVanillaSealProof<Tree>>>>
+    for VanillaSealProof
+{
+    type Error = Error;
+
+    fn try_into(self) -> Result<Vec<Vec<RawVanillaSealProof<Tree>>>> {
+        use std::any::Any;
+        use VanillaSealProof::*;
+
+        match self {
+            StackedDrg2KiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 2kib into different structure")
+                }
+            }
+            StackedDrg8MiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 8Mib into different structure")
+                }
+            }
+            StackedDrg512MiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 512Mib into different structure")
+                }
+            }
+            StackedDrg32GiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 32gib into different structure")
+                }
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -213,7 +307,7 @@ fn seal_pre_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
 
     Ok(SealPreCommitPhase1Output {
         registered_proof,
-        labels: convert_labels::<Tree>(registered_proof, &labels),
+        labels: Labels::from_raw::<Tree>(registered_proof, &labels)?,
         config,
         comm_d,
     })
@@ -256,7 +350,7 @@ fn seal_pre_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
 
     let seal_pre_commit_phase1_output =
         filecoin_proofs_v1::types::SealPreCommitPhase1Output::<Tree> {
-            labels: labels.into(),
+            labels: labels.try_into()?,
             config,
             comm_d,
         };
@@ -300,52 +394,77 @@ pub fn seal_commit_phase1<T: AsRef<Path>>(
     pre_commit: SealPreCommitPhase2Output,
     piece_infos: &[PieceInfo],
 ) -> Result<SealCommitPhase1Output> {
-    todo!()
-    // let SealPreCommitPhase2Output {
-    //     comm_r,
-    //     comm_d,
-    //     registered_proof,
-    // } = pre_commit;
-    // use RegisteredSealProof::*;
-    // match registered_proof {
-    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-    //         let config = registered_proof.as_v1_config();
-    //         let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
+    ensure!(
+        pre_commit.registered_proof.version() == Version::V1,
+        "unusupported version"
+    );
 
-    //         filecoin_proofs_v1::validate_cache_for_commit(&cache_path, &replica_path)?;
+    with_shape!(
+        u64::from(pre_commit.registered_proof.sector_size()),
+        seal_commit_phase1_inner,
+        cache_path.as_ref(),
+        replica_path.as_ref(),
+        prover_id,
+        sector_id,
+        ticket,
+        seed,
+        pre_commit,
+        piece_infos,
+    )
+}
 
-    //         let output = filecoin_proofs_v1::seal_commit_phase1(
-    //             config,
-    //             cache_path,
-    //             replica_path,
-    //             prover_id,
-    //             sector_id,
-    //             ticket,
-    //             seed,
-    //             pc,
-    //             piece_infos,
-    //         )?;
+fn seal_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
+    cache_path: &Path,
+    replica_path: &Path,
+    prover_id: ProverId,
+    sector_id: SectorId,
+    ticket: Ticket,
+    seed: Ticket,
+    pre_commit: SealPreCommitPhase2Output,
+    piece_infos: &[PieceInfo],
+) -> Result<SealCommitPhase1Output> {
+    let SealPreCommitPhase2Output {
+        comm_r,
+        comm_d,
+        registered_proof,
+    } = pre_commit;
 
-    //         let filecoin_proofs_v1::types::SealCommitPhase1Output {
-    //             vanilla_proofs,
-    //             comm_r,
-    //             comm_d,
-    //             replica_id,
-    //             seed,
-    //             ticket,
-    //         } = output;
+    let config = registered_proof.as_v1_config();
+    let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
 
-    //         Ok(SealCommitPhase1Output {
-    //             registered_proof,
-    //             vanilla_proofs,
-    //             comm_r,
-    //             comm_d,
-    //             replica_id,
-    //             seed,
-    //             ticket,
-    //         })
-    //     }
-    // }
+    filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
+
+    let output = filecoin_proofs_v1::seal_commit_phase1::<_, Tree>(
+        config,
+        cache_path,
+        replica_path,
+        prover_id,
+        sector_id,
+        ticket,
+        seed,
+        pc,
+        piece_infos,
+    )?;
+
+    let filecoin_proofs_v1::types::SealCommitPhase1Output::<Tree> {
+        vanilla_proofs,
+        comm_r,
+        comm_d,
+        replica_id,
+        seed,
+        ticket,
+    } = output;
+
+    let replica_id: paired::bls12_381::Fr = replica_id.into();
+    Ok(SealCommitPhase1Output {
+        registered_proof,
+        vanilla_proofs: VanillaSealProof::from_raw::<Tree>(registered_proof, &vanilla_proofs)?,
+        comm_r,
+        comm_d,
+        replica_id: replica_id.into(),
+        seed,
+        ticket,
+    })
 }
 
 pub fn seal_commit_phase2(
@@ -353,36 +472,52 @@ pub fn seal_commit_phase2(
     prover_id: ProverId,
     sector_id: SectorId,
 ) -> Result<SealCommitPhase2Output> {
-    todo!()
-    // let SealCommitPhase1Output {
-    //     vanilla_proofs,
-    //     comm_r,
-    //     comm_d,
-    //     replica_id,
-    //     seed,
-    //     ticket,
-    //     registered_proof,
-    // } = phase1_output;
-    // use RegisteredSealProof::*;
-    // match registered_proof {
-    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-    //         let config = registered_proof.as_v1_config();
-    //         let co = filecoin_proofs_v1::types::SealCommitPhase1Output {
-    //             vanilla_proofs,
-    //             comm_r,
-    //             comm_d,
-    //             replica_id,
-    //             seed,
-    //             ticket,
-    //         };
+    ensure!(
+        phase1_output.registered_proof.version() == Version::V1,
+        "unusupported version"
+    );
 
-    //         let output = filecoin_proofs_v1::seal_commit_phase2(config, co, prover_id, sector_id)?;
+    with_shape!(
+        u64::from(phase1_output.registered_proof.sector_size()),
+        seal_commit_phase2_inner,
+        phase1_output,
+        prover_id,
+        sector_id,
+    )
+}
 
-    //         Ok(SealCommitPhase2Output {
-    //             proof: output.proof,
-    //         })
-    //     }
-    // }
+fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
+    phase1_output: SealCommitPhase1Output,
+    prover_id: ProverId,
+    sector_id: SectorId,
+) -> Result<SealCommitPhase2Output> {
+    let SealCommitPhase1Output {
+        vanilla_proofs,
+        comm_r,
+        comm_d,
+        replica_id,
+        seed,
+        ticket,
+        registered_proof,
+    } = phase1_output;
+
+    let config = registered_proof.as_v1_config();
+    let replica_id: paired::bls12_381::Fr = replica_id.into();
+
+    let co = filecoin_proofs_v1::types::SealCommitPhase1Output {
+        vanilla_proofs: vanilla_proofs.try_into()?,
+        comm_r,
+        comm_d,
+        replica_id: replica_id.into(),
+        seed,
+        ticket,
+    };
+
+    let output = filecoin_proofs_v1::seal_commit_phase2::<Tree>(config, co, prover_id, sector_id)?;
+
+    Ok(SealCommitPhase2Output {
+        proof: output.proof,
+    })
 }
 
 pub fn verify_seal(
