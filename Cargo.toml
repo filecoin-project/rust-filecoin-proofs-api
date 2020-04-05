@@ -14,8 +14,7 @@ paired = "0.18.0"
 
 [dependencies.filecoin-proofs-v1]
 version = "1.0.0-alpha.0"
-# git = "https://github.com/filecoin-project/rust-fil-proofs"
+git = "https://github.com/filecoin-project/rust-fil-proofs"
 # rev = "4e1ef67224eb29dc8a19a4bc31ff7b0d4c7b717f"
-# branch = "update-merkle-trees-v2"
-path = "../rust-proofs/filecoin-proofs"
+branch = "update-merkle-trees-v2"
 package = "filecoin-proofs"
