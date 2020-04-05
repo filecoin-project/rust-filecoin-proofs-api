@@ -143,7 +143,8 @@ pub struct SealCommitPhase2Output {
 }
 
 pub fn clear_cache(sector_size: u64, cache_path: &Path) -> Result<()> {
-    use filecoin_proofs_v1::{clear_cache, with_shape};
+    use filecoin_proofs_v1::clear_cache;
+
     with_shape!(sector_size, clear_cache, cache_path)
 }
 
@@ -246,7 +247,6 @@ fn seal_pre_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     cache_path: &Path,
     out_path: &Path,
 ) -> Result<SealPreCommitPhase2Output> {
-    use RegisteredSealProof::*;
     let SealPreCommitPhase1Output {
         registered_proof,
         labels,
@@ -395,17 +395,21 @@ pub fn verify_seal(
     seed: Ticket,
     proof_vec: &[u8],
 ) -> Result<bool> {
-    todo!()
-    // use RegisteredSealProof::*;
-    // match registered_proof {
-    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-    //         let config = registered_proof.as_v1_config();
+    let config = registered_proof.as_v1_config();
+    use filecoin_proofs_v1::verify_seal;
 
-    //         filecoin_proofs_v1::verify_seal(
-    //             config, comm_r_in, comm_d_in, prover_id, sector_id, ticket, seed, proof_vec,
-    //         )
-    //     }
-    // }
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        verify_seal,
+        config,
+        comm_r_in,
+        comm_d_in,
+        prover_id,
+        sector_id,
+        ticket,
+        seed,
+        proof_vec,
+    )
 }
 
 pub fn verify_batch_seal(
@@ -418,17 +422,21 @@ pub fn verify_batch_seal(
     seeds: &[Ticket],
     proof_vecs: &[&[u8]],
 ) -> Result<bool> {
-    todo!()
-    // use RegisteredSealProof::*;
-    // match registered_proof {
-    //     StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-    //         let config = registered_proof.as_v1_config();
+    let config = registered_proof.as_v1_config();
+    use filecoin_proofs_v1::verify_batch_seal;
 
-    //         filecoin_proofs_v1::verify_batch_seal(
-    //             config, comm_r_ins, comm_d_ins, prover_ids, sector_ids, tickets, seeds, proof_vecs,
-    //         )
-    //     }
-    // }
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        verify_batch_seal,
+        config,
+        comm_r_ins,
+        comm_d_ins,
+        prover_ids,
+        sector_ids,
+        tickets,
+        seeds,
+        proof_vecs,
+    )
 }
 
 pub fn get_unsealed_range<T: Into<PathBuf> + AsRef<Path>>(
