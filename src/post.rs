@@ -13,6 +13,7 @@ pub fn generate_winning_post_sector_challenge(
     proof_type: RegisteredPoStProof,
     randomness: &ChallengeSeed,
     sector_set: &OrderedSectorSet,
+    prover_id: ProverId,
 ) -> Result<Vec<SectorId>> {
     ensure!(
         proof_type.typ() == PoStType::Winning,
@@ -24,7 +25,8 @@ pub fn generate_winning_post_sector_challenge(
         generate_winning_post_sector_challenge_inner,
         proof_type,
         randomness,
-        sector_set
+        sector_set,
+        prover_id,
     )
 }
 
@@ -32,11 +34,13 @@ fn generate_winning_post_sector_challenge_inner<Tree: 'static + MerkleTreeTrait>
     registered_proof_v1: RegisteredPoStProof,
     randomness: &ChallengeSeed,
     sector_set: &OrderedSectorSet,
+    prover_id: ProverId,
 ) -> Result<Vec<SectorId>> {
     filecoin_proofs_v1::generate_winning_post_sector_challenge::<Tree>(
         &registered_proof_v1.as_v1_config(),
         randomness,
         sector_set,
+        prover_id,
     )
 }
 
