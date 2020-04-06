@@ -142,6 +142,7 @@ pub enum VanillaSealProof {
 }
 
 impl VanillaSealProof {
+    #[allow(clippy::ptr_arg)]
     fn from_raw<Tree: 'static + MerkleTreeTrait>(
         proof: RegisteredSealProof,
         proofs: &Vec<Vec<RawVanillaSealProof<Tree>>>,
