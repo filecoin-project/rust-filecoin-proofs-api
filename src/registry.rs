@@ -1,7 +1,10 @@
 use std::path::PathBuf;
 
 use anyhow::{ensure, Result};
-use filecoin_proofs_v1::types::{PoRepConfig, PoRepProofPartitions, PoStConfig, SectorSize};
+use filecoin_proofs_v1::types::{
+    MerkleTreeTrait, PoRepConfig, PoRepProofPartitions, PoStConfig, PoStType, SectorSize,
+};
+use filecoin_proofs_v1::{constants, with_shape};
 use serde::{Deserialize, Serialize};
 
 /// Available seal proofs.
@@ -18,15 +21,15 @@ pub enum Version {
     V1,
 }
 
-impl From<RegisteredSealProof> for RegisteredPoStProof {
-    fn from(p: RegisteredSealProof) -> Self {
-        match p {
-            RegisteredSealProof::StackedDrg2KiBV1 => RegisteredPoStProof::StackedDrg2KiBV1,
-            RegisteredSealProof::StackedDrg8MiBV1 => RegisteredPoStProof::StackedDrg8MiBV1,
-            RegisteredSealProof::StackedDrg512MiBV1 => RegisteredPoStProof::StackedDrg512MiBV1,
-            RegisteredSealProof::StackedDrg32GiBV1 => RegisteredPoStProof::StackedDrg32GiBV1,
+// Hack to delegate to self config types.
+macro_rules! self_shape {
+    ($name:ident, $selfty:ty, $self:expr, $ret:ty) => {{
+        fn $name<Tree: 'static + MerkleTreeTrait>(s: $selfty) -> Result<$ret> {
+            s.as_v1_config().$name::<Tree>()
         }
-    }
+
+        with_shape!(u64::from($self.sector_size()), $name, $self)
+    }};
 }
 
 impl RegisteredSealProof {
@@ -43,7 +46,6 @@ impl RegisteredSealProof {
 
     /// Return the sector size for this proof.
     pub fn sector_size(self) -> SectorSize {
-        use filecoin_proofs_v1::constants;
         use RegisteredSealProof::*;
         let size = match self {
             StackedDrg2KiBV1 => constants::SECTOR_SIZE_2_KIB,
@@ -56,7 +58,6 @@ impl RegisteredSealProof {
 
     /// Return the number of partitions for this proof.
     pub fn partitions(self) -> u8 {
-        use filecoin_proofs_v1::constants;
         use RegisteredSealProof::*;
         match self {
             StackedDrg2KiBV1 => *constants::POREP_PARTITIONS
@@ -110,26 +111,31 @@ impl RegisteredSealProof {
     /// Returns the circuit identifier.
     pub fn circuit_identifier(self) -> Result<String> {
         match self.version() {
-            Version::V1 => self.as_v1_config().get_cache_identifier(),
+            Version::V1 => self_shape!(get_cache_identifier, RegisteredSealProof, self, String),
         }
     }
 
     pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
         match self.version() {
-            Version::V1 => self.as_v1_config().get_cache_verifying_key_path(),
+            Version::V1 => self_shape!(
+                get_cache_verifying_key_path,
+                RegisteredSealProof,
+                self,
+                PathBuf
+            ),
         }
     }
 
     pub fn cache_params_path(self) -> Result<PathBuf> {
         match self.version() {
-            Version::V1 => self.as_v1_config().get_cache_params_path(),
+            Version::V1 => self_shape!(get_cache_params_path, RegisteredSealProof, self, PathBuf),
         }
     }
 
     pub fn verifying_key_cid(self) -> Result<String> {
         match self.version() {
             Version::V1 => {
-                let id = self.as_v1_config().get_cache_identifier()?;
+                let id = self.circuit_identifier()?;
                 let params = filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.vk", &id));
                 ensure!(params.is_some(), "missing params for {}", &id);
 
@@ -141,7 +147,7 @@ impl RegisteredSealProof {
     pub fn params_cid(self) -> Result<String> {
         match self.version() {
             Version::V1 => {
-                let id = self.as_v1_config().get_cache_identifier()?;
+                let id = self.circuit_identifier()?;
                 let params =
                     filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.params", &id));
                 ensure!(params.is_some(), "missing params for {}", &id);
@@ -150,15 +156,41 @@ impl RegisteredSealProof {
             }
         }
     }
+
+    pub fn into_winning_post(self) -> RegisteredPoStProof {
+        use RegisteredPoStProof::*;
+        use RegisteredSealProof::*;
+        match self {
+            StackedDrg2KiBV1 => StackedDrgWinning2KiBV1,
+            StackedDrg8MiBV1 => StackedDrgWinning8MiBV1,
+            StackedDrg512MiBV1 => StackedDrgWinning512MiBV1,
+            StackedDrg32GiBV1 => StackedDrgWinning32GiBV1,
+        }
+    }
+
+    pub fn into_window_post(self) -> RegisteredPoStProof {
+        use RegisteredPoStProof::*;
+        use RegisteredSealProof::*;
+        match self {
+            StackedDrg2KiBV1 => StackedDrgWindow2KiBV1,
+            StackedDrg8MiBV1 => StackedDrgWindow8MiBV1,
+            StackedDrg512MiBV1 => StackedDrgWindow512MiBV1,
+            StackedDrg32GiBV1 => StackedDrgWindow32GiBV1,
+        }
+    }
 }
 
 /// Available seal proofs.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredPoStProof {
-    StackedDrg2KiBV1,
-    StackedDrg8MiBV1,
-    StackedDrg512MiBV1,
-    StackedDrg32GiBV1,
+    StackedDrgWinning2KiBV1,
+    StackedDrgWinning8MiBV1,
+    StackedDrgWinning512MiBV1,
+    StackedDrgWinning32GiBV1,
+    StackedDrgWindow2KiBV1,
+    StackedDrgWindow8MiBV1,
+    StackedDrgWindow512MiBV1,
+    StackedDrgWindow32GiBV1,
 }
 
 impl RegisteredPoStProof {
@@ -167,42 +199,68 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-                Version::V1
-            }
+            StackedDrgWinning2KiBV1
+            | StackedDrgWinning8MiBV1
+            | StackedDrgWinning512MiBV1
+            | StackedDrgWinning32GiBV1
+            | StackedDrgWindow2KiBV1
+            | StackedDrgWindow8MiBV1
+            | StackedDrgWindow512MiBV1
+            | StackedDrgWindow32GiBV1 => Version::V1,
         }
     }
 
     /// Return the sector size for this proof.
     pub fn sector_size(self) -> SectorSize {
-        use filecoin_proofs_v1::constants;
         use RegisteredPoStProof::*;
 
         let size = match self {
-            StackedDrg2KiBV1 => constants::SECTOR_SIZE_2_KIB,
-            StackedDrg8MiBV1 => constants::SECTOR_SIZE_8_MIB,
-            StackedDrg512MiBV1 => constants::SECTOR_SIZE_512_MIB,
-            StackedDrg32GiBV1 => constants::SECTOR_SIZE_32_GIB,
+            StackedDrgWinning2KiBV1 | StackedDrgWindow2KiBV1 => constants::SECTOR_SIZE_2_KIB,
+            StackedDrgWinning8MiBV1 | StackedDrgWindow8MiBV1 => constants::SECTOR_SIZE_8_MIB,
+            StackedDrgWinning512MiBV1 | StackedDrgWindow512MiBV1 => constants::SECTOR_SIZE_512_MIB,
+            StackedDrgWinning32GiBV1 | StackedDrgWindow32GiBV1 => constants::SECTOR_SIZE_32_GIB,
         };
         SectorSize(size)
     }
 
-    /// Return the number of partitions for this proof.
-    pub fn partitions(self) -> u8 {
+    /// Return the PoStType  for this proof.
+    pub fn typ(self) -> PoStType {
         use RegisteredPoStProof::*;
-
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => 1,
+            StackedDrgWinning2KiBV1
+            | StackedDrgWinning8MiBV1
+            | StackedDrgWinning512MiBV1
+            | StackedDrgWinning32GiBV1 => PoStType::Winning,
+            StackedDrgWindow2KiBV1
+            | StackedDrgWindow8MiBV1
+            | StackedDrgWindow512MiBV1
+            | StackedDrgWindow32GiBV1 => PoStType::Window,
         }
     }
 
     pub fn single_partition_proof_len(self) -> usize {
+        match self.version() {
+            Version::V1 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
+        }
+    }
+
+    /// Return the sector count for this proof.
+    pub fn sector_count(self) -> usize {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-                filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN
-            }
+            StackedDrgWinning2KiBV1
+            | StackedDrgWinning8MiBV1
+            | StackedDrgWinning512MiBV1
+            | StackedDrgWinning32GiBV1 => constants::WINNING_POST_SECTOR_COUNT,
+            StackedDrgWindow2KiBV1
+            | StackedDrgWindow8MiBV1
+            | StackedDrgWindow512MiBV1
+            | StackedDrgWindow32GiBV1 => *constants::WINDOW_POST_SECTOR_COUNT
+                .read()
+                .unwrap()
+                .get(&u64::from(self.sector_size()))
+                .expect("invalid sector size"),
         }
     }
 
@@ -212,40 +270,57 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-                PoStConfig {
-                    sector_size: self.sector_size(),
-                    challenge_count: filecoin_proofs_v1::constants::POST_CHALLENGE_COUNT,
-                    challenged_nodes: filecoin_proofs_v1::constants::POST_CHALLENGED_NODES,
-                    priority: true,
-                }
-            } // _ => panic!("Can only be called on V1 configs"),
+            StackedDrgWinning2KiBV1
+            | StackedDrgWinning8MiBV1
+            | StackedDrgWinning512MiBV1
+            | StackedDrgWinning32GiBV1 => PoStConfig {
+                typ: self.typ(),
+                sector_size: self.sector_size(),
+                sector_count: self.sector_count(),
+                challenge_count: constants::WINNING_POST_CHALLENGE_COUNT,
+                priority: true,
+            },
+            StackedDrgWindow2KiBV1
+            | StackedDrgWindow8MiBV1
+            | StackedDrgWindow512MiBV1
+            | StackedDrgWindow32GiBV1 => PoStConfig {
+                typ: self.typ(),
+                sector_size: self.sector_size(),
+                sector_count: self.sector_count(),
+                challenge_count: constants::WINDOW_POST_CHALLENGE_COUNT,
+                priority: true,
+            }, // _ => panic!("Can only be called on V1 configs"),
         }
     }
 
     /// Returns the circuit identifier.
     pub fn circuit_identifier(self) -> Result<String> {
         match self.version() {
-            Version::V1 => self.as_v1_config().get_cache_identifier(),
+            Version::V1 => self_shape!(get_cache_identifier, RegisteredPoStProof, self, String),
         }
     }
 
     pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
         match self.version() {
-            Version::V1 => self.as_v1_config().get_cache_verifying_key_path(),
+            Version::V1 => self_shape!(
+                get_cache_verifying_key_path,
+                RegisteredPoStProof,
+                self,
+                PathBuf
+            ),
         }
     }
 
     pub fn cache_params_path(self) -> Result<PathBuf> {
         match self.version() {
-            Version::V1 => self.as_v1_config().get_cache_params_path(),
+            Version::V1 => self_shape!(get_cache_params_path, RegisteredPoStProof, self, PathBuf),
         }
     }
 
     pub fn verifying_key_cid(self) -> Result<String> {
         match self.version() {
             Version::V1 => {
-                let id = self.as_v1_config().get_cache_identifier()?;
+                let id = self.circuit_identifier()?;
                 let params = filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.vk", &id));
                 ensure!(params.is_some(), "missing params for {}", &id);
 
@@ -257,7 +332,7 @@ impl RegisteredPoStProof {
     pub fn params_cid(self) -> Result<String> {
         match self.version() {
             Version::V1 => {
-                let id = self.as_v1_config().get_cache_identifier()?;
+                let id = self.circuit_identifier()?;
                 let params =
                     filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.params", &id));
                 ensure!(params.is_some(), "missing params for {}", &id);
