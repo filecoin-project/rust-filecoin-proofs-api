@@ -5,16 +5,16 @@ use filecoin_proofs_v1::types::MerkleTreeTrait;
 use filecoin_proofs_v1::with_shape;
 
 use crate::{
-    ChallengeSeed, OrderedSectorSet, PoStType, PrivateReplicaInfo, ProverId, PublicReplicaInfo,
-    RegisteredPoStProof, SectorId, SnarkProof,
+    ChallengeSeed, PoStType, PrivateReplicaInfo, ProverId, PublicReplicaInfo, RegisteredPoStProof,
+    SectorId, SnarkProof,
 };
 
 pub fn generate_winning_post_sector_challenge(
     proof_type: RegisteredPoStProof,
     randomness: &ChallengeSeed,
-    sector_set: &OrderedSectorSet,
+    sector_set_len: u64,
     prover_id: ProverId,
-) -> Result<Vec<SectorId>> {
+) -> Result<Vec<u64>> {
     ensure!(
         proof_type.typ() == PoStType::Winning,
         "invalid post type provide"
@@ -25,7 +25,7 @@ pub fn generate_winning_post_sector_challenge(
         generate_winning_post_sector_challenge_inner,
         proof_type,
         randomness,
-        sector_set,
+        sector_set_len,
         prover_id,
     )
 }
@@ -33,13 +33,13 @@ pub fn generate_winning_post_sector_challenge(
 fn generate_winning_post_sector_challenge_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof_v1: RegisteredPoStProof,
     randomness: &ChallengeSeed,
-    sector_set: &OrderedSectorSet,
+    sector_set_len: u64,
     prover_id: ProverId,
-) -> Result<Vec<SectorId>> {
+) -> Result<Vec<u64>> {
     filecoin_proofs_v1::generate_winning_post_sector_challenge::<Tree>(
         &registered_proof_v1.as_v1_config(),
         randomness,
-        sector_set,
+        sector_set_len,
         prover_id,
     )
 }
@@ -116,7 +116,6 @@ pub fn verify_winning_post(
     randomness: &ChallengeSeed,
     proof: &[u8],
     replicas: &BTreeMap<SectorId, PublicReplicaInfo>,
-    sector_set: &OrderedSectorSet,
     prover_id: ProverId,
 ) -> Result<bool> {
     ensure!(!replicas.is_empty(), "no replicas supplied");
@@ -137,7 +136,6 @@ pub fn verify_winning_post(
         randomness,
         proof,
         replicas,
-        sector_set,
         prover_id,
     )
 }
@@ -147,7 +145,6 @@ fn verify_winning_post_inner<Tree: 'static + MerkleTreeTrait>(
     randomness: &ChallengeSeed,
     proof: &[u8],
     replicas: &BTreeMap<SectorId, PublicReplicaInfo>,
-    sector_set: &OrderedSectorSet,
     prover_id: ProverId,
 ) -> Result<bool> {
     let mut replicas_v1 = Vec::new();
@@ -172,7 +169,6 @@ fn verify_winning_post_inner<Tree: 'static + MerkleTreeTrait>(
         randomness,
         &replicas_v1,
         prover_id,
-        sector_set,
         proof,
     )?;
 
