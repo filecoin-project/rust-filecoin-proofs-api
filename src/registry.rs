@@ -26,9 +26,7 @@ pub enum Version {
 macro_rules! self_shape {
     ($name:ident, $selfty:ty, $self:expr, $ret:ty) => {{
         fn $name<Tree: 'static + MerkleTreeTrait>(s: $selfty) -> Result<$ret> {
-            let res = s.as_v1_config().$name::<Tree>();
-            println!("{:?} - {:?} - {:?}", s.sector_size(), s.as_v1_config(), res);
-            res
+            s.as_v1_config().$name::<Tree>()
         }
 
         with_shape!(u64::from($self.sector_size()), $name, $self)
