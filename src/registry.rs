@@ -14,6 +14,7 @@ pub enum RegisteredSealProof {
     StackedDrg8MiBV1,
     StackedDrg512MiBV1,
     StackedDrg32GiBV1,
+    StackedDrg64GiBV1,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -38,9 +39,8 @@ impl RegisteredSealProof {
         use RegisteredSealProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-                Version::V1
-            }
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
+            | StackedDrg64GiBV1 => Version::V1,
         }
     }
 
@@ -52,6 +52,7 @@ impl RegisteredSealProof {
             StackedDrg8MiBV1 => constants::SECTOR_SIZE_8_MIB,
             StackedDrg512MiBV1 => constants::SECTOR_SIZE_512_MIB,
             StackedDrg32GiBV1 => constants::SECTOR_SIZE_32_GIB,
+            StackedDrg64GiBV1 => constants::SECTOR_SIZE_64_GIB,
         };
         SectorSize(size)
     }
@@ -80,6 +81,11 @@ impl RegisteredSealProof {
                 .unwrap()
                 .get(&constants::SECTOR_SIZE_32_GIB)
                 .expect("invalid sector size"),
+            StackedDrg64GiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .unwrap()
+                .get(&constants::SECTOR_SIZE_64_GIB)
+                .expect("invalid sector size"),
         }
     }
 
@@ -87,9 +93,8 @@ impl RegisteredSealProof {
         use RegisteredSealProof::*;
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-                filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN
-            }
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
+            | StackedDrg64GiBV1 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
         }
     }
 
@@ -99,12 +104,11 @@ impl RegisteredSealProof {
         assert_eq!(self.version(), Version::V1);
 
         match self {
-            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1 => {
-                PoRepConfig {
-                    sector_size: self.sector_size(),
-                    partitions: PoRepProofPartitions(self.partitions()),
-                }
-            } // _ => panic!("Can only be called on V1 configs"),
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
+            | StackedDrg64GiBV1 => PoRepConfig {
+                sector_size: self.sector_size(),
+                partitions: PoRepProofPartitions(self.partitions()),
+            }, // _ => panic!("Can only be called on V1 configs"),
         }
     }
 
@@ -165,6 +169,7 @@ impl RegisteredSealProof {
             StackedDrg8MiBV1 => StackedDrgWinning8MiBV1,
             StackedDrg512MiBV1 => StackedDrgWinning512MiBV1,
             StackedDrg32GiBV1 => StackedDrgWinning32GiBV1,
+            StackedDrg64GiBV1 => StackedDrgWinning64GiBV1,
         }
     }
 
@@ -176,6 +181,7 @@ impl RegisteredSealProof {
             StackedDrg8MiBV1 => StackedDrgWindow8MiBV1,
             StackedDrg512MiBV1 => StackedDrgWindow512MiBV1,
             StackedDrg32GiBV1 => StackedDrgWindow32GiBV1,
+            StackedDrg64GiBV1 => StackedDrgWindow64GiBV1,
         }
     }
 }
@@ -187,10 +193,12 @@ pub enum RegisteredPoStProof {
     StackedDrgWinning8MiBV1,
     StackedDrgWinning512MiBV1,
     StackedDrgWinning32GiBV1,
+    StackedDrgWinning64GiBV1,
     StackedDrgWindow2KiBV1,
     StackedDrgWindow8MiBV1,
     StackedDrgWindow512MiBV1,
     StackedDrgWindow32GiBV1,
+    StackedDrgWindow64GiBV1,
 }
 
 impl RegisteredPoStProof {
@@ -203,10 +211,12 @@ impl RegisteredPoStProof {
             | StackedDrgWinning8MiBV1
             | StackedDrgWinning512MiBV1
             | StackedDrgWinning32GiBV1
+            | StackedDrgWinning64GiBV1
             | StackedDrgWindow2KiBV1
             | StackedDrgWindow8MiBV1
             | StackedDrgWindow512MiBV1
-            | StackedDrgWindow32GiBV1 => Version::V1,
+            | StackedDrgWindow32GiBV1
+            | StackedDrgWindow64GiBV1 => Version::V1,
         }
     }
 
@@ -219,6 +229,7 @@ impl RegisteredPoStProof {
             StackedDrgWinning8MiBV1 | StackedDrgWindow8MiBV1 => constants::SECTOR_SIZE_8_MIB,
             StackedDrgWinning512MiBV1 | StackedDrgWindow512MiBV1 => constants::SECTOR_SIZE_512_MIB,
             StackedDrgWinning32GiBV1 | StackedDrgWindow32GiBV1 => constants::SECTOR_SIZE_32_GIB,
+            StackedDrgWinning64GiBV1 | StackedDrgWindow64GiBV1 => constants::SECTOR_SIZE_64_GIB,
         };
         SectorSize(size)
     }
@@ -230,11 +241,13 @@ impl RegisteredPoStProof {
             StackedDrgWinning2KiBV1
             | StackedDrgWinning8MiBV1
             | StackedDrgWinning512MiBV1
-            | StackedDrgWinning32GiBV1 => PoStType::Winning,
+            | StackedDrgWinning32GiBV1
+            | StackedDrgWinning64GiBV1 => PoStType::Winning,
             StackedDrgWindow2KiBV1
             | StackedDrgWindow8MiBV1
             | StackedDrgWindow512MiBV1
-            | StackedDrgWindow32GiBV1 => PoStType::Window,
+            | StackedDrgWindow32GiBV1
+            | StackedDrgWindow64GiBV1 => PoStType::Window,
         }
     }
 
@@ -252,11 +265,13 @@ impl RegisteredPoStProof {
             StackedDrgWinning2KiBV1
             | StackedDrgWinning8MiBV1
             | StackedDrgWinning512MiBV1
-            | StackedDrgWinning32GiBV1 => constants::WINNING_POST_SECTOR_COUNT,
+            | StackedDrgWinning32GiBV1
+            | StackedDrgWinning64GiBV1 => constants::WINNING_POST_SECTOR_COUNT,
             StackedDrgWindow2KiBV1
             | StackedDrgWindow8MiBV1
             | StackedDrgWindow512MiBV1
-            | StackedDrgWindow32GiBV1 => *constants::WINDOW_POST_SECTOR_COUNT
+            | StackedDrgWindow32GiBV1
+            | StackedDrgWindow64GiBV1 => *constants::WINDOW_POST_SECTOR_COUNT
                 .read()
                 .unwrap()
                 .get(&u64::from(self.sector_size()))
@@ -273,7 +288,8 @@ impl RegisteredPoStProof {
             StackedDrgWinning2KiBV1
             | StackedDrgWinning8MiBV1
             | StackedDrgWinning512MiBV1
-            | StackedDrgWinning32GiBV1 => PoStConfig {
+            | StackedDrgWinning32GiBV1
+            | StackedDrgWinning64GiBV1 => PoStConfig {
                 typ: self.typ(),
                 sector_size: self.sector_size(),
                 sector_count: self.sector_count(),
@@ -283,7 +299,8 @@ impl RegisteredPoStProof {
             StackedDrgWindow2KiBV1
             | StackedDrgWindow8MiBV1
             | StackedDrgWindow512MiBV1
-            | StackedDrgWindow32GiBV1 => PoStConfig {
+            | StackedDrgWindow32GiBV1
+            | StackedDrgWindow64GiBV1 => PoStConfig {
                 typ: self.typ(),
                 sector_size: self.sector_size(),
                 sector_count: self.sector_count(),
