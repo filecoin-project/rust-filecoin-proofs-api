@@ -6,7 +6,7 @@ use filecoin_proofs_v1::with_shape;
 
 use crate::{
     ChallengeSeed, PoStType, PrivateReplicaInfo, ProverId, PublicReplicaInfo, RegisteredPoStProof,
-    SectorId, SnarkProof,
+    SectorId, SnarkProof, Version,
 };
 
 pub fn generate_winning_post_sector_challenge(
@@ -247,19 +247,22 @@ fn generate_window_post_inner<Tree: 'static + MerkleTreeTrait>(
 
 pub fn verify_window_post(
     randomness: &ChallengeSeed,
-    proof: &[u8],
+    proofs: &[(RegisteredPoStProof, &[u8])],
     replicas: &BTreeMap<SectorId, PublicReplicaInfo>,
     prover_id: ProverId,
 ) -> Result<bool> {
     ensure!(!replicas.is_empty(), "no replicas supplied");
-    let registered_post_proof_type_v1 = replicas
-        .values()
-        .next()
-        .map(|v| v.registered_proof)
-        .unwrap();
+    ensure!(proofs.len() == 1, "only one version of PoSt supported");
+
+    let registered_post_proof_type_v1 = proofs[0].0;
+
     ensure!(
         registered_post_proof_type_v1.typ() == PoStType::Window,
         "invalid post type provide"
+    );
+    ensure!(
+        registered_post_proof_type_v1.version() == Version::V1,
+        "only V1 supported"
     );
 
     with_shape!(
@@ -267,7 +270,7 @@ pub fn verify_window_post(
         verify_window_post_inner,
         registered_post_proof_type_v1,
         randomness,
-        proof,
+        proofs,
         replicas,
         prover_id,
     )
@@ -276,7 +279,7 @@ pub fn verify_window_post(
 fn verify_window_post_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof_v1: RegisteredPoStProof,
     randomness: &ChallengeSeed,
-    proof: &[u8],
+    proofs: &[(RegisteredPoStProof, &[u8])],
     replicas: &BTreeMap<SectorId, PublicReplicaInfo>,
     prover_id: ProverId,
 ) -> Result<bool> {
@@ -302,7 +305,7 @@ fn verify_window_post_inner<Tree: 'static + MerkleTreeTrait>(
         randomness,
         &replicas_v1,
         prover_id,
-        proof,
+        proofs[0].1,
     )?;
 
     // once there are multiple versions, merge them before returning
