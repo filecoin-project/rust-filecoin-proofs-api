@@ -668,6 +668,204 @@ fn get_unsealed_range_inner<Tree: 'static + MerkleTreeTrait>(
     )
 }
 
+pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
+    registered_proof: RegisteredSealProof,
+    cache_path: T,
+    sealed_sector: R,
+    unsealed_output: W,
+    prover_id: ProverId,
+    sector_id: SectorId,
+    comm_d: Commitment,
+    ticket: Ticket,
+    offset: UnpaddedByteIndex,
+    num_bytes: UnpaddedBytesAmount,
+) -> Result<UnpaddedBytesAmount> {
+    ensure!(
+        registered_proof.version() == Version::V1,
+        "unusupported version"
+    );
+
+    let config = registered_proof.as_v1_config();
+    let sector_size: u64 = u64::from(registered_proof.sector_size());
+
+    // TODO: Clean-up this method, as it more or less unrolls the with_shape macro in order to pass along the R and W generics as well as the Tree.
+    //
+    // Note also that not all of these sector sizes are production, so some could be pruned.
+    match sector_size {
+        filecoin_proofs_v1::constants::SECTOR_SIZE_2_KIB => filecoin_proofs_v1::unseal_range::<
+            _,
+            _,
+            _,
+            filecoin_proofs_v1::constants::SectorShape2KiB,
+        >(
+            config,
+            cache_path,
+            sealed_sector,
+            unsealed_output,
+            prover_id,
+            sector_id,
+            comm_d,
+            ticket,
+            offset,
+            num_bytes,
+        ),
+        filecoin_proofs_v1::constants::SECTOR_SIZE_4_KIB => filecoin_proofs_v1::unseal_range::<
+            _,
+            _,
+            _,
+            filecoin_proofs_v1::constants::SectorShape4KiB,
+        >(
+            config,
+            cache_path,
+            sealed_sector,
+            unsealed_output,
+            prover_id,
+            sector_id,
+            comm_d,
+            ticket,
+            offset,
+            num_bytes,
+        ),
+        filecoin_proofs_v1::constants::SECTOR_SIZE_16_KIB => filecoin_proofs_v1::unseal_range::<
+            _,
+            _,
+            _,
+            filecoin_proofs_v1::constants::SectorShape16KiB,
+        >(
+            config,
+            cache_path,
+            sealed_sector,
+            unsealed_output,
+            prover_id,
+            sector_id,
+            comm_d,
+            ticket,
+            offset,
+            num_bytes,
+        ),
+        filecoin_proofs_v1::constants::SECTOR_SIZE_32_KIB => filecoin_proofs_v1::unseal_range::<
+            _,
+            _,
+            _,
+            filecoin_proofs_v1::constants::SectorShape32KiB,
+        >(
+            config,
+            cache_path,
+            sealed_sector,
+            unsealed_output,
+            prover_id,
+            sector_id,
+            comm_d,
+            ticket,
+            offset,
+            num_bytes,
+        ),
+        filecoin_proofs_v1::constants::SECTOR_SIZE_8_MIB => filecoin_proofs_v1::unseal_range::<
+            _,
+            _,
+            _,
+            filecoin_proofs_v1::constants::SectorShape8MiB,
+        >(
+            config,
+            cache_path,
+            sealed_sector,
+            unsealed_output,
+            prover_id,
+            sector_id,
+            comm_d,
+            ticket,
+            offset,
+            num_bytes,
+        ),
+        filecoin_proofs_v1::constants::SECTOR_SIZE_16_MIB => filecoin_proofs_v1::unseal_range::<
+            _,
+            _,
+            _,
+            filecoin_proofs_v1::constants::SectorShape16MiB,
+        >(
+            config,
+            cache_path,
+            sealed_sector,
+            unsealed_output,
+            prover_id,
+            sector_id,
+            comm_d,
+            ticket,
+            offset,
+            num_bytes,
+        ),
+        filecoin_proofs_v1::constants::SECTOR_SIZE_512_MIB => filecoin_proofs_v1::unseal_range::<
+            _,
+            _,
+            _,
+            filecoin_proofs_v1::constants::SectorShape512MiB,
+        >(
+            config,
+            cache_path,
+            sealed_sector,
+            unsealed_output,
+            prover_id,
+            sector_id,
+            comm_d,
+            ticket,
+            offset,
+            num_bytes,
+        ),
+        filecoin_proofs_v1::constants::SECTOR_SIZE_1_GIB => filecoin_proofs_v1::unseal_range::<
+            _,
+            _,
+            _,
+            filecoin_proofs_v1::constants::SectorShape1GiB,
+        >(
+            config,
+            cache_path,
+            sealed_sector,
+            unsealed_output,
+            prover_id,
+            sector_id,
+            comm_d,
+            ticket,
+            offset,
+            num_bytes,
+        ),
+        filecoin_proofs_v1::constants::SECTOR_SIZE_32_GIB => filecoin_proofs_v1::unseal_range::<
+            _,
+            _,
+            _,
+            filecoin_proofs_v1::constants::SectorShape32GiB,
+        >(
+            config,
+            cache_path,
+            sealed_sector,
+            unsealed_output,
+            prover_id,
+            sector_id,
+            comm_d,
+            ticket,
+            offset,
+            num_bytes,
+        ),
+        filecoin_proofs_v1::constants::SECTOR_SIZE_64_GIB => filecoin_proofs_v1::unseal_range::<
+            _,
+            _,
+            _,
+            filecoin_proofs_v1::constants::SectorShape64GiB,
+        >(
+            config,
+            cache_path,
+            sealed_sector,
+            unsealed_output,
+            prover_id,
+            sector_id,
+            comm_d,
+            ticket,
+            offset,
+            num_bytes,
+        ),
+        _ => panic!("unsupported sector size: {}", sector_size),
+    }
+}
+
 pub fn generate_piece_commitment<T: Read>(
     registered_proof: RegisteredSealProof,
     source: T,

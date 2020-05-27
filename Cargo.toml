@@ -1,6 +1,6 @@
 [package]
 name = "filecoin-proofs-api"
-version = "1.0.0"
+version = "2.0.0"
 description = "API to interact with the proofs system in Filecoin"
 authors = ["dignifiedquire <me@dignifiedquire.com>"]
 edition = "2018"
@@ -14,5 +14,5 @@ serde = "1.0.104"
 paired = "0.19.0"
 
 [dependencies.filecoin-proofs-v1]
-version = "1.0.0"
+version = "2.0.0"
 package = "filecoin-proofs"
