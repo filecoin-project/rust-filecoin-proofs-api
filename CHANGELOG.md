@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.0.0] - 2020-05-27
 
-## [1.0.0] - 2020-05-1901
+- Add public access to unseal_range method
+- Upgrade filecoin_proofs dependency to v2.0.0
 
-- Initial stable release 
+## [1.0.0] - 2020-05-19
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v1.0.0...HEAD
+- Initial stable release
+
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v2.0.0
 [1.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v1.0.0
