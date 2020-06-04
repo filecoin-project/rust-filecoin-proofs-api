@@ -8,6 +8,7 @@ use filecoin_proofs_v1::{constants, with_shape};
 use serde::{Deserialize, Serialize};
 
 /// Available seal proofs.
+/// Enum is append-only: once published, a `RegisteredSealProof` value must never change.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredSealProof {
     StackedDrg2KiBV1,
@@ -98,6 +99,24 @@ impl RegisteredSealProof {
         }
     }
 
+    fn nonce(self) -> u64 {
+        #[allow(clippy::match_single_binding)]
+        match self {
+            // If we ever need to change the nonce for any given RegisteredSealProof, match it here.
+            _ => 0,
+        }
+    }
+
+    fn porep_id(self) -> [u8; 32] {
+        let mut porep_id = [0; 32];
+        let registered_proof_id = self as u64;
+        let nonce = self.nonce();
+
+        porep_id[0..8].copy_from_slice(&registered_proof_id.to_le_bytes());
+        porep_id[8..16].copy_from_slice(&nonce.to_le_bytes());
+        porep_id
+    }
+
     pub fn as_v1_config(self) -> PoRepConfig {
         use RegisteredSealProof::*;
 
@@ -108,6 +127,7 @@ impl RegisteredSealProof {
             | StackedDrg64GiBV1 => PoRepConfig {
                 sector_size: self.sector_size(),
                 partitions: PoRepProofPartitions(self.partitions()),
+                porep_id: self.porep_id(),
             }, // _ => panic!("Can only be called on V1 configs"),
         }
     }
@@ -186,7 +206,8 @@ impl RegisteredSealProof {
     }
 }
 
-/// Available seal proofs.
+/// Available PoSt proofs.
+/// Enum is append-only: once published, a `RegisteredSealProof` value must never change.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredPoStProof {
     StackedDrgWinning2KiBV1,
@@ -357,5 +378,52 @@ impl RegisteredPoStProof {
                 Ok(params.unwrap().cid.clone())
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const REGISTERED_SEAL_PROOFS: [RegisteredSealProof; 5] = [
+        RegisteredSealProof::StackedDrg2KiBV1,
+        RegisteredSealProof::StackedDrg8MiBV1,
+        RegisteredSealProof::StackedDrg512MiBV1,
+        RegisteredSealProof::StackedDrg32GiBV1,
+        RegisteredSealProof::StackedDrg64GiBV1,
+    ];
+
+    #[test]
+    fn test_porep_id() {
+        for rsp in &REGISTERED_SEAL_PROOFS {
+            test_porep_id_aux(rsp);
+        }
+    }
+
+    fn test_porep_id_aux(rsp: &RegisteredSealProof) {
+        let expected_porep_id = match rsp {
+            RegisteredSealProof::StackedDrg2KiBV1 => {
+                "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+            RegisteredSealProof::StackedDrg8MiBV1 => {
+                "0100000000000000000000000000000000000000000000000000000000000000"
+            }
+            RegisteredSealProof::StackedDrg512MiBV1 => {
+                "0200000000000000000000000000000000000000000000000000000000000000"
+            }
+            RegisteredSealProof::StackedDrg32GiBV1 => {
+                "0300000000000000000000000000000000000000000000000000000000000000"
+            }
+            RegisteredSealProof::StackedDrg64GiBV1 => {
+                "0400000000000000000000000000000000000000000000000000000000000000"
+            }
+        };
+        let hex: String = rsp
+            .porep_id()
+            .iter()
+            .map(|x| format!("{:01$x}", x, 2))
+            .collect();
+
+        assert_eq!(expected_porep_id, &hex);
     }
 }
