@@ -12,7 +12,8 @@ readme = "README.md"
 anyhow = "1.0.26"
 serde = "1.0.104"
 paired = "0.19.0"
+filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs" }
 
 [dependencies.filecoin-proofs-v1]
-version = "2.0.0"
+#version = "3.0.0"
 package = "filecoin-proofs"
