@@ -428,14 +428,16 @@ mod tests {
     #[test]
     fn test_verifying_key_path() {
         for rsp in &REGISTERED_SEAL_PROOFS {
-            rsp.cache_verifying_key_path().expect("failed to get verifying key path");
+            rsp.cache_verifying_key_path()
+                .expect("failed to get verifying key path");
         }
     }
 
     #[test]
     fn test_verifying_key_cid() {
         for rsp in &REGISTERED_SEAL_PROOFS {
-            rsp.verifying_key_cid().expect("failed to get verifying key cid");
+            rsp.verifying_key_cid()
+                .expect("failed to get verifying key cid");
         }
     }
 
@@ -452,5 +454,4 @@ mod tests {
             rsp.params_cid().expect("failed to get params_cid");
         }
     }
-
 }
