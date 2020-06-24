@@ -160,7 +160,7 @@ impl RegisteredSealProof {
         match self.version() {
             Version::V1 => {
                 let id = self.circuit_identifier()?;
-                let params = filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.vk", &id));
+                let params = filecoin_proofs_v1::constants::get_verifying_key_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
 
                 Ok(params.unwrap().cid.clone())
@@ -172,8 +172,7 @@ impl RegisteredSealProof {
         match self.version() {
             Version::V1 => {
                 let id = self.circuit_identifier()?;
-                let params =
-                    filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.params", &id));
+                let params = filecoin_proofs_v1::constants::get_parameter_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
 
                 Ok(params.unwrap().cid.clone())
@@ -359,7 +358,7 @@ impl RegisteredPoStProof {
         match self.version() {
             Version::V1 => {
                 let id = self.circuit_identifier()?;
-                let params = filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.vk", &id));
+                let params = filecoin_proofs_v1::constants::get_verifying_key_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
 
                 Ok(params.unwrap().cid.clone())
@@ -371,8 +370,7 @@ impl RegisteredPoStProof {
         match self.version() {
             Version::V1 => {
                 let id = self.circuit_identifier()?;
-                let params =
-                    filecoin_proofs_v1::constants::PARAMETERS.get(&format!("{}.params", &id));
+                let params = filecoin_proofs_v1::constants::get_parameter_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
 
                 Ok(params.unwrap().cid.clone())
@@ -426,4 +424,33 @@ mod tests {
 
         assert_eq!(expected_porep_id, &hex);
     }
+
+    #[test]
+    fn test_verifying_key_path() {
+        for rsp in &REGISTERED_SEAL_PROOFS {
+            rsp.cache_verifying_key_path().expect("failed to get verifying key path");
+        }
+    }
+
+    #[test]
+    fn test_verifying_key_cid() {
+        for rsp in &REGISTERED_SEAL_PROOFS {
+            rsp.verifying_key_cid().expect("failed to get verifying key cid");
+        }
+    }
+
+    #[test]
+    fn test_params_path() {
+        for rsp in &REGISTERED_SEAL_PROOFS {
+            rsp.cache_params_path().expect("failed to get params path");
+        }
+    }
+
+    #[test]
+    fn test_params_cid() {
+        for rsp in &REGISTERED_SEAL_PROOFS {
+            rsp.params_cid().expect("failed to get params_cid");
+        }
+    }
+
 }
