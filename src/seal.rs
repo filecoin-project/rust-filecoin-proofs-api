@@ -570,96 +570,76 @@ pub fn fauxrep<R: AsRef<Path>, S: AsRef<Path>>(
     //
     // Note also that not all of these sector sizes are production, so some could be pruned.
     match sector_size {
-        filecoin_proofs_v1::constants::SECTOR_SIZE_2_KIB => filecoin_proofs_v1::fauxrep::<
-            _,
-            _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
-        >(
-            config,
-            cache_path,
-            replica_path,
-        ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_4_KIB => filecoin_proofs_v1::fauxrep::<
-            _,
-            _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
-        >(
-            config,
-            cache_path,
-            replica_path,
-        ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_16_KIB => filecoin_proofs_v1::fauxrep::<
-            _,
-            _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
-        >(
-            config,
-            cache_path,
-            replica_path,
-        ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_32_KIB => filecoin_proofs_v1::fauxrep::<
-            _,
-            _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
-        >(
-            config,
-            cache_path,
-            replica_path,
-        ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_8_MIB => filecoin_proofs_v1::fauxrep::<
-            _,
-            _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
-        >(
-            config,
-            cache_path,
-            replica_path,
-        ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_16_MIB => filecoin_proofs_v1::fauxrep::<
-            _,
-            _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
-        >(
-            config,
-            cache_path,
-            replica_path,
-        ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_512_MIB => filecoin_proofs_v1::fauxrep::<
-            _,
-            _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
-        >(
-            config,
-            cache_path,
-            replica_path,
-        ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_1_GIB => filecoin_proofs_v1::fauxrep::<
-            _,
-            _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
-        >(
-            config,
-            cache_path,
-            replica_path,
-        ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_32_GIB => filecoin_proofs_v1::fauxrep::<
-            _,
-            _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
-        >(
-            config,
-            cache_path,
-            replica_path,
-        ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_64_GIB => filecoin_proofs_v1::fauxrep::<
-            _,
-            _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
-        >(
-            config,
-            cache_path,
-            replica_path,
-        ),
+        filecoin_proofs_v1::constants::SECTOR_SIZE_2_KIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_4_KIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_16_KIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_32_KIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_8_MIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_16_MIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_512_MIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_1_GIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_32_GIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_64_GIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
         _ => panic!("unsupported sector size: {}", sector_size),
     }
 }
