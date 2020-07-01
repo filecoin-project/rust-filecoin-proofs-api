@@ -553,6 +553,97 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
+pub fn fauxrep<R: AsRef<Path>, S: AsRef<Path>>(
+    registered_proof: RegisteredSealProof,
+    cache_path: R,
+    replica_path: S,
+) -> Result<Commitment> {
+    ensure!(
+        registered_proof.version() == Version::V1,
+        "unusupported version"
+    );
+
+    let config = registered_proof.as_v1_config();
+    let sector_size: u64 = u64::from(registered_proof.sector_size());
+
+    // TODO: Clean-up this method, as it more or less unrolls the with_shape macro in order to pass along the R and S generics as well as the Tree.
+    //
+    // Note also that not all of these sector sizes are production, so some could be pruned.
+    match sector_size {
+        filecoin_proofs_v1::constants::SECTOR_SIZE_2_KIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_4_KIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_16_KIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_32_KIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_8_MIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_16_MIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_512_MIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_1_GIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_32_GIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        filecoin_proofs_v1::constants::SECTOR_SIZE_64_GIB => {
+            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+                config,
+                cache_path,
+                replica_path,
+            )
+        }
+        _ => panic!("unsupported sector size: {}", sector_size),
+    }
+}
+
 pub fn verify_seal(
     registered_proof: RegisteredSealProof,
     comm_r_in: Commitment,
