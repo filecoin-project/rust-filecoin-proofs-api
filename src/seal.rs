@@ -553,6 +553,15 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
+pub fn fauxrep<R: AsRef<Path>, S: AsRef<Path>, Tree: 'static + MerkleTreeTrait>(
+    registered_proof: RegisteredSealProof,
+    cache_path: R,
+    replica_path: S,
+) -> Result<Commitment> {
+    let config = registered_proof.as_v1_config();
+    filecoin_proofs_v1::fauxrep::<_, _, Tree>(config, cache_path, replica_path)
+}
+
 pub fn verify_seal(
     registered_proof: RegisteredSealProof,
     comm_r_in: Commitment,
