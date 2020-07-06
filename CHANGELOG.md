@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [4.0.3] - 2020-07-06
+
+- Use correct fauxrep shape type parameters per sector size [#32](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/32)
+
 ## [4.0.2] - 2020-07-01
 
 - Upgrade filecoin_proofs dependency to v4.0.3
