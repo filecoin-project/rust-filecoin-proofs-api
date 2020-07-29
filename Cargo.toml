@@ -13,3 +13,7 @@ anyhow = "1.0.26"
 serde = "1.0.104"
 paired = "0.20.0"
 filecoin-proofs-v1 = { package = "filecoin-proofs", version = "4.0.5" }
+
+[features]
+default = ["gpu"]
+gpu = [ "filecoin-proofs-v1/gpu" ]
