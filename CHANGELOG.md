@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [5.0.0] - 2020-08-11
+
+- Upgrade filecoin_proofs dependency to v5.0.0 (v28 parameters)
+
 ## [4.0.4] - 2020-07-28
 
 - Add fauxrep2 API [#35](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/35)
@@ -45,7 +49,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v4.0.4...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v5.0.0...HEAD
+[5.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.0.0
 [4.0.4]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v4.0.4
 [4.0.3]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v4.0.3
 [4.0.2]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v4.0.2
