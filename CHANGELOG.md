@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
-## [5.1.0] - 2020-08-12
+## [5.1.0] - 2020-08-13
 
 - Upgrade filecoin_proofs dependency to v5.1.1
 
