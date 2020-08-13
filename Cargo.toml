@@ -12,4 +12,4 @@ readme = "README.md"
 anyhow = "1.0.26"
 serde = "1.0.104"
 paired = "0.20.0"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "5.0.0" }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "5.1.1" }
