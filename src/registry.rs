@@ -64,27 +64,27 @@ impl RegisteredSealProof {
         match self {
             StackedDrg2KiBV1 => *constants::POREP_PARTITIONS
                 .read()
-                .unwrap()
+                .expect("porep partitions read error")
                 .get(&constants::SECTOR_SIZE_2_KIB)
                 .expect("invalid sector size"),
             StackedDrg8MiBV1 => *constants::POREP_PARTITIONS
                 .read()
-                .unwrap()
+                .expect("porep partitions read error")
                 .get(&constants::SECTOR_SIZE_8_MIB)
                 .expect("invalid sector size"),
             StackedDrg512MiBV1 => *constants::POREP_PARTITIONS
                 .read()
-                .unwrap()
+                .expect("porep partitions read error")
                 .get(&constants::SECTOR_SIZE_512_MIB)
                 .expect("invalid sector size"),
             StackedDrg32GiBV1 => *constants::POREP_PARTITIONS
                 .read()
-                .unwrap()
+                .expect("porep partitions read error")
                 .get(&constants::SECTOR_SIZE_32_GIB)
                 .expect("invalid sector size"),
             StackedDrg64GiBV1 => *constants::POREP_PARTITIONS
                 .read()
-                .unwrap()
+                .expect("porep partitions read error")
                 .get(&constants::SECTOR_SIZE_64_GIB)
                 .expect("invalid sector size"),
         }
@@ -163,7 +163,10 @@ impl RegisteredSealProof {
                 let params = filecoin_proofs_v1::constants::get_verifying_key_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
 
-                Ok(params.unwrap().cid.clone())
+                Ok(params
+                    .expect("verifying key cid params failure")
+                    .cid
+                    .clone())
             }
         }
     }
@@ -175,7 +178,7 @@ impl RegisteredSealProof {
                 let params = filecoin_proofs_v1::constants::get_parameter_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
 
-                Ok(params.unwrap().cid.clone())
+                Ok(params.expect("param cid failure").cid.clone())
             }
         }
     }
@@ -293,7 +296,7 @@ impl RegisteredPoStProof {
             | StackedDrgWindow32GiBV1
             | StackedDrgWindow64GiBV1 => *constants::WINDOW_POST_SECTOR_COUNT
                 .read()
-                .unwrap()
+                .expect("window post sector count failure")
                 .get(&u64::from(self.sector_size()))
                 .expect("invalid sector size"),
         }
@@ -361,7 +364,10 @@ impl RegisteredPoStProof {
                 let params = filecoin_proofs_v1::constants::get_verifying_key_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
 
-                Ok(params.unwrap().cid.clone())
+                Ok(params
+                    .expect("verifying key cid params failure")
+                    .cid
+                    .clone())
             }
         }
     }
@@ -373,7 +379,7 @@ impl RegisteredPoStProof {
                 let params = filecoin_proofs_v1::constants::get_parameter_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
 
-                Ok(params.unwrap().cid.clone())
+                Ok(params.expect("params cid failure").cid.clone())
             }
         }
     }
