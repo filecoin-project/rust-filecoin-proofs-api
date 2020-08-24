@@ -1,5 +1,7 @@
 #![deny(clippy::all, clippy::perf, clippy::correctness)]
 #![allow(clippy::too_many_arguments)]
+//requires nightly, or later stable version
+//#![warn(clippy::unwrap_used)]
 
 pub mod post;
 pub mod seal;

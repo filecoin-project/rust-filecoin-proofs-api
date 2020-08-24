@@ -54,7 +54,7 @@ pub fn generate_winning_post(
         .values()
         .next()
         .map(|v| v.registered_proof)
-        .unwrap();
+        .expect("replica map failure");
     ensure!(
         registered_post_proof_type_v1.typ() == PoStType::Winning,
         "invalid post type provide"
@@ -123,7 +123,7 @@ pub fn verify_winning_post(
         .values()
         .next()
         .map(|v| v.registered_proof)
-        .unwrap();
+        .expect("replica map failure");
     ensure!(
         registered_post_proof_type_v1.typ() == PoStType::Winning,
         "invalid post type provide"
@@ -187,7 +187,7 @@ pub fn generate_window_post(
         .values()
         .next()
         .map(|v| v.registered_proof)
-        .unwrap();
+        .expect("replica map failure");
     ensure!(
         registered_post_proof_type_v1.typ() == PoStType::Window,
         "invalid post type provide"
