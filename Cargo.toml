@@ -1,6 +1,6 @@
 [package]
 name = "filecoin-proofs-api"
-version = "5.1.0"
+version = "5.1.1"
 description = "API to interact with the proofs system in Filecoin"
 authors = ["dignifiedquire <me@dignifiedquire.com>"]
 edition = "2018"
