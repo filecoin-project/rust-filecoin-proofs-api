@@ -33,6 +33,12 @@ pub enum Labels {
     StackedDrg512MiBV1(RawLabels<SectorShape512MiB>),
     StackedDrg32GiBV1(RawLabels<SectorShape32GiB>),
     StackedDrg64GiBV1(RawLabels<SectorShape64GiB>),
+    // Version 2
+    StackedDrg2KiBV2(RawLabels<SectorShape2KiB>),
+    StackedDrg8MiBV2(RawLabels<SectorShape8MiB>),
+    StackedDrg512MiBV2(RawLabels<SectorShape512MiB>),
+    StackedDrg32GiBV2(RawLabels<SectorShape32GiB>),
+    StackedDrg64GiBV2(RawLabels<SectorShape64GiB>),
 }
 
 impl Labels {
@@ -50,9 +56,23 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
+            StackedDrg2KiBV2 => {
+                if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape2KiB>>(labels) {
+                    Ok(Labels::StackedDrg2KiBV2(labels.clone()))
+                } else {
+                    bail!("invalid labels provided")
+                }
+            }
             StackedDrg8MiBV1 => {
                 if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape8MiB>>(labels) {
                     Ok(Labels::StackedDrg8MiBV1(labels.clone()))
+                } else {
+                    bail!("invalid labels provided")
+                }
+            }
+            StackedDrg8MiBV2 => {
+                if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape8MiB>>(labels) {
+                    Ok(Labels::StackedDrg8MiBV2(labels.clone()))
                 } else {
                     bail!("invalid labels provided")
                 }
@@ -64,6 +84,13 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
+            StackedDrg512MiBV2 => {
+                if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape512MiB>>(labels) {
+                    Ok(Labels::StackedDrg512MiBV2(labels.clone()))
+                } else {
+                    bail!("invalid labels provided")
+                }
+            }
             StackedDrg32GiBV1 => {
                 if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape32GiB>>(labels) {
                     Ok(Labels::StackedDrg32GiBV1(labels.clone()))
@@ -71,9 +98,23 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
+            StackedDrg32GiBV2 => {
+                if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape32GiB>>(labels) {
+                    Ok(Labels::StackedDrg32GiBV2(labels.clone()))
+                } else {
+                    bail!("invalid labels provided")
+                }
+            }
             StackedDrg64GiBV1 => {
                 if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape64GiB>>(labels) {
                     Ok(Labels::StackedDrg64GiBV1(labels.clone()))
+                } else {
+                    bail!("invalid labels provided")
+                }
+            }
+            StackedDrg64GiBV2 => {
+                if let Some(labels) = Any::downcast_ref::<RawLabels<SectorShape64GiB>>(labels) {
+                    Ok(Labels::StackedDrg64GiBV2(labels.clone()))
                 } else {
                     bail!("invalid labels provided")
                 }
@@ -97,7 +138,21 @@ impl<Tree: 'static + MerkleTreeTrait> TryInto<RawLabels<Tree>> for Labels {
                     bail!("cannot convert 2kib into different structure")
                 }
             }
+            StackedDrg2KiBV2(raw) => {
+                if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 2kib into different structure")
+                }
+            }
             StackedDrg8MiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 8Mib into different structure")
+                }
+            }
+            StackedDrg8MiBV2(raw) => {
                 if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
                     Ok(raw.clone())
                 } else {
@@ -111,6 +166,13 @@ impl<Tree: 'static + MerkleTreeTrait> TryInto<RawLabels<Tree>> for Labels {
                     bail!("cannot convert 512Mib into different structure")
                 }
             }
+            StackedDrg512MiBV2(raw) => {
+                if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 512Mib into different structure")
+                }
+            }
             StackedDrg32GiBV1(raw) => {
                 if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
                     Ok(raw.clone())
@@ -118,7 +180,21 @@ impl<Tree: 'static + MerkleTreeTrait> TryInto<RawLabels<Tree>> for Labels {
                     bail!("cannot convert 32gib into different structure")
                 }
             }
+            StackedDrg32GiBV2(raw) => {
+                if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 32gib into different structure")
+                }
+            }
             StackedDrg64GiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 64gib into different structure")
+                }
+            }
+            StackedDrg64GiBV2(raw) => {
                 if let Some(raw) = Any::downcast_ref::<RawLabels<Tree>>(&raw) {
                     Ok(raw.clone())
                 } else {
@@ -155,6 +231,12 @@ pub enum VanillaSealProof {
     StackedDrg512MiBV1(Vec<Vec<RawVanillaSealProof<SectorShape512MiB>>>),
     StackedDrg32GiBV1(Vec<Vec<RawVanillaSealProof<SectorShape32GiB>>>),
     StackedDrg64GiBV1(Vec<Vec<RawVanillaSealProof<SectorShape64GiB>>>),
+    // Version 2
+    StackedDrg2KiBV2(Vec<Vec<RawVanillaSealProof<SectorShape2KiB>>>),
+    StackedDrg8MiBV2(Vec<Vec<RawVanillaSealProof<SectorShape8MiB>>>),
+    StackedDrg512MiBV2(Vec<Vec<RawVanillaSealProof<SectorShape512MiB>>>),
+    StackedDrg32GiBV2(Vec<Vec<RawVanillaSealProof<SectorShape32GiB>>>),
+    StackedDrg64GiBV2(Vec<Vec<RawVanillaSealProof<SectorShape64GiB>>>),
 }
 
 impl VanillaSealProof {
@@ -175,11 +257,29 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
+            StackedDrg2KiBV2 => {
+                if let Some(proofs) =
+                    Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape2KiB>>>>(proofs)
+                {
+                    Ok(VanillaSealProof::StackedDrg2KiBV2(proofs.clone()))
+                } else {
+                    bail!("invalid proofs provided")
+                }
+            }
             StackedDrg8MiBV1 => {
                 if let Some(proofs) =
                     Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape8MiB>>>>(proofs)
                 {
                     Ok(VanillaSealProof::StackedDrg8MiBV1(proofs.clone()))
+                } else {
+                    bail!("invalid proofs provided")
+                }
+            }
+            StackedDrg8MiBV2 => {
+                if let Some(proofs) =
+                    Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape8MiB>>>>(proofs)
+                {
+                    Ok(VanillaSealProof::StackedDrg8MiBV2(proofs.clone()))
                 } else {
                     bail!("invalid proofs provided")
                 }
@@ -193,6 +293,15 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
+            StackedDrg512MiBV2 => {
+                if let Some(proofs) =
+                    Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape512MiB>>>>(proofs)
+                {
+                    Ok(VanillaSealProof::StackedDrg512MiBV2(proofs.clone()))
+                } else {
+                    bail!("invalid proofs provided")
+                }
+            }
             StackedDrg32GiBV1 => {
                 if let Some(proofs) =
                     Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape32GiB>>>>(proofs)
@@ -202,11 +311,29 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
+            StackedDrg32GiBV2 => {
+                if let Some(proofs) =
+                    Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape32GiB>>>>(proofs)
+                {
+                    Ok(VanillaSealProof::StackedDrg32GiBV2(proofs.clone()))
+                } else {
+                    bail!("invalid proofs provided")
+                }
+            }
             StackedDrg64GiBV1 => {
                 if let Some(proofs) =
                     Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape64GiB>>>>(proofs)
                 {
                     Ok(VanillaSealProof::StackedDrg64GiBV1(proofs.clone()))
+                } else {
+                    bail!("invalid proofs provided")
+                }
+            }
+            StackedDrg64GiBV2 => {
+                if let Some(proofs) =
+                    Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<SectorShape64GiB>>>>(proofs)
+                {
+                    Ok(VanillaSealProof::StackedDrg64GiBV2(proofs.clone()))
                 } else {
                     bail!("invalid proofs provided")
                 }
@@ -232,7 +359,21 @@ impl<Tree: 'static + MerkleTreeTrait> TryInto<Vec<Vec<RawVanillaSealProof<Tree>>
                     bail!("cannot convert 2kib into different structure")
                 }
             }
+            StackedDrg2KiBV2(raw) => {
+                if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 2kib into different structure")
+                }
+            }
             StackedDrg8MiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 8Mib into different structure")
+                }
+            }
+            StackedDrg8MiBV2(raw) => {
                 if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
                     Ok(raw.clone())
                 } else {
@@ -246,6 +387,13 @@ impl<Tree: 'static + MerkleTreeTrait> TryInto<Vec<Vec<RawVanillaSealProof<Tree>>
                     bail!("cannot convert 512Mib into different structure")
                 }
             }
+            StackedDrg512MiBV2(raw) => {
+                if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 512Mib into different structure")
+                }
+            }
             StackedDrg32GiBV1(raw) => {
                 if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
                     Ok(raw.clone())
@@ -253,7 +401,21 @@ impl<Tree: 'static + MerkleTreeTrait> TryInto<Vec<Vec<RawVanillaSealProof<Tree>>
                     bail!("cannot convert 32gib into different structure")
                 }
             }
+            StackedDrg32GiBV2(raw) => {
+                if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 32gib into different structure")
+                }
+            }
             StackedDrg64GiBV1(raw) => {
+                if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
+                    Ok(raw.clone())
+                } else {
+                    bail!("cannot convert 64gib into different structure")
+                }
+            }
+            StackedDrg64GiBV2(raw) => {
                 if let Some(raw) = Any::downcast_ref::<Vec<Vec<RawVanillaSealProof<Tree>>>>(&raw) {
                     Ok(raw.clone())
                 } else {
@@ -1046,6 +1208,8 @@ pub fn generate_piece_commitment<T: Read>(
     match registered_proof {
         StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
         | StackedDrg64GiBV1 => filecoin_proofs_v1::generate_piece_commitment(source, piece_size),
+        StackedDrg2KiBV2 | StackedDrg8MiBV2 | StackedDrg512MiBV2 | StackedDrg32GiBV2
+        | StackedDrg64GiBV2 => filecoin_proofs_v1::generate_piece_commitment(source, piece_size),
     }
 }
 
@@ -1066,6 +1230,10 @@ where
         | StackedDrg64GiBV1 => {
             filecoin_proofs_v1::add_piece(source, target, piece_size, piece_lengths)
         }
+        StackedDrg2KiBV2 | StackedDrg8MiBV2 | StackedDrg512MiBV2 | StackedDrg32GiBV2
+        | StackedDrg64GiBV2 => {
+            filecoin_proofs_v1::add_piece(source, target, piece_size, piece_lengths)
+        }
     }
 }
 
@@ -1083,5 +1251,7 @@ where
     match registered_proof {
         StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
         | StackedDrg64GiBV1 => filecoin_proofs_v1::write_and_preprocess(source, target, piece_size),
+        StackedDrg2KiBV2 | StackedDrg8MiBV2 | StackedDrg512MiBV2 | StackedDrg32GiBV2
+        | StackedDrg64GiBV2 => filecoin_proofs_v1::write_and_preprocess(source, target, piece_size),
     }
 }
