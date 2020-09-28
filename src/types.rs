@@ -2,6 +2,9 @@ use std::path::PathBuf;
 
 use crate::{Commitment, RegisteredPoStProof};
 
+// A byte serialized representation of a vanilla proof.
+pub type VanillaProofBytes = Vec<u8>;
+
 /// The minimal information required about a replica, in order to be able to generate
 /// a PoSt over it.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]

@@ -4,9 +4,10 @@ use anyhow::{ensure, Result};
 use filecoin_proofs_v1::types::MerkleTreeTrait;
 use filecoin_proofs_v1::with_shape;
 
+use crate::types::VanillaProofBytes;
 use crate::{
-    ChallengeSeed, PoStType, PrivateReplicaInfo, ProverId, PublicReplicaInfo, RegisteredPoStProof,
-    SectorId, SnarkProof, Version,
+    ChallengeSeed, FallbackPoStSectorProof, PoStType, PrivateReplicaInfo, ProverId,
+    PublicReplicaInfo, RegisteredPoStProof, SectorId, SnarkProof, Version,
 };
 
 pub fn generate_winning_post_sector_challenge(
@@ -17,7 +18,7 @@ pub fn generate_winning_post_sector_challenge(
 ) -> Result<Vec<u64>> {
     ensure!(
         proof_type.typ() == PoStType::Winning,
-        "invalid post type provide"
+        "invalid post type provided"
     );
 
     with_shape!(
@@ -44,6 +45,140 @@ fn generate_winning_post_sector_challenge_inner<Tree: 'static + MerkleTreeTrait>
     )
 }
 
+pub fn generate_fallback_sector_challenges(
+    registered_post_proof_type: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    pub_sectors: &[SectorId],
+    prover_id: ProverId,
+) -> Result<BTreeMap<SectorId, Vec<u64>>> {
+    ensure!(!pub_sectors.is_empty(), "no sectors supplied");
+
+    with_shape!(
+        u64::from(registered_post_proof_type.sector_size()),
+        generate_fallback_sector_challenges_inner,
+        registered_post_proof_type,
+        randomness,
+        pub_sectors,
+        prover_id,
+    )
+}
+
+fn generate_fallback_sector_challenges_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_post_proof_type: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    pub_sectors: &[SectorId],
+    prover_id: ProverId,
+) -> Result<BTreeMap<SectorId, Vec<u64>>> {
+    filecoin_proofs_v1::generate_fallback_sector_challenges::<Tree>(
+        &registered_post_proof_type.as_v1_config(),
+        randomness,
+        pub_sectors,
+        prover_id,
+    )
+}
+
+pub fn generate_single_vanilla_proof(
+    registered_post_proof_type: RegisteredPoStProof,
+    sector_id: SectorId,
+    replica: &PrivateReplicaInfo,
+    challenges: &[u64],
+) -> Result<VanillaProofBytes> {
+    ensure!(!challenges.is_empty(), "no challenges supplied");
+
+    with_shape!(
+        u64::from(registered_post_proof_type.sector_size()),
+        generate_single_vanilla_proof_inner,
+        registered_post_proof_type,
+        sector_id,
+        replica,
+        challenges,
+    )
+}
+
+fn generate_single_vanilla_proof_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_post_proof_type: RegisteredPoStProof,
+    sector_id: SectorId,
+    replica: &PrivateReplicaInfo,
+    challenges: &[u64],
+) -> Result<VanillaProofBytes> {
+    let PrivateReplicaInfo {
+        registered_proof,
+        comm_r,
+        cache_dir,
+        replica_path,
+    } = replica;
+
+    ensure!(
+        registered_proof == &registered_post_proof_type,
+        "can only generate the same kind of PoSt"
+    );
+
+    let info_v1 = filecoin_proofs_v1::PrivateReplicaInfo::<Tree>::new(
+        replica_path.clone(),
+        *comm_r,
+        cache_dir.into(),
+    )?;
+
+    let vanilla_proof: FallbackPoStSectorProof<Tree> =
+        filecoin_proofs_v1::generate_single_vanilla_proof::<Tree>(
+            &registered_post_proof_type.as_v1_config(),
+            sector_id,
+            &info_v1,
+            challenges,
+        )?;
+
+    let vanilla_proof_bytes_v1: VanillaProofBytes = bincode::serialize(&vanilla_proof)?;
+
+    Ok(vanilla_proof_bytes_v1)
+}
+
+pub fn generate_winning_post_with_vanilla(
+    registered_post_proof_type: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    prover_id: ProverId,
+    vanilla_proofs: &[VanillaProofBytes],
+) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
+    with_shape!(
+        u64::from(registered_post_proof_type.sector_size()),
+        generate_winning_post_with_vanilla_inner,
+        registered_post_proof_type,
+        randomness,
+        prover_id,
+        vanilla_proofs,
+    )
+}
+
+fn generate_winning_post_with_vanilla_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_post_proof_type: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    prover_id: ProverId,
+    vanilla_proofs: &[VanillaProofBytes],
+) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
+    ensure!(
+        !vanilla_proofs.is_empty(),
+        "vanilla_proofs cannot be an empty list"
+    );
+
+    let fallback_post_sector_proofs: Vec<FallbackPoStSectorProof<Tree>> = vanilla_proofs
+        .iter()
+        .map(|proof_bytes| {
+            let proof: FallbackPoStSectorProof<Tree> = bincode::deserialize(proof_bytes)?;
+            Ok(proof)
+        })
+        .collect::<Result<_>>()?;
+
+    let posts_v1 = filecoin_proofs_v1::generate_winning_post_with_vanilla::<Tree>(
+        &registered_post_proof_type.as_v1_config(),
+        randomness,
+        prover_id,
+        fallback_post_sector_proofs,
+    )?;
+
+    // once there are multiple versions, merge them before returning
+
+    Ok(vec![(registered_post_proof_type, posts_v1)])
+}
+
 pub fn generate_winning_post(
     randomness: &ChallengeSeed,
     replicas: &BTreeMap<SectorId, PrivateReplicaInfo>,
@@ -57,7 +192,7 @@ pub fn generate_winning_post(
         .expect("replica map failure");
     ensure!(
         registered_post_proof_type_v1.typ() == PoStType::Winning,
-        "invalid post type provide"
+        "invalid post type provided"
     );
 
     with_shape!(
@@ -126,7 +261,7 @@ pub fn verify_winning_post(
         .expect("replica map failure");
     ensure!(
         registered_post_proof_type_v1.typ() == PoStType::Winning,
-        "invalid post type provide"
+        "invalid post type provided"
     );
 
     with_shape!(
@@ -177,6 +312,53 @@ fn verify_winning_post_inner<Tree: 'static + MerkleTreeTrait>(
     Ok(valid_v1)
 }
 
+pub fn generate_window_post_with_vanilla(
+    registered_post_proof_type: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    prover_id: ProverId,
+    vanilla_proofs: &[VanillaProofBytes],
+) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
+    with_shape!(
+        u64::from(registered_post_proof_type.sector_size()),
+        generate_window_post_with_vanilla_inner,
+        registered_post_proof_type,
+        randomness,
+        prover_id,
+        vanilla_proofs,
+    )
+}
+
+fn generate_window_post_with_vanilla_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_post_proof_type: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    prover_id: ProverId,
+    vanilla_proofs: &[VanillaProofBytes],
+) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
+    ensure!(
+        !vanilla_proofs.is_empty(),
+        "vanilla_proofs cannot be an empty list"
+    );
+
+    let fallback_post_sector_proofs: Vec<FallbackPoStSectorProof<Tree>> = vanilla_proofs
+        .iter()
+        .map(|proof_bytes| {
+            let proof: FallbackPoStSectorProof<Tree> = bincode::deserialize(proof_bytes)?;
+            Ok(proof)
+        })
+        .collect::<Result<_>>()?;
+
+    let posts_v1 = filecoin_proofs_v1::generate_window_post_with_vanilla::<Tree>(
+        &registered_post_proof_type.as_v1_config(),
+        randomness,
+        prover_id,
+        fallback_post_sector_proofs,
+    )?;
+
+    // once there are multiple versions, merge them before returning
+
+    Ok(vec![(registered_post_proof_type, posts_v1)])
+}
+
 pub fn generate_window_post(
     randomness: &ChallengeSeed,
     replicas: &BTreeMap<SectorId, PrivateReplicaInfo>,
@@ -190,7 +372,7 @@ pub fn generate_window_post(
         .expect("replica map failure");
     ensure!(
         registered_post_proof_type_v1.typ() == PoStType::Window,
-        "invalid post type provide"
+        "invalid post type provided"
     );
 
     with_shape!(
@@ -258,7 +440,7 @@ pub fn verify_window_post(
 
     ensure!(
         registered_post_proof_type_v1.typ() == PoStType::Window,
-        "invalid post type provide"
+        "invalid post type provided"
     );
     ensure!(
         registered_post_proof_type_v1.version() == Version::V1,
