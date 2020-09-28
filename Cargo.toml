@@ -10,6 +10,7 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.26"
+bincode = "1.1.2"
 serde = "1.0.104"
 paired = "0.20.0"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "5.1.1" }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "5.2.0" }

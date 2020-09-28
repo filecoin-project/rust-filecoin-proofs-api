@@ -20,4 +20,4 @@ pub use filecoin_proofs_v1::types::{
     ChallengeSeed, Commitment, PaddedBytesAmount, PieceInfo, PoStType, ProverId, Ticket,
     UnpaddedByteIndex, UnpaddedBytesAmount,
 };
-pub use filecoin_proofs_v1::SnarkProof;
+pub use filecoin_proofs_v1::{FallbackPoStSectorProof, SnarkProof, VanillaProof};
