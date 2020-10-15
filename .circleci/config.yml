@@ -19,6 +19,19 @@ jobs:
       - configure_environment_variables
       - checkout
       - run:
+          name: Install requirements
+          command: apt-get install sudo -yqq
+      - run:
+          name: Install hwloc 2.3.0
+          command: |
+            cd /tmp
+            curl https://download.open-mpi.org/release/hwloc/v2.3/hwloc-2.3.0.tar.gz --location --output /tmp/hwloc-2.3.0.tar.gz
+            tar xzvf hwloc-2.3.0.tar.gz
+            cd hwloc-2.3.0
+            ./configure
+            make
+            sudo make install
+      - run:
           name: Calculate dependencies
           command: cargo generate-lockfile
       - restore_cache:
@@ -100,6 +113,9 @@ jobs:
     steps:
       - configure_environment_variables
       - checkout
+      - run:
+          name: Install other dependencies with Homebrew
+          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install hwloc
       - run:
           name: Install Rust
           command: |
