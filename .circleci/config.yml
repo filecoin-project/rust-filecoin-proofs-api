@@ -19,6 +19,9 @@ jobs:
       - configure_environment_variables
       - checkout
       - run:
+          name: Install requirements
+          command: apt-get install sudo -yqq
+      - run:
           name: Install hwloc 2.3.0
           command: |
             cd /tmp
@@ -110,6 +113,9 @@ jobs:
     steps:
       - configure_environment_variables
       - checkout
+      - run:
+          name: Install other dependencies with Homebrew
+          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install hwloc
       - run:
           name: Install Rust
           command: |
