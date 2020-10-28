@@ -12,5 +12,12 @@ readme = "README.md"
 anyhow = "1.0.26"
 bincode = "1.1.2"
 serde = "1.0.104"
-paired = "0.20.0"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "5.2.0" }
+filecoin-proofs-v1 = { package = "filecoin-proofs", git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "blstrs-9", default-features = false, features = ["gpu"] }
+bellperson = { git = "https://github.com/filecoin-project/bellperson", branch = "blstrs-9", default-features = false, features = ["gpu"] }
+
+
+[features]
+default = ["pairing"]
+pairing = ["filecoin-proofs-v1/pairing", "bellperson/pairing"]
+blst = ["filecoin-proofs-v1/blst", "bellperson/blst"]
+
