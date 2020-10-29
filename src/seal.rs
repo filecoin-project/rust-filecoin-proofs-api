@@ -488,7 +488,7 @@ fn seal_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
         ticket,
     } = output;
 
-    let replica_id: paired::bls12_381::Fr = replica_id.into();
+    let replica_id: bellperson::bls::Fr = replica_id.into();
     Ok(SealCommitPhase1Output {
         registered_proof,
         vanilla_proofs: VanillaSealProof::from_raw::<Tree>(registered_proof, &vanilla_proofs)?,
@@ -535,7 +535,7 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     } = phase1_output;
 
     let config = registered_proof.as_v1_config();
-    let replica_id: paired::bls12_381::Fr = replica_id.into();
+    let replica_id: bellperson::bls::Fr = replica_id.into();
 
     let co = filecoin_proofs_v1::types::SealCommitPhase1Output {
         vanilla_proofs: vanilla_proofs.try_into()?,
