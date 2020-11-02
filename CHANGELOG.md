@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [5.4.1] - 2020-11-02
+
+- Upgrade bellperson to required version [#48](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/48)
+
 ## [5.4.0] - 2020-11-02
 
 - Upgrade filecoin_proofs dependency to v5.4.0
@@ -74,7 +78,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v5.4.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v5.4.1...HEAD
+[5.4.1]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.4.1
 [5.4.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.4.0
 [5.3.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.3.0
 [5.2.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.2.0
