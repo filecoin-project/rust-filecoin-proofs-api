@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [5.4.0] - 2020-11-02
+
+- Upgrade filecoin_proofs dependency to v5.4.0
+- Add new v1_1 RegisteredSealProofs to increment porep_id [#47](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/47)
+
 ## [5.3.0] - 2020-10-29
 
 - Upgrade filecoin_proofs dependency to v5.3.0
@@ -69,7 +74,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v5.3.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v5.4.0...HEAD
+[5.4.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.4.0
 [5.3.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.3.0
 [5.2.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.2.0
 [5.1.1]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.1.1
