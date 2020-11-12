@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 
 use anyhow::{ensure, Result};
-use filecoin_proofs_v1::storage_proofs::api_version::ApiVersion;
 use filecoin_proofs_v1::types::MerkleTreeTrait;
 use filecoin_proofs_v1::with_shape;
 
@@ -444,7 +443,7 @@ pub fn verify_window_post(
         "invalid post type provided"
     );
     ensure!(
-        registered_post_proof_type_v1.version() == ApiVersion::V1_0_0,
+        registered_post_proof_type_v1.version().as_semver().major == 1,
         "only V1 supported"
     );
 
