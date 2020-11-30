@@ -443,7 +443,7 @@ pub fn verify_window_post(
         "invalid post type provided"
     );
     ensure!(
-        registered_post_proof_type_v1.version().as_semver().major == 1,
+        registered_post_proof_type_v1.major_version() == 1,
         "only V1 supported"
     );
 

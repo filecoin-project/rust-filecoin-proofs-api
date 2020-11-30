@@ -49,6 +49,21 @@ impl RegisteredSealProof {
         }
     }
 
+    /// Return the major version for this proof.
+    pub fn major_version(self) -> u64 {
+        self.version().as_semver().major
+    }
+
+    /// Return the minor version for this proof.
+    pub fn minor_version(self) -> u64 {
+        self.version().as_semver().minor
+    }
+
+    /// Return the patch version for this proof.
+    pub fn patch_version(self) -> u64 {
+        self.version().as_semver().patch
+    }
+
     /// Return the sector size for this proof.
     pub fn sector_size(self) -> SectorSize {
         use RegisteredSealProof::*;
@@ -264,6 +279,21 @@ impl RegisteredPoStProof {
             | StackedDrgWindow32GiBV1
             | StackedDrgWindow64GiBV1 => ApiVersion::V1_0_0,
         }
+    }
+
+    /// Return the major version for this proof.
+    pub fn major_version(self) -> u64 {
+        self.version().as_semver().major
+    }
+
+    /// Return the minor version for this proof.
+    pub fn minor_version(self) -> u64 {
+        self.version().as_semver().minor
+    }
+
+    /// Return the patch version for this proof.
+    pub fn patch_version(self) -> u64 {
+        self.version().as_semver().patch
     }
 
     /// Return the sector size for this proof.

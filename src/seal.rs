@@ -292,7 +292,7 @@ where
     T: AsRef<Path>,
 {
     ensure!(
-        registered_proof.version().as_semver().major == 1,
+        registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -357,7 +357,7 @@ where
     S: AsRef<Path>,
 {
     ensure!(
-        phase1_output.registered_proof.version().as_semver().major == 1,
+        phase1_output.registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -429,7 +429,7 @@ pub fn seal_commit_phase1<T: AsRef<Path>>(
     piece_infos: &[PieceInfo],
 ) -> Result<SealCommitPhase1Output> {
     ensure!(
-        pre_commit.registered_proof.version().as_semver().major == 1,
+        pre_commit.registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -507,7 +507,7 @@ pub fn seal_commit_phase2(
     sector_id: SectorId,
 ) -> Result<SealCommitPhase2Output> {
     ensure!(
-        phase1_output.registered_proof.version().as_semver().major == 1,
+        phase1_output.registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -560,7 +560,7 @@ pub fn fauxrep<R: AsRef<Path>, S: AsRef<Path>>(
     replica_path: S,
 ) -> Result<Commitment> {
     ensure!(
-        registered_proof.version().as_semver().major == 1,
+        registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -651,7 +651,7 @@ pub fn fauxrep2<R: AsRef<Path>, S: AsRef<Path>>(
     existing_p_aux_path: S,
 ) -> Result<Commitment> {
     ensure!(
-        registered_proof.version().as_semver().major == 1,
+        registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -792,7 +792,7 @@ pub fn get_unsealed_range<T: Into<PathBuf> + AsRef<Path>>(
     num_bytes: UnpaddedBytesAmount,
 ) -> Result<UnpaddedBytesAmount> {
     ensure!(
-        registered_proof.version().as_semver().major == 1,
+        registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -853,7 +853,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
     num_bytes: UnpaddedBytesAmount,
 ) -> Result<UnpaddedBytesAmount> {
     ensure!(
-        registered_proof.version().as_semver().major == 1,
+        registered_proof.major_version() == 1,
         "unusupported version"
     );
 
