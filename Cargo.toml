@@ -14,10 +14,9 @@ bincode = "1.1.2"
 serde = "1.0.104"
 #filecoin-proofs-v1 = { package = "filecoin-proofs", version = "5.4.0", default-features = false, features = ["gpu"] }
 #filecoin-hashers = { version = "1.0.0", default-features = false, features = ["poseidon", "sha256"] }
-#filecoin-hashers = { version = "1.0.0", path = "/home/nemo/pl/rust-fil-proofs/filecoin-hashers", default-features = false, features = ["poseidon", "sha256"] }
-filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "upgrade-graph-only", default-features = false, features = ["poseidon", "sha256", "gpu"]}
-filecoin-proofs-v1 = { package = "filecoin-proofs", git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "upgrade-graph-only", default-features = false, features = ["gpu"] }
-bellperson = { version = "0.12", default-features = false, features = ["gpu"] }
+filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", default-features = false, features = ["poseidon", "sha256", "gpu"]}
+filecoin-proofs-v1 = { package = "filecoin-proofs", git = "https://github.com/filecoin-project/rust-fil-proofs", default-features = false, features = ["gpu"] }
+bellperson = { version = "0.12.3", default-features = false, features = ["gpu"] }
 
 [features]
 default = ["pairing"]
