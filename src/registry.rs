@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::{ensure, Result};
+use filecoin_proofs_v1::storage_proofs::api_version::ApiVersion;
 use filecoin_proofs_v1::types::{
     MerkleTreeTrait, PoRepConfig, PoRepProofPartitions, PoStConfig, PoStType, SectorSize,
 };
@@ -24,11 +25,6 @@ pub enum RegisteredSealProof {
     StackedDrg64GiBV1_1,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Version {
-    V1,
-}
-
 // Hack to delegate to self config types.
 macro_rules! self_shape {
     ($name:ident, $selfty:ty, $self:expr, $ret:ty) => {{
@@ -42,14 +38,30 @@ macro_rules! self_shape {
 
 impl RegisteredSealProof {
     /// Return the version for this proof.
-    pub fn version(self) -> Version {
+    pub fn version(self) -> ApiVersion {
         use RegisteredSealProof::*;
 
         match self {
             StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
-            | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1
-            | StackedDrg512MiBV1_1 | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => Version::V1,
+            | StackedDrg64GiBV1 => ApiVersion::V1_0_0,
+            StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
+            | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => ApiVersion::V1_1_0,
         }
+    }
+
+    /// Return the major version for this proof.
+    pub fn major_version(self) -> u64 {
+        self.version().as_semver().major
+    }
+
+    /// Return the minor version for this proof.
+    pub fn minor_version(self) -> u64 {
+        self.version().as_semver().minor
+    }
+
+    /// Return the patch version for this proof.
+    pub fn patch_version(self) -> u64 {
+        self.version().as_semver().patch
     }
 
     /// Return the sector size for this proof.
@@ -130,29 +142,42 @@ impl RegisteredSealProof {
     pub fn as_v1_config(self) -> PoRepConfig {
         use RegisteredSealProof::*;
 
-        assert_eq!(self.version(), Version::V1);
-
         match self {
             StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
-            | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1
-            | StackedDrg512MiBV1_1 | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => PoRepConfig {
-                sector_size: self.sector_size(),
-                partitions: PoRepProofPartitions(self.partitions()),
-                porep_id: self.porep_id(),
-            }, // _ => panic!("Can only be called on V1 configs"),
+            | StackedDrg64GiBV1 => {
+                assert_eq!(self.version(), ApiVersion::V1_0_0);
+                PoRepConfig {
+                    sector_size: self.sector_size(),
+                    partitions: PoRepProofPartitions(self.partitions()),
+                    porep_id: self.porep_id(),
+                    api_version: self.version(),
+                }
+            }
+            StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
+            | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => {
+                assert_eq!(self.version(), ApiVersion::V1_1_0);
+                PoRepConfig {
+                    sector_size: self.sector_size(),
+                    partitions: PoRepProofPartitions(self.partitions()),
+                    porep_id: self.porep_id(),
+                    api_version: self.version(),
+                }
+            } // _ => panic!("Can only be called on V1 configs"),
         }
     }
 
     /// Returns the circuit identifier.
     pub fn circuit_identifier(self) -> Result<String> {
         match self.version() {
-            Version::V1 => self_shape!(get_cache_identifier, RegisteredSealProof, self, String),
+            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
+                self_shape!(get_cache_identifier, RegisteredSealProof, self, String)
+            }
         }
     }
 
     pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
         match self.version() {
-            Version::V1 => self_shape!(
+            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => self_shape!(
                 get_cache_verifying_key_path,
                 RegisteredSealProof,
                 self,
@@ -163,13 +188,15 @@ impl RegisteredSealProof {
 
     pub fn cache_params_path(self) -> Result<PathBuf> {
         match self.version() {
-            Version::V1 => self_shape!(get_cache_params_path, RegisteredSealProof, self, PathBuf),
+            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
+                self_shape!(get_cache_params_path, RegisteredSealProof, self, PathBuf)
+            }
         }
     }
 
     pub fn verifying_key_cid(self) -> Result<String> {
         match self.version() {
-            Version::V1 => {
+            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
                 let id = self.circuit_identifier()?;
                 let params = filecoin_proofs_v1::constants::get_verifying_key_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
@@ -184,7 +211,7 @@ impl RegisteredSealProof {
 
     pub fn params_cid(self) -> Result<String> {
         match self.version() {
-            Version::V1 => {
+            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
                 let id = self.circuit_identifier()?;
                 let params = filecoin_proofs_v1::constants::get_parameter_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
@@ -237,7 +264,7 @@ pub enum RegisteredPoStProof {
 
 impl RegisteredPoStProof {
     /// Return the version for this proof.
-    pub fn version(self) -> Version {
+    pub fn version(self) -> ApiVersion {
         use RegisteredPoStProof::*;
 
         match self {
@@ -250,8 +277,23 @@ impl RegisteredPoStProof {
             | StackedDrgWindow8MiBV1
             | StackedDrgWindow512MiBV1
             | StackedDrgWindow32GiBV1
-            | StackedDrgWindow64GiBV1 => Version::V1,
+            | StackedDrgWindow64GiBV1 => ApiVersion::V1_0_0,
         }
+    }
+
+    /// Return the major version for this proof.
+    pub fn major_version(self) -> u64 {
+        self.version().as_semver().major
+    }
+
+    /// Return the minor version for this proof.
+    pub fn minor_version(self) -> u64 {
+        self.version().as_semver().minor
+    }
+
+    /// Return the patch version for this proof.
+    pub fn patch_version(self) -> u64 {
+        self.version().as_semver().patch
     }
 
     /// Return the sector size for this proof.
@@ -287,7 +329,8 @@ impl RegisteredPoStProof {
 
     pub fn single_partition_proof_len(self) -> usize {
         match self.version() {
-            Version::V1 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
+            ApiVersion::V1_0_0 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
+            _ => panic!("Invalid PoSt api version"),
         }
     }
 
@@ -314,7 +357,7 @@ impl RegisteredPoStProof {
     }
 
     pub fn as_v1_config(self) -> PoStConfig {
-        assert_eq!(self.version(), Version::V1);
+        assert_eq!(self.version(), ApiVersion::V1_0_0);
 
         use RegisteredPoStProof::*;
 
@@ -329,6 +372,7 @@ impl RegisteredPoStProof {
                 sector_count: self.sector_count(),
                 challenge_count: constants::WINNING_POST_CHALLENGE_COUNT,
                 priority: true,
+                api_version: self.version(),
             },
             StackedDrgWindow2KiBV1
             | StackedDrgWindow8MiBV1
@@ -340,6 +384,7 @@ impl RegisteredPoStProof {
                 sector_count: self.sector_count(),
                 challenge_count: constants::WINDOW_POST_CHALLENGE_COUNT,
                 priority: true,
+                api_version: self.version(),
             }, // _ => panic!("Can only be called on V1 configs"),
         }
     }
@@ -347,30 +392,37 @@ impl RegisteredPoStProof {
     /// Returns the circuit identifier.
     pub fn circuit_identifier(self) -> Result<String> {
         match self.version() {
-            Version::V1 => self_shape!(get_cache_identifier, RegisteredPoStProof, self, String),
+            ApiVersion::V1_0_0 => {
+                self_shape!(get_cache_identifier, RegisteredPoStProof, self, String)
+            }
+            _ => panic!("Invalid PoSt api version"),
         }
     }
 
     pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
         match self.version() {
-            Version::V1 => self_shape!(
+            ApiVersion::V1_0_0 => self_shape!(
                 get_cache_verifying_key_path,
                 RegisteredPoStProof,
                 self,
                 PathBuf
             ),
+            _ => panic!("Invalid PoSt api version"),
         }
     }
 
     pub fn cache_params_path(self) -> Result<PathBuf> {
         match self.version() {
-            Version::V1 => self_shape!(get_cache_params_path, RegisteredPoStProof, self, PathBuf),
+            ApiVersion::V1_0_0 => {
+                self_shape!(get_cache_params_path, RegisteredPoStProof, self, PathBuf)
+            }
+            _ => panic!("Invalid PoSt api version"),
         }
     }
 
     pub fn verifying_key_cid(self) -> Result<String> {
         match self.version() {
-            Version::V1 => {
+            ApiVersion::V1_0_0 => {
                 let id = self.circuit_identifier()?;
                 let params = filecoin_proofs_v1::constants::get_verifying_key_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
@@ -380,18 +432,20 @@ impl RegisteredPoStProof {
                     .cid
                     .clone())
             }
+            _ => panic!("Invalid PoSt api version"),
         }
     }
 
     pub fn params_cid(self) -> Result<String> {
         match self.version() {
-            Version::V1 => {
+            ApiVersion::V1_0_0 => {
                 let id = self.circuit_identifier()?;
                 let params = filecoin_proofs_v1::constants::get_parameter_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
 
                 Ok(params.expect("params cid failure").cid.clone())
             }
+            _ => panic!("Invalid PoSt api version"),
         }
     }
 }

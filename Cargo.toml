@@ -12,8 +12,9 @@ readme = "README.md"
 anyhow = "1.0.26"
 bincode = "1.1.2"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "5.4.0", default-features = false, features = ["gpu"] }
-bellperson = { version = "0.12", default-features = false, features = ["gpu"] }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~6.0.0", default-features = false, features = ["gpu"] }
+filecoin-hashers = { version = "~1.0.1", default-features = false, features = ["poseidon", "sha256"] }
+bellperson = { version = "0.12.3", default-features = false, features = ["gpu"] }
 
 [features]
 default = ["pairing"]

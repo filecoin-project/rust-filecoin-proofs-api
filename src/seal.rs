@@ -3,10 +3,11 @@ use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, ensure, Error, Result};
+use filecoin_hashers::Hasher;
+
 use filecoin_proofs_v1::constants::{
     SectorShape2KiB, SectorShape32GiB, SectorShape512MiB, SectorShape64GiB, SectorShape8MiB,
 };
-use filecoin_proofs_v1::storage_proofs::hasher::Hasher;
 use filecoin_proofs_v1::types::MerkleTreeTrait;
 use filecoin_proofs_v1::types::VanillaSealProof as RawVanillaSealProof;
 use filecoin_proofs_v1::{with_shape, Labels as RawLabels};
@@ -14,7 +15,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     Commitment, PieceInfo, ProverId, RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex,
-    UnpaddedBytesAmount, Version,
+    UnpaddedBytesAmount,
 };
 
 /// The output of `seal_pre_commit_phase1`.
@@ -291,7 +292,7 @@ where
     T: AsRef<Path>,
 {
     ensure!(
-        registered_proof.version() == Version::V1,
+        registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -356,7 +357,7 @@ where
     S: AsRef<Path>,
 {
     ensure!(
-        phase1_output.registered_proof.version() == Version::V1,
+        phase1_output.registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -428,7 +429,7 @@ pub fn seal_commit_phase1<T: AsRef<Path>>(
     piece_infos: &[PieceInfo],
 ) -> Result<SealCommitPhase1Output> {
     ensure!(
-        pre_commit.registered_proof.version() == Version::V1,
+        pre_commit.registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -506,7 +507,7 @@ pub fn seal_commit_phase2(
     sector_id: SectorId,
 ) -> Result<SealCommitPhase2Output> {
     ensure!(
-        phase1_output.registered_proof.version() == Version::V1,
+        phase1_output.registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -559,7 +560,7 @@ pub fn fauxrep<R: AsRef<Path>, S: AsRef<Path>>(
     replica_path: S,
 ) -> Result<Commitment> {
     ensure!(
-        registered_proof.version() == Version::V1,
+        registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -650,7 +651,7 @@ pub fn fauxrep2<R: AsRef<Path>, S: AsRef<Path>>(
     existing_p_aux_path: S,
 ) -> Result<Commitment> {
     ensure!(
-        registered_proof.version() == Version::V1,
+        registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -791,7 +792,7 @@ pub fn get_unsealed_range<T: Into<PathBuf> + AsRef<Path>>(
     num_bytes: UnpaddedBytesAmount,
 ) -> Result<UnpaddedBytesAmount> {
     ensure!(
-        registered_proof.version() == Version::V1,
+        registered_proof.major_version() == 1,
         "unusupported version"
     );
 
@@ -852,7 +853,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
     num_bytes: UnpaddedBytesAmount,
 ) -> Result<UnpaddedBytesAmount> {
     ensure!(
-        registered_proof.version() == Version::V1,
+        registered_proof.major_version() == 1,
         "unusupported version"
     );
 

@@ -7,7 +7,7 @@ use filecoin_proofs_v1::with_shape;
 use crate::types::VanillaProofBytes;
 use crate::{
     ChallengeSeed, FallbackPoStSectorProof, PoStType, PrivateReplicaInfo, ProverId,
-    PublicReplicaInfo, RegisteredPoStProof, SectorId, SnarkProof, Version,
+    PublicReplicaInfo, RegisteredPoStProof, SectorId, SnarkProof,
 };
 
 pub fn generate_winning_post_sector_challenge(
@@ -443,7 +443,7 @@ pub fn verify_window_post(
         "invalid post type provided"
     );
     ensure!(
-        registered_post_proof_type_v1.version() == Version::V1,
+        registered_post_proof_type_v1.major_version() == 1,
         "only V1 supported"
     );
 
