@@ -13,10 +13,14 @@ anyhow = "1.0.26"
 bellperson = { version = "0.13", default-features = false }
 bincode = "1.1.2"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~6.1", default-features = false }
-filecoin-hashers = { version = "~1.1", default-features = false, features = ["poseidon", "sha256"] }
-fr32 = { version = "~0.2", default-features = false }
-storage-proofs-core = { version = "~6.1", default-features = false }
+#filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~6.1", default-features = false }
+#filecoin-hashers = { version = "~1.1", default-features = false, features = ["poseidon", "sha256"] }
+#fr32 = { version = "~0.2", default-features = false }
+#storage-proofs-core = { version = "~6.1", default-features = false }
+fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "fix-ram-unseal", default-features = false, features = ["gpu"] }
+storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "fix-ram-unseal", default-features = false, features = ["gpu"] }
+filecoin-proofs-v1 = { package = "filecoin-proofs", git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "fix-ram-unseal", default-features = false, features = ["gpu"] }
+filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "fix-ram-unseal", default-features = false, features = ["poseidon", "sha256"] }
 
 [features]
 default = ["pairing", "gpu"]
