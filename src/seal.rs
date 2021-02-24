@@ -19,8 +19,8 @@ use filecoin_proofs_v1::{with_shape, Labels as RawLabels};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    Commitment, PieceInfo, ProverId, RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex,
-    UnpaddedBytesAmount,
+    AggregateSnarkProof, Commitment, PieceInfo, ProverId, RegisteredSealProof, SectorId, Ticket,
+    UnpaddedByteIndex, UnpaddedBytesAmount,
 };
 
 /// The output of `seal_pre_commit_phase1`.
@@ -557,6 +557,136 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     Ok(SealCommitPhase2Output {
         proof: output.proof,
     })
+}
+
+pub fn seal_commit_phase2_for_aggregation(
+    phase1_output: SealCommitPhase1Output,
+    prover_id: ProverId,
+    sector_id: SectorId,
+) -> Result<(SealCommitPhase2Output, Vec<Vec<Fr>>)> {
+    // FIXME: New proof type and/or version check is needed
+    ensure!(
+        phase1_output.registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    with_shape!(
+        u64::from(phase1_output.registered_proof.sector_size()),
+        seal_commit_phase2_for_aggregation_inner,
+        phase1_output,
+        prover_id,
+        sector_id,
+    )
+}
+
+pub fn seal_commit_phase2_for_aggregation_inner<Tree: 'static + MerkleTreeTrait>(
+    phase1_output: SealCommitPhase1Output,
+    prover_id: ProverId,
+    sector_id: SectorId,
+) -> Result<(SealCommitPhase2Output, Vec<Vec<Fr>>)> {
+    let SealCommitPhase1Output {
+        vanilla_proofs,
+        comm_r,
+        comm_d,
+        replica_id,
+        seed,
+        ticket,
+        registered_proof,
+    } = phase1_output;
+
+    let config = registered_proof.as_v1_config();
+    let replica_id: Fr = replica_id.into();
+
+    let co = filecoin_proofs_v1::types::SealCommitPhase1Output {
+        vanilla_proofs: vanilla_proofs.try_into()?,
+        comm_r,
+        comm_d,
+        replica_id: replica_id.into(),
+        seed,
+        ticket,
+    };
+
+    let (output, inputs) = filecoin_proofs_v1::seal_commit_phase2_for_aggregation::<Tree>(
+        config, co, prover_id, sector_id,
+    )?;
+
+    Ok((
+        SealCommitPhase2Output {
+            proof: output.proof,
+        },
+        inputs,
+    ))
+}
+
+pub fn aggregate_seal_commit_proofs(
+    registered_proof: RegisteredSealProof,
+    commit_outputs: &[SealCommitPhase2Output],
+) -> Result<AggregateSnarkProof> {
+    // FIXME: New proof type and/or version check is needed
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        aggregate_seal_commit_proofs_inner,
+        registered_proof,
+        commit_outputs,
+    )
+}
+
+pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof: RegisteredSealProof,
+    commit_outputs: &[SealCommitPhase2Output],
+) -> Result<AggregateSnarkProof> {
+    let config = registered_proof.as_v1_config();
+    let outputs: Vec<filecoin_proofs_v1::types::SealCommitOutput> = commit_outputs
+        .iter()
+        .map(|co| filecoin_proofs_v1::types::SealCommitOutput {
+            proof: co.proof.clone(),
+        })
+        .collect();
+
+    filecoin_proofs_v1::aggregate_seal_commit_proofs::<Tree>(config, &outputs)
+}
+
+pub fn verify_aggregate_seal_commit_proofs(
+    registered_proof: RegisteredSealProof,
+    aggregated_proofs_len: usize,
+    aggregate_proof_bytes: AggregateSnarkProof,
+    commit_inputs: Vec<Vec<Fr>>,
+) -> Result<bool> {
+    // FIXME: New proof type and/or version check is needed
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        verify_aggregate_seal_commit_proofs_inner,
+        registered_proof,
+        aggregated_proofs_len,
+        aggregate_proof_bytes,
+        commit_inputs,
+    )
+}
+
+pub fn verify_aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof: RegisteredSealProof,
+    aggregated_proofs_len: usize,
+    aggregate_proof_bytes: AggregateSnarkProof,
+    commit_inputs: Vec<Vec<Fr>>,
+) -> Result<bool> {
+    let config = registered_proof.as_v1_config();
+
+    filecoin_proofs_v1::verify_aggregate_seal_commit_proofs::<Tree>(
+        config,
+        aggregated_proofs_len,
+        aggregate_proof_bytes,
+        commit_inputs,
+    )
 }
 
 pub fn fauxrep<R: AsRef<Path>, S: AsRef<Path>>(
