@@ -19,9 +19,11 @@ pub use filecoin_proofs_v1::types::{
 };
 pub use filecoin_proofs_v1::{FallbackPoStSectorProof, SnarkProof, VanillaProof};
 pub use fr32;
-pub use storage_proofs_core::error::Error as StorageProofsError;
-pub use storage_proofs_core::sector::{OrderedSectorSet, SectorId};
 pub use storage_proofs_core::{
-    api_version::ApiVersion, merkle::MerkleTreeTrait, parameter_cache::get_parameter_data,
-    parameter_cache::get_verifying_key_data, util::NODE_SIZE,
+    api_version::ApiVersion,
+    error::Error as StorageProofsError,
+    merkle::MerkleTreeTrait,
+    parameter_cache::{get_parameter_data, get_verifying_key_data},
+    sector::{OrderedSectorSet, SectorId},
+    util::NODE_SIZE,
 };
