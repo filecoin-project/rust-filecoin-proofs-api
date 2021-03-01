@@ -23,5 +23,5 @@ pub use storage_proofs_core::error::Error as StorageProofsError;
 pub use storage_proofs_core::sector::{OrderedSectorSet, SectorId};
 pub use storage_proofs_core::{
     api_version::ApiVersion, merkle::MerkleTreeTrait, parameter_cache::get_parameter_data,
-    parameter_cache::get_verifying_key_data,
+    parameter_cache::get_verifying_key_data, util::NODE_SIZE,
 };
