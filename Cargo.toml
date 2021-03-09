@@ -10,11 +10,13 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.26"
+bellperson = { version = "0.13", default-features = false, features = ["gpu"] }
 bincode = "1.1.2"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~6.0.0", default-features = false, features = ["gpu"] }
-filecoin-hashers = { version = "~1.0.1", default-features = false, features = ["poseidon", "sha256"] }
-bellperson = { version = "0.12.3", default-features = false, features = ["gpu"] }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~6.1", default-features = false, features = ["gpu"] }
+filecoin-hashers = { version = "~1.1", default-features = false, features = ["poseidon", "sha256"] }
+fr32 = { version = "~0.2", default-features = false, features = ["gpu"] }
+storage-proofs-core = { version = "~6.1.0", default-features = false, features = ["gpu"] }
 
 [features]
 default = ["pairing"]
