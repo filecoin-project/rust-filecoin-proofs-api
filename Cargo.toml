@@ -13,12 +13,14 @@ anyhow = "1.0.26"
 bellperson = { version = "0.13", default-features = false, features = ["gpu"] }
 bincode = "1.1.2"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~6.1", default-features = false, features = ["gpu"] }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~6.1", default-features = false }
 filecoin-hashers = { version = "~1.1", default-features = false, features = ["poseidon", "sha256"] }
-fr32 = { version = "~0.2", default-features = false, features = ["gpu"] }
-storage-proofs-core = { version = "~6.1.0", default-features = false, features = ["gpu"] }
+fr32 = { version = "~0.2", default-features = false }
+storage-proofs-core = { version = "~6.1.0", default-features = false }
 
 [features]
 default = ["pairing"]
 pairing = ["filecoin-proofs-v1/pairing", "bellperson/pairing"]
 blst = ["filecoin-proofs-v1/blst", "bellperson/blst"]
+gpu = ["filecoin-proofs-v1/gpu", "filecoin-hashers/gpu", "storage-proofs-core/gpu", "fr32/gpu"]
+gpu2 = ["filecoin-proofs-v1/gpu2", "filecoin-hashers/gpu2", "storage-proofs-core/gpu2", "fr32/gpu"]
