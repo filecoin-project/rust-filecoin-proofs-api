@@ -570,7 +570,9 @@ pub fn get_seal_inputs<Tree: 'static + MerkleTreeTrait>(
 ) -> Result<Vec<Vec<Fr>>> {
     let config = registered_proof.as_v1_config();
 
-    filecoin_proofs_v1::get_seal_inputs::<Tree>(config, comm_r, comm_d, prover_id, sector_id, ticket, seed)
+    filecoin_proofs_v1::get_seal_inputs::<Tree>(
+        config, comm_r, comm_d, prover_id, sector_id, ticket, seed,
+    )
 }
 
 pub fn aggregate_seal_commit_proofs(
