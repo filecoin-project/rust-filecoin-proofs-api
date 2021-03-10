@@ -559,63 +559,18 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
-pub fn seal_commit_phase2_for_aggregation(
-    phase1_output: SealCommitPhase1Output,
+pub fn get_seal_inputs<Tree: 'static + MerkleTreeTrait>(
+    registered_proof: RegisteredSealProof,
+    comm_r: Commitment,
+    comm_d: Commitment,
     prover_id: ProverId,
     sector_id: SectorId,
-) -> Result<(SealCommitPhase2Output, Vec<Vec<Fr>>)> {
-    // FIXME: New proof type and/or version check is needed
-    ensure!(
-        phase1_output.registered_proof.major_version() == 1,
-        "unusupported version"
-    );
-
-    with_shape!(
-        u64::from(phase1_output.registered_proof.sector_size()),
-        seal_commit_phase2_for_aggregation_inner,
-        phase1_output,
-        prover_id,
-        sector_id,
-    )
-}
-
-pub fn seal_commit_phase2_for_aggregation_inner<Tree: 'static + MerkleTreeTrait>(
-    phase1_output: SealCommitPhase1Output,
-    prover_id: ProverId,
-    sector_id: SectorId,
-) -> Result<(SealCommitPhase2Output, Vec<Vec<Fr>>)> {
-    let SealCommitPhase1Output {
-        vanilla_proofs,
-        comm_r,
-        comm_d,
-        replica_id,
-        seed,
-        ticket,
-        registered_proof,
-    } = phase1_output;
-
+    ticket: Ticket,
+    seed: Ticket,
+) -> Result<Vec<Vec<Fr>>> {
     let config = registered_proof.as_v1_config();
-    let replica_id: Fr = replica_id.into();
 
-    let co = filecoin_proofs_v1::types::SealCommitPhase1Output {
-        vanilla_proofs: vanilla_proofs.try_into()?,
-        comm_r,
-        comm_d,
-        replica_id: replica_id.into(),
-        seed,
-        ticket,
-    };
-
-    let (output, inputs) = filecoin_proofs_v1::seal_commit_phase2_for_aggregation::<Tree>(
-        config, co, prover_id, sector_id,
-    )?;
-
-    Ok((
-        SealCommitPhase2Output {
-            proof: output.proof,
-        },
-        inputs,
-    ))
+    filecoin_proofs_v1::get_seal_inputs::<Tree>(config, comm_r, comm_d, prover_id, sector_id, ticket, seed)
 }
 
 pub fn aggregate_seal_commit_proofs(

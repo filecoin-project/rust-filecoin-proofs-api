@@ -16,7 +16,7 @@ serde = "1.0.104"
 filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "feat-aggregation", default-features = false, features = ["poseidon", "sha256"] }
 storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "feat-aggregation", default-features = false, features = ["gpu"] }
 fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "feat-aggregation", default-features = false, features = ["gpu"] }
-bellperson = { version = "0.12", default-features = false, features = ["gpu"] }
+bellperson = { version = "0.13", default-features = false, features = ["gpu"] }
 
 [features]
 default = ["pairing"]
@@ -28,5 +28,4 @@ gpu = ["filecoin-proofs-v1/gpu", "filecoin-hashers/gpu", "storage-proofs-core/gp
 paired = { git = "https://github.com/filecoin-project/paired", branch = "ser-de" }
 fff = { git = "https://github.com/filecoin-project/ff", branch = "ser-de" }
 groupy = { git = "https://github.com/filecoin-project/group", branch = "ser-de" }
-blstrs = { git = "https://github.com/cryptonemo/blstrs", branch = "ser-de-0-1" }
-bellperson = { version = "=0.12.5", git = "https://github.com/cryptonemo/bellman", branch = "feat-ipp2" }
+bellperson = { git = "https://github.com/filecoin-project/bellman", branch = "feat-ipp2" }
