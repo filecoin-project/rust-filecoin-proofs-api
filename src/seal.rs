@@ -559,7 +559,35 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
-pub fn get_seal_inputs<Tree: 'static + MerkleTreeTrait>(
+pub fn get_seal_inputs(
+    registered_proof: RegisteredSealProof,
+    comm_r: Commitment,
+    comm_d: Commitment,
+    prover_id: ProverId,
+    sector_id: SectorId,
+    ticket: Ticket,
+    seed: Ticket,
+) -> Result<Vec<Vec<Fr>>> {
+    // FIXME: New proof type and/or version check is needed?
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        get_seal_inputs_inner,
+        registered_proof,
+        comm_r,
+        comm_d,
+        prover_id,
+        sector_id,
+        ticket,
+        seed,
+    )
+}
+
+pub fn get_seal_inputs_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof: RegisteredSealProof,
     comm_r: Commitment,
     comm_d: Commitment,
