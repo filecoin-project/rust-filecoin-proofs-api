@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [6.1.0] - 2021-03-11
+
+- Improve docs and update to latest Proofs [#52](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/52)
+
 ## [6.0.0] - 2020-12-01
 
 - Add support for updated proofs api_versioning [#49](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/49)
@@ -82,7 +86,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v6.0.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v6.1.0...HEAD
+[6.1.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v6.1.0
 [6.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v6.0.0
 [5.4.1]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.4.1
 [5.4.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.4.0
