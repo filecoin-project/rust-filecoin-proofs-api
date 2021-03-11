@@ -12,19 +12,19 @@ The build options enabled by default are `pairing` and `gpu`.  Alternatives that
 
 ## Running the tests
 
-To run the tests using the default features can be done like this:
+Running the tests with the default features can be done like this:
 
 ```
 cargo test --release --all
 ```
 
-Running with the `blst` and `gpu2` options can be done like this:
+Running with the `blst` and `gpu2` features can be done like this:
 
 ```
 cargo test --no-default-features --features blst,gpu2 --release --all
 ```
 
-Running with the `pairing` and `gpu2` options can be done like this:
+Running with the `pairing` and `gpu2` features can be done like this:
 
 ```
 cargo test --no-default-features --features pairing,gpu2 --release --all
