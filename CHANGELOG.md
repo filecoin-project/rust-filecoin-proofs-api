@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [6.1.0] - 2021-03-11
 
+- Update docs and changelog for release [#53](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/53)
 - Improve docs and update to latest Proofs [#52](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/52)
 
 ## [6.0.0] - 2020-12-01
