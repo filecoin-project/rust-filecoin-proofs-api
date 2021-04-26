@@ -19,7 +19,7 @@ use filecoin_proofs_v1::{with_shape, Labels as RawLabels};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AggregateSnarkProof, Commitment, PieceInfo, ProverId, RegisteredSealProof, SectorId, Ticket,
+    AggregateSnarkProof, Commitment, PieceInfo, ProverId, RegisteredAggregationProof, RegisteredSealProof, SectorId, Ticket,
     UnpaddedByteIndex, UnpaddedBytesAmount,
 };
 
@@ -568,7 +568,6 @@ pub fn get_seal_inputs(
     ticket: Ticket,
     seed: Ticket,
 ) -> Result<Vec<Vec<Fr>>> {
-    // FIXME: New proof type and/or version check is needed?
     ensure!(
         registered_proof.major_version() == 1,
         "unusupported version"
@@ -605,12 +604,17 @@ pub fn get_seal_inputs_inner<Tree: 'static + MerkleTreeTrait>(
 
 pub fn aggregate_seal_commit_proofs(
     registered_proof: RegisteredSealProof,
+    registered_aggregation: RegisteredAggregationProof,
     commit_outputs: &[SealCommitPhase2Output],
 ) -> Result<AggregateSnarkProof> {
-    // FIXME: New proof type and/or version check is needed
     ensure!(
         registered_proof.major_version() == 1,
         "unusupported version"
+    );
+
+    ensure!(
+        registered_aggregation == RegisteredAggregationProof::IppPoRepV1,
+        "unusupported aggregation version"
     );
 
     with_shape!(
@@ -638,14 +642,19 @@ pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
 
 pub fn verify_aggregate_seal_commit_proofs(
     registered_proof: RegisteredSealProof,
+    registered_aggregation: RegisteredAggregationProof,
     aggregated_proofs_len: usize,
     aggregate_proof_bytes: AggregateSnarkProof,
     commit_inputs: Vec<Vec<Fr>>,
 ) -> Result<bool> {
-    // FIXME: New proof type and/or version check is needed
     ensure!(
         registered_proof.major_version() == 1,
         "unusupported version"
+    );
+
+    ensure!(
+        registered_aggregation == RegisteredAggregationProof::IppPoRepV1,
+        "unusupported aggregation version"
     );
 
     with_shape!(

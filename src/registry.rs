@@ -24,6 +24,13 @@ pub enum RegisteredSealProof {
     StackedDrg64GiBV1_1,
 }
 
+/// Available aggregation proof types.
+/// Enum is append-only: once published, a `RegisteredAggregationProof` value must never change.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum RegisteredAggregationProof {
+    IppPoRepV1,
+}
+
 // Hack to delegate to self config types.
 macro_rules! self_shape {
     ($name:ident, $selfty:ty, $self:expr, $ret:ty) => {{
