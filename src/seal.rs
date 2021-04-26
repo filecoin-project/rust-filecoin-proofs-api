@@ -19,8 +19,8 @@ use filecoin_proofs_v1::{with_shape, Labels as RawLabels};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AggregateSnarkProof, Commitment, PieceInfo, ProverId, RegisteredAggregationProof, RegisteredSealProof, SectorId, Ticket,
-    UnpaddedByteIndex, UnpaddedBytesAmount,
+    AggregateSnarkProof, Commitment, PieceInfo, ProverId, RegisteredAggregationProof,
+    RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex, UnpaddedBytesAmount,
 };
 
 /// The output of `seal_pre_commit_phase1`.
