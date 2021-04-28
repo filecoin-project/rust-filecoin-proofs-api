@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [7.0.0] - 2021-04-28
+
+- Improve RAM usage during unseal [#56](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/56)
+- Update rust-toolchain to 1.51.0 [#55](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/55)
+
 ## [6.1.0] - 2021-03-11
 
 - Update docs and changelog for release [#53](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/53)
@@ -87,7 +92,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v6.1.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v7.0.0...HEAD
+[7.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v7.0.0
 [6.1.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v6.1.0
 [6.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v6.0.0
 [5.4.1]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v5.4.1
