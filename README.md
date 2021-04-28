@@ -8,7 +8,7 @@ This library is meant to be the official public API into the proofs library.
 
 ## Default build options
 
-The build options enabled by default are `pairing` and `gpu`.  Alternatives that can be used for testing are `blst` and `gpu2`.  The `pairing` and `blst` options specify which bls12-381 pairing library to use.  The `gpu` and `gpu2` options specify between using `neptune`'s default GPU backend, or an opencl based implementation.
+The build options enabled by default are `pairing` and `gpu`.  An alternative backend that can be used is `blst`.  The `pairing` and `blst` options specify which bls12-381 pairing library to use..
 
 ## Running the tests
 
@@ -18,16 +18,16 @@ Running the tests with the default features can be done like this:
 cargo test --release --all
 ```
 
-Running with the `blst` and `gpu2` features can be done like this:
+Running with the `blst` and `gpu` features can be done like this:
 
 ```
-cargo test --no-default-features --features blst,gpu2 --release --all
+cargo test --no-default-features --features blst,gpu --release --all
 ```
 
-Running with the `pairing` and `gpu2` features can be done like this:
+Running with `pairing` and without the `gpu` feature can be done like this:
 
 ```
-cargo test --no-default-features --features pairing,gpu2 --release --all
+cargo test --no-default-features --features pairing --release --all
 ```
 
 ## License
