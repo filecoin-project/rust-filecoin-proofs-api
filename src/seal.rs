@@ -613,7 +613,7 @@ pub fn aggregate_seal_commit_proofs(
     );
 
     ensure!(
-        registered_aggregation == RegisteredAggregationProof::IppPoRepV1,
+        registered_aggregation == RegisteredAggregationProof::SnarkPackV1,
         "unusupported aggregation version"
     );
 
@@ -653,7 +653,7 @@ pub fn verify_aggregate_seal_commit_proofs(
     );
 
     ensure!(
-        registered_aggregation == RegisteredAggregationProof::IppPoRepV1,
+        registered_aggregation == RegisteredAggregationProof::SnarkPackV1,
         "unusupported aggregation version"
     );
 

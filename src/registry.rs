@@ -28,7 +28,7 @@ pub enum RegisteredSealProof {
 /// Enum is append-only: once published, a `RegisteredAggregationProof` value must never change.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredAggregationProof {
-    IppPoRepV1,
+    SnarkPackV1,
 }
 
 // Hack to delegate to self config types.
