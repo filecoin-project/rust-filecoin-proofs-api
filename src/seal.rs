@@ -605,6 +605,7 @@ pub fn get_seal_inputs_inner<Tree: 'static + MerkleTreeTrait>(
 pub fn aggregate_seal_commit_proofs(
     registered_proof: RegisteredSealProof,
     registered_aggregation: RegisteredAggregationProof,
+    commit_inputs: Vec<Vec<Fr>>,
     commit_outputs: &[SealCommitPhase2Output],
 ) -> Result<AggregateSnarkProof> {
     ensure!(
@@ -621,12 +622,14 @@ pub fn aggregate_seal_commit_proofs(
         u64::from(registered_proof.sector_size()),
         aggregate_seal_commit_proofs_inner,
         registered_proof,
+        commit_inputs,
         commit_outputs,
     )
 }
 
 pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof: RegisteredSealProof,
+    commit_inputs: Vec<Vec<Fr>>,
     commit_outputs: &[SealCommitPhase2Output],
 ) -> Result<AggregateSnarkProof> {
     let config = registered_proof.as_v1_config();
@@ -637,7 +640,7 @@ pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
         })
         .collect();
 
-    filecoin_proofs_v1::aggregate_seal_commit_proofs::<Tree>(config, &outputs)
+    filecoin_proofs_v1::aggregate_seal_commit_proofs::<Tree>(config, commit_inputs, &outputs)
 }
 
 pub fn verify_aggregate_seal_commit_proofs(
