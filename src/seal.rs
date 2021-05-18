@@ -646,7 +646,6 @@ pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
 pub fn verify_aggregate_seal_commit_proofs(
     registered_proof: RegisteredSealProof,
     registered_aggregation: RegisteredAggregationProof,
-    aggregated_proofs_len: usize,
     aggregate_proof_bytes: AggregateSnarkProof,
     commit_inputs: Vec<Vec<Fr>>,
 ) -> Result<bool> {
@@ -664,7 +663,6 @@ pub fn verify_aggregate_seal_commit_proofs(
         u64::from(registered_proof.sector_size()),
         verify_aggregate_seal_commit_proofs_inner,
         registered_proof,
-        aggregated_proofs_len,
         aggregate_proof_bytes,
         commit_inputs,
     )
@@ -672,7 +670,6 @@ pub fn verify_aggregate_seal_commit_proofs(
 
 pub fn verify_aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof: RegisteredSealProof,
-    aggregated_proofs_len: usize,
     aggregate_proof_bytes: AggregateSnarkProof,
     commit_inputs: Vec<Vec<Fr>>,
 ) -> Result<bool> {
@@ -680,7 +677,6 @@ pub fn verify_aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait
 
     filecoin_proofs_v1::verify_aggregate_seal_commit_proofs::<Tree>(
         config,
-        aggregated_proofs_len,
         aggregate_proof_bytes,
         commit_inputs,
     )
