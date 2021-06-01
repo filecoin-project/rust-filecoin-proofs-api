@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [8.0.0] - 2021-06-01
+
+- Integrate Proof Aggregation API [#51](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/51)
+
 ## [7.0.0] - 2021-04-28
 
 - Improve RAM usage during unseal [#56](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/56)

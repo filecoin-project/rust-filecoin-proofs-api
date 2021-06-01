@@ -10,23 +10,17 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.26"
-bellperson = { version = "0.13", default-features = false }
+bellperson = { version = "0.14.0", default-features = false }
 bincode = "1.1.2"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "feat-aggregation", default-features = false}
-filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "feat-aggregation", default-features = false, features = ["poseidon", "sha256"] }
-storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "feat-aggregation", default-features = false}
-fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "feat-aggregation", default-features = false }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~8.0", default-features = false }
+filecoin-hashers = { version = "~3.0", default-features = false, features = ["poseidon", "sha256"] }
+fr32 = { version = "~1.0", default-features = false }
+storage-proofs-core = { version = "~8.0", default-features = false }
+
 
 [features]
 default = ["pairing", "gpu"]
 pairing = ["filecoin-proofs-v1/pairing", "bellperson/pairing", "storage-proofs-core/pairing", "fr32/pairing"]
 blst = ["filecoin-proofs-v1/blst", "bellperson/blst", "storage-proofs-core/blst", "fr32/blst"]
 gpu = ["filecoin-proofs-v1/gpu", "filecoin-hashers/gpu", "storage-proofs-core/gpu", "bellperson/gpu", "fr32/gpu"]
-
-[patch.crates-io]
-paired = { git = "https://github.com/filecoin-project/paired", branch = "feat-compression" }
-fff = { git = "https://github.com/filecoin-project/ff", branch = "ser-de" }
-groupy = { git = "https://github.com/filecoin-project/group", branch = "ser-de" }
-blstrs = { git = "https://github.com/filecoin-project/blstrs", branch = "feat-compression" }
-bellperson = { git = "https://github.com/filecoin-project/bellman", branch = "feat-ipp2" }
