@@ -18,7 +18,6 @@ filecoin-hashers = { version = "~3.0", default-features = false, features = ["po
 fr32 = { version = "~1.0", default-features = false }
 storage-proofs-core = { version = "~8.0", default-features = false }
 
-
 [features]
 default = ["pairing", "gpu"]
 pairing = ["filecoin-proofs-v1/pairing", "bellperson/pairing", "storage-proofs-core/pairing", "fr32/pairing"]
