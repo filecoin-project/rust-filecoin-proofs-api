@@ -605,6 +605,7 @@ pub fn get_seal_inputs_inner<Tree: 'static + MerkleTreeTrait>(
 pub fn aggregate_seal_commit_proofs(
     registered_proof: RegisteredSealProof,
     registered_aggregation: RegisteredAggregationProof,
+    comm_rs: &[Commitment],
     seeds: &[Ticket],
     commit_outputs: &[SealCommitPhase2Output],
 ) -> Result<AggregateSnarkProof> {
@@ -622,6 +623,7 @@ pub fn aggregate_seal_commit_proofs(
         u64::from(registered_proof.sector_size()),
         aggregate_seal_commit_proofs_inner,
         registered_proof,
+        comm_rs,
         seeds,
         commit_outputs,
     )
@@ -629,6 +631,7 @@ pub fn aggregate_seal_commit_proofs(
 
 pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof: RegisteredSealProof,
+    comm_rs: &[Commitment],
     seeds: &[Ticket],
     commit_outputs: &[SealCommitPhase2Output],
 ) -> Result<AggregateSnarkProof> {
@@ -640,13 +643,14 @@ pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
         })
         .collect();
 
-    filecoin_proofs_v1::aggregate_seal_commit_proofs::<Tree>(config, seeds, &outputs)
+    filecoin_proofs_v1::aggregate_seal_commit_proofs::<Tree>(config, comm_rs, seeds, &outputs)
 }
 
 pub fn verify_aggregate_seal_commit_proofs(
     registered_proof: RegisteredSealProof,
     registered_aggregation: RegisteredAggregationProof,
     aggregate_proof_bytes: AggregateSnarkProof,
+    comm_rs: &[Commitment],
     seeds: &[Ticket],
     commit_inputs: Vec<Vec<Fr>>,
 ) -> Result<bool> {
@@ -665,6 +669,7 @@ pub fn verify_aggregate_seal_commit_proofs(
         verify_aggregate_seal_commit_proofs_inner,
         registered_proof,
         aggregate_proof_bytes,
+        comm_rs,
         seeds,
         commit_inputs,
     )
@@ -673,6 +678,7 @@ pub fn verify_aggregate_seal_commit_proofs(
 pub fn verify_aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof: RegisteredSealProof,
     aggregate_proof_bytes: AggregateSnarkProof,
+    comm_rs: &[Commitment],
     seeds: &[Ticket],
     commit_inputs: Vec<Vec<Fr>>,
 ) -> Result<bool> {
@@ -681,6 +687,7 @@ pub fn verify_aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait
     filecoin_proofs_v1::verify_aggregate_seal_commit_proofs::<Tree>(
         config,
         aggregate_proof_bytes,
+        comm_rs,
         seeds,
         commit_inputs,
     )
