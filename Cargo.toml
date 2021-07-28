@@ -10,7 +10,7 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.26"
-bellperson = { version = "0.15.0", default-features = false }
+bellperson = { version = "0.16.0", default-features = false }
 bincode = "1.1.2"
 serde = "1.0.104"
 #filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~8.0", default-features = false }
@@ -30,4 +30,4 @@ blst = ["filecoin-proofs-v1/blst", "bellperson/blst", "storage-proofs-core/blst"
 gpu = ["filecoin-proofs-v1/gpu", "filecoin-hashers/gpu", "storage-proofs-core/gpu", "bellperson/gpu", "fr32/gpu"]
 
 [patch.crates-io]
-neptune = { git = "https://github.com/filecoin-project/neptune", branch = "updated-bellperson", default-features = false }
+neptune = { git = "https://github.com/filecoin-project/neptune", default-features = false }
