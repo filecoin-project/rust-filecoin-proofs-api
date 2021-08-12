@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [9.0.0] - 2021-08-12
+
+- Swap pairing for blst and update to latest proofs [#58](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/58)
+
 ## [8.0.1] - 2021-06-09
 
 - Updates for finalizing snarkpack support [#57](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/57)
@@ -100,7 +104,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v8.0.1...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v9.0.0...HEAD
+[9.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v9.0.0
 [8.0.1]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v8.0.1
 [8.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v8.0.0
 [7.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v7.0.0
