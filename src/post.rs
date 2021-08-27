@@ -493,3 +493,76 @@ fn verify_window_post_inner<Tree: 'static + MerkleTreeTrait>(
 
     Ok(valid_v1)
 }
+
+pub fn get_post_vanilla_params(
+    proof_type: RegisteredPoStProof,
+) -> Result<String> {
+    with_shape!(
+        u64::from(proof_type.sector_size()),
+        get_post_vanilla_params_inner,
+        proof_type,
+    )
+}
+
+fn get_post_vanilla_params_inner<Tree: 'static + MerkleTreeTrait>(
+    proof_type: RegisteredPoStProof,
+) -> Result<String> {
+
+    let pamm = filecoin_proofs_v1::get_post_vanilla_params::<Tree>(
+        &proof_type.as_v1_config()
+    )?;
+    let pamm_str = serde_json::to_string(&pamm)?;
+
+    Ok(pamm_str)
+}
+
+pub fn generate_window_partition_post_with_vanilla(
+    registered_post_proof_type: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    prover_id: ProverId,
+    vanilla_proofs: &[VanillaProofBytes],
+    sector_idxs: &[u64],
+) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
+    with_shape!(
+        u64::from(registered_post_proof_type.sector_size()),
+        generate_window_partition_post_with_vanilla_inner,
+        registered_post_proof_type,
+        randomness,
+        prover_id,
+        vanilla_proofs,
+        sector_idxs,
+    )
+}
+
+fn generate_window_partition_post_with_vanilla_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_post_proof_type: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    prover_id: ProverId,
+    vanilla_proofs: &[VanillaProofBytes],
+    sector_idxs: &[u64],
+) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
+    ensure!(
+        !vanilla_proofs.is_empty(),
+        "vanilla_proofs cannot be an empty list"
+    );
+
+    let fallback_post_sector_proofs: Vec<FallbackPoStSectorProof<Tree>> = vanilla_proofs
+        .iter()
+        .map(|proof_bytes| {
+            let proof: FallbackPoStSectorProof<Tree> = bincode::deserialize(proof_bytes)?;
+            Ok(proof)
+        })
+        .collect::<Result<_>>()?;
+
+    let posts_v1 = filecoin_proofs_v1::generate_single_window_post_with_vanilla::<Tree>(
+        &registered_post_proof_type.as_v1_config(),
+        randomness,
+        prover_id,
+        fallback_post_sector_proofs,
+        sector_idxs,
+    )?;
+
+    // once there are multiple versions, merge them before returning
+
+    Ok(vec![(registered_post_proof_type, posts_v1)])
+}
