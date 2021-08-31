@@ -10,7 +10,7 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.26"
-bellperson = { version = "0.16", default-features = false }
+bellperson = { version = "0.15", default-features = false }
 bincode = "1.1.2"
 serde = "1.0.104"
 filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~9.0", default-features = false }
@@ -23,3 +23,12 @@ default = ["blst", "gpu"]
 pairing = ["filecoin-proofs-v1/pairing", "bellperson/pairing", "storage-proofs-core/pairing", "fr32/pairing"]
 blst = ["filecoin-proofs-v1/blst", "bellperson/blst", "storage-proofs-core/blst", "fr32/blst"]
 gpu = ["filecoin-proofs-v1/gpu", "filecoin-hashers/gpu", "storage-proofs-core/gpu", "bellperson/gpu", "fr32/gpu"]
+
+[patch.crates-io]
+storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "revert-deps" }
+storage-proofs-porep = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "revert-deps" }
+storage-proofs-post = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "revert-deps" }
+fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "revert-deps" }
+filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "revert-deps" }
+filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "revert-deps" }
+neptune = { git = "https://github.com/filecoin-project/neptune", branch = "revert-deps" }
