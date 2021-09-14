@@ -125,7 +125,7 @@ jobs:
 
   test_darwin_pairing:
     macos:
-      xcode: "10.0.0"
+      xcode: "12.5.0"
     working_directory: ~/crate
     resource_class: large
     steps:
@@ -149,7 +149,7 @@ jobs:
 
   test_darwin_blst:
     macos:
-      xcode: "10.0.0"
+      xcode: "12.5.0"
     working_directory: ~/crate
     resource_class: large
     steps:
