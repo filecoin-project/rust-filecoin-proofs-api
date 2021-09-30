@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [10.0.0] - 2021-09-30
+
+- Update XCode to 12.5.0 as 10.0.0 is deprecated on CI [#62](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/62)
+
 ## [9.0.0] - 2021-08-12
 
 - Swap pairing for blst and update to latest proofs [#58](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/58)

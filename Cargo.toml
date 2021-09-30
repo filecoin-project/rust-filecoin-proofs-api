@@ -10,16 +10,18 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.26"
-bellperson = { version = "0.16", default-features = false }
+bellperson = { version = "0.17", default-features = false }
 bincode = "1.1.2"
+blstrs = "0.4.0"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~9.0", default-features = false }
-filecoin-hashers = { version = "~4.0", default-features = false, features = ["poseidon", "sha256"] }
-fr32 = { version = "~2.0", default-features = false }
-storage-proofs-core = { version = "~9.0", default-features = false }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~10.0", default-features = false }
+filecoin-hashers = { version = "~5.0", default-features = false, features = ["poseidon", "sha256"] }
+fr32 = { version = "~3.0", default-features = false }
+storage-proofs-core = { version = "~10.0", default-features = false }
+storage-proofs-porep = { version = "~10.0", default-features = false }
 
 [features]
-default = ["blst", "gpu"]
-pairing = ["filecoin-proofs-v1/pairing", "bellperson/pairing", "storage-proofs-core/pairing", "fr32/pairing"]
-blst = ["filecoin-proofs-v1/blst", "bellperson/blst", "storage-proofs-core/blst", "fr32/blst"]
-gpu = ["filecoin-proofs-v1/gpu", "filecoin-hashers/gpu", "storage-proofs-core/gpu", "bellperson/gpu", "fr32/gpu"]
+default = ["opencl"]
+cuda = ["filecoin-proofs-v1/cuda", "filecoin-hashers/cuda", "storage-proofs-core/cuda", "storage-proofs-porep/cuda", "bellperson/cuda", "fr32/cuda"]
+opencl = ["filecoin-proofs-v1/opencl", "filecoin-hashers/opencl", "storage-proofs-core/opencl", "storage-proofs-porep/opencl", "bellperson/opencl", "fr32/opencl"]
+multicore-sdr = ["storage-proofs-porep/multicore-sdr"]
