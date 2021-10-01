@@ -3,7 +3,7 @@ use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, ensure, Error, Result};
-use bellperson::bls::Fr;
+use blstrs::Scalar as Fr;
 use filecoin_hashers::Hasher;
 
 use filecoin_proofs_v1::constants::{
