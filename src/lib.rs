@@ -6,11 +6,15 @@
 
 pub mod post;
 pub mod seal;
+pub mod update;
 
 mod registry;
 mod types;
 
-pub use crate::registry::{RegisteredAggregationProof, RegisteredPoStProof, RegisteredSealProof};
+pub use crate::registry::{
+    RegisteredAggregationProof, RegisteredEmptySectorUpdateProof, RegisteredPoStProof,
+    RegisteredSealProof,
+};
 pub use crate::types::{PrivateReplicaInfo, PublicReplicaInfo};
 
 pub use filecoin_proofs_v1::types::{

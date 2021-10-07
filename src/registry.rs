@@ -1,8 +1,11 @@
 use std::path::PathBuf;
 
 use anyhow::{ensure, Result};
-use filecoin_proofs_v1::{constants, with_shape};
-use filecoin_proofs_v1::{PoRepConfig, PoRepProofPartitions, PoStConfig, PoStType, SectorSize};
+use filecoin_proofs_v1::{constants, hs, partition_count, with_shape};
+use filecoin_proofs_v1::{
+    HSelect, PoRepConfig, PoRepProofPartitions, PoStConfig, PoStType, SectorSize,
+    UpdateProofPartitions,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{get_parameter_data, get_verifying_key_data, ApiVersion, MerkleTreeTrait};
@@ -29,6 +32,18 @@ pub enum RegisteredSealProof {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredAggregationProof {
     SnarkPackV1,
+}
+
+/// Available EmtpySectorUpdateProof types.
+/// Enum is append-only: once published, a `RegisteredEmptySectorUpdateProof` value must never change.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum RegisteredEmptySectorUpdateProof {
+    // Note: SnapDeal*V1 maps to api version V1_1
+    SnapDeal2KiBV1,
+    SnapDeal8MiBV1,
+    SnapDeal512MiBV1,
+    SnapDeal32GiBV1,
+    SnapDeal64GiBV1,
 }
 
 // Hack to delegate to self config types.
@@ -115,6 +130,52 @@ impl RegisteredSealProof {
         }
     }
 
+    /// Return the number of sector update partitions for this proof.
+    pub fn update_partitions(self) -> usize {
+        use RegisteredSealProof::*;
+        const NODE_SIZE: u64 = 32;
+        match self {
+            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 => {
+                partition_count((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize)
+            }
+            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 => {
+                partition_count((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize)
+            }
+            StackedDrg512MiBV1 | StackedDrg512MiBV1_1 => {
+                partition_count((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)
+            }
+            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 => {
+                partition_count((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)
+            }
+            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 => {
+                partition_count((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)
+            }
+        }
+    }
+
+    /// Return the h_select value this sector update proof.
+    pub fn h_select(self) -> usize {
+        use RegisteredSealProof::*;
+        const NODE_SIZE: u64 = 32;
+        match self {
+            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 => {
+                hs((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize)[0]
+            }
+            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 => {
+                hs((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize)[0]
+            }
+            StackedDrg512MiBV1 | StackedDrg512MiBV1_1 => {
+                hs((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)[0]
+            }
+            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 => {
+                hs((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)[0]
+            }
+            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 => {
+                hs((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)[0]
+            }
+        }
+    }
+
     pub fn single_partition_proof_len(self) -> usize {
         use RegisteredSealProof::*;
 
@@ -147,7 +208,6 @@ impl RegisteredSealProof {
 
     pub fn as_v1_config(self) -> PoRepConfig {
         use RegisteredSealProof::*;
-
         match self {
             StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
             | StackedDrg64GiBV1 => {
@@ -155,6 +215,8 @@ impl RegisteredSealProof {
                 PoRepConfig {
                     sector_size: self.sector_size(),
                     partitions: PoRepProofPartitions(self.partitions()),
+                    update_partitions: UpdateProofPartitions::from(self.update_partitions()),
+                    h_select: HSelect::from(self.h_select()),
                     porep_id: self.porep_id(),
                     api_version: self.version(),
                 }
@@ -165,6 +227,8 @@ impl RegisteredSealProof {
                 PoRepConfig {
                     sector_size: self.sector_size(),
                     partitions: PoRepProofPartitions(self.partitions()),
+                    update_partitions: UpdateProofPartitions::from(self.update_partitions()),
+                    h_select: HSelect::from(self.h_select()),
                     porep_id: self.porep_id(),
                     api_version: self.version(),
                 }
@@ -253,7 +317,7 @@ impl RegisteredSealProof {
 }
 
 /// Available PoSt proofs.
-/// Enum is append-only: once published, a `RegisteredSealProof` value must never change.
+/// Enum is append-only: once published, a `RegisteredPoStProof` value must never change.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredPoStProof {
     StackedDrgWinning2KiBV1,
@@ -452,6 +516,225 @@ impl RegisteredPoStProof {
                 Ok(params.expect("params cid failure").cid.clone())
             }
             _ => panic!("Invalid PoSt api version"),
+        }
+    }
+}
+
+impl RegisteredEmptySectorUpdateProof {
+    /// Return the version for this proof.
+    pub fn version(self) -> ApiVersion {
+        use RegisteredEmptySectorUpdateProof::*;
+
+        match self {
+            SnapDeal2KiBV1 | SnapDeal8MiBV1 | SnapDeal512MiBV1 | SnapDeal32GiBV1
+            | SnapDeal64GiBV1 => ApiVersion::V1_1_0,
+        }
+    }
+
+    /// Return the major version for this proof.
+    pub fn major_version(self) -> u64 {
+        self.version().as_semver().major
+    }
+
+    /// Return the minor version for this proof.
+    pub fn minor_version(self) -> u64 {
+        self.version().as_semver().minor
+    }
+
+    /// Return the patch version for this proof.
+    pub fn patch_version(self) -> u64 {
+        self.version().as_semver().patch
+    }
+
+    /// Return the sector size for this proof.
+    pub fn sector_size(self) -> SectorSize {
+        use RegisteredEmptySectorUpdateProof::*;
+        let size = match self {
+            SnapDeal2KiBV1 => constants::SECTOR_SIZE_2_KIB,
+            SnapDeal8MiBV1 => constants::SECTOR_SIZE_8_MIB,
+            SnapDeal512MiBV1 => constants::SECTOR_SIZE_512_MIB,
+            SnapDeal32GiBV1 => constants::SECTOR_SIZE_32_GIB,
+            SnapDeal64GiBV1 => constants::SECTOR_SIZE_64_GIB,
+        };
+        SectorSize(size)
+    }
+
+    /// Return the number of partitions for this proof.
+    pub fn partitions(self) -> u8 {
+        use RegisteredEmptySectorUpdateProof::*;
+        match self {
+            SnapDeal2KiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .expect("porep partitions read error")
+                .get(&constants::SECTOR_SIZE_2_KIB)
+                .expect("invalid sector size"),
+            SnapDeal8MiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .expect("porep partitions read error")
+                .get(&constants::SECTOR_SIZE_8_MIB)
+                .expect("invalid sector size"),
+            SnapDeal512MiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .expect("porep partitions read error")
+                .get(&constants::SECTOR_SIZE_512_MIB)
+                .expect("invalid sector size"),
+            SnapDeal32GiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .expect("porep partitions read error")
+                .get(&constants::SECTOR_SIZE_32_GIB)
+                .expect("invalid sector size"),
+            SnapDeal64GiBV1 => *constants::POREP_PARTITIONS
+                .read()
+                .expect("porep partitions read error")
+                .get(&constants::SECTOR_SIZE_64_GIB)
+                .expect("invalid sector size"),
+        }
+    }
+
+    /// Return the number of sector update partitions for this proof.
+    pub fn update_partitions(self) -> usize {
+        use RegisteredEmptySectorUpdateProof::*;
+        const NODE_SIZE: u64 = 32;
+        match self {
+            SnapDeal2KiBV1 => partition_count((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize),
+            SnapDeal8MiBV1 => partition_count((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize),
+            SnapDeal512MiBV1 => {
+                partition_count((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)
+            }
+            SnapDeal32GiBV1 => {
+                partition_count((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)
+            }
+            SnapDeal64GiBV1 => {
+                partition_count((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)
+            }
+        }
+    }
+
+    /// Return the h_select value this sector update proof.
+    pub fn h_select(self) -> usize {
+        use RegisteredEmptySectorUpdateProof::*;
+        const NODE_SIZE: u64 = 32;
+        match self {
+            SnapDeal2KiBV1 => hs((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize)[0],
+            SnapDeal8MiBV1 => hs((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize)[0],
+            SnapDeal512MiBV1 => hs((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)[0],
+            SnapDeal32GiBV1 => hs((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)[0],
+            SnapDeal64GiBV1 => hs((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)[0],
+        }
+    }
+
+    pub fn single_partition_proof_len(self) -> usize {
+        use RegisteredEmptySectorUpdateProof::*;
+
+        match self {
+            SnapDeal2KiBV1 | SnapDeal8MiBV1 | SnapDeal512MiBV1 | SnapDeal32GiBV1
+            | SnapDeal64GiBV1 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
+        }
+    }
+
+    fn nonce(self) -> u64 {
+        #[allow(clippy::match_single_binding)]
+        match self {
+            // If we ever need to change the nonce for any given RegisteredEmptySectorUpdateProof, match it here.
+            _ => 0,
+        }
+    }
+
+    fn porep_id(self) -> [u8; 32] {
+        let mut porep_id = [0; 32];
+        let registered_proof_id = self as u64;
+        let nonce = self.nonce();
+
+        porep_id[0..8].copy_from_slice(&registered_proof_id.to_le_bytes());
+        porep_id[8..16].copy_from_slice(&nonce.to_le_bytes());
+        porep_id
+    }
+
+    pub fn as_v1_config(self) -> PoRepConfig {
+        use RegisteredEmptySectorUpdateProof::*;
+        match self {
+            SnapDeal2KiBV1 | SnapDeal8MiBV1 | SnapDeal512MiBV1 | SnapDeal32GiBV1
+            | SnapDeal64GiBV1 => {
+                assert_eq!(self.version(), ApiVersion::V1_1_0);
+                PoRepConfig {
+                    sector_size: self.sector_size(),
+                    partitions: PoRepProofPartitions(self.partitions()),
+                    update_partitions: UpdateProofPartitions::from(self.update_partitions()),
+                    h_select: HSelect::from(self.h_select()),
+                    porep_id: self.porep_id(),
+                    api_version: self.version(),
+                }
+            } // _ => panic!("Can only be called on V1 configs"),
+        }
+    }
+
+    /// Returns the circuit identifier.
+    pub fn circuit_identifier(self) -> Result<String> {
+        match self.version() {
+            ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
+            ApiVersion::V1_1_0 => {
+                self_shape!(
+                    get_cache_identifier,
+                    RegisteredEmptySectorUpdateProof,
+                    self,
+                    String
+                )
+            }
+        }
+    }
+
+    pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
+        match self.version() {
+            ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
+            ApiVersion::V1_1_0 => self_shape!(
+                get_cache_verifying_key_path,
+                RegisteredEmptySectorUpdateProof,
+                self,
+                PathBuf
+            ),
+        }
+    }
+
+    pub fn cache_params_path(self) -> Result<PathBuf> {
+        match self.version() {
+            ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
+            ApiVersion::V1_1_0 => {
+                self_shape!(
+                    get_cache_params_path,
+                    RegisteredEmptySectorUpdateProof,
+                    self,
+                    PathBuf
+                )
+            }
+        }
+    }
+
+    pub fn verifying_key_cid(self) -> Result<String> {
+        match self.version() {
+            ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
+            ApiVersion::V1_1_0 => {
+                let id = self.circuit_identifier()?;
+                let params = get_verifying_key_data(&id);
+                ensure!(params.is_some(), "missing params for {}", &id);
+
+                Ok(params
+                    .expect("verifying key cid params failure")
+                    .cid
+                    .clone())
+            }
+        }
+    }
+
+    pub fn params_cid(self) -> Result<String> {
+        match self.version() {
+            ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
+            ApiVersion::V1_1_0 => {
+                let id = self.circuit_identifier()?;
+                let params = get_parameter_data(&id);
+                ensure!(params.is_some(), "missing params for {}", &id);
+
+                Ok(params.expect("param cid failure").cid.clone())
+            }
         }
     }
 }
