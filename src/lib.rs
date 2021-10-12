@@ -12,8 +12,7 @@ mod registry;
 mod types;
 
 pub use crate::registry::{
-    RegisteredAggregationProof, RegisteredUpdateProof, RegisteredPoStProof,
-    RegisteredSealProof,
+    RegisteredAggregationProof, RegisteredPoStProof, RegisteredSealProof, RegisteredUpdateProof,
 };
 pub use crate::types::{PrivateReplicaInfo, PublicReplicaInfo};
 

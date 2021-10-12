@@ -596,8 +596,12 @@ impl RegisteredUpdateProof {
         use RegisteredUpdateProof::*;
         const NODE_SIZE: u64 = 32;
         match self {
-            StackedDrg2KiBV1 => partition_count((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize),
-            StackedDrg8MiBV1 => partition_count((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize),
+            StackedDrg2KiBV1 => {
+                partition_count((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize)
+            }
+            StackedDrg8MiBV1 => {
+                partition_count((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize)
+            }
             StackedDrg512MiBV1 => {
                 partition_count((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)
             }
@@ -673,12 +677,7 @@ impl RegisteredUpdateProof {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
             ApiVersion::V1_1_0 => {
-                self_shape!(
-                    get_cache_identifier,
-                    RegisteredUpdateProof,
-                    self,
-                    String
-                )
+                self_shape!(get_cache_identifier, RegisteredUpdateProof, self, String)
             }
         }
     }
@@ -699,12 +698,7 @@ impl RegisteredUpdateProof {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
             ApiVersion::V1_1_0 => {
-                self_shape!(
-                    get_cache_params_path,
-                    RegisteredUpdateProof,
-                    self,
-                    PathBuf
-                )
+                self_shape!(get_cache_params_path, RegisteredUpdateProof, self, PathBuf)
             }
         }
     }
