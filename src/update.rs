@@ -5,12 +5,12 @@ use anyhow::{ensure, Result};
 use filecoin_proofs_v1::types::{EmptySectorUpdateProof, MerkleTreeTrait};
 use filecoin_proofs_v1::{with_shape, TreeRHasher};
 
-use crate::{Commitment, PieceInfo, RegisteredEmptySectorUpdateProof};
+use crate::{Commitment, PieceInfo, RegisteredUpdateProof};
 
 pub fn empty_sector_update_encode_into_inner<
     Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
 >(
-    registered_proof: RegisteredEmptySectorUpdateProof,
+    registered_proof: RegisteredUpdateProof,
     new_replica_path: &Path,
     new_cache_path: &Path,
     sector_key_path: &Path,
@@ -39,7 +39,7 @@ pub fn empty_sector_update_encode_into_inner<
 /// Encodes data into an existing replica.
 /// Returns tuple of (comm_r_new, comm_r_last_new, comm_d_new)
 pub fn empty_sector_update_encode_into<R, S, T, U, V>(
-    registered_proof: RegisteredEmptySectorUpdateProof,
+    registered_proof: RegisteredUpdateProof,
     new_replica_path: R,
     new_cache_path: S,
     sector_key_path: T,
@@ -75,7 +75,7 @@ where
 pub fn empty_sector_update_decode_from_inner<
     Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
 >(
-    registered_proof: RegisteredEmptySectorUpdateProof,
+    registered_proof: RegisteredUpdateProof,
     out_data_path: &Path,
     replica_path: &Path,
     sector_key_path: &Path,
@@ -101,7 +101,7 @@ pub fn empty_sector_update_decode_from_inner<
 
 /// Reverses the encoding process and outputs the data into out_data_path.
 pub fn empty_sector_update_decode_from<R, S, T, U>(
-    registered_proof: RegisteredEmptySectorUpdateProof,
+    registered_proof: RegisteredUpdateProof,
     out_data_path: R,
     replica_path: S,
     sector_key_path: T,
@@ -134,7 +134,7 @@ where
 pub fn empty_sector_update_remove_encoded_data_inner<
     Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
 >(
-    registered_proof: RegisteredEmptySectorUpdateProof,
+    registered_proof: RegisteredUpdateProof,
     sector_key_path: &Path,
     sector_key_cache_path: &Path,
     replica_path: &Path,
@@ -162,7 +162,7 @@ pub fn empty_sector_update_remove_encoded_data_inner<
 
 /// Removes encoded data and outputs the sector key.
 pub fn empty_sector_update_remove_encoded_data<R, S, T, U, V>(
-    registered_proof: RegisteredEmptySectorUpdateProof,
+    registered_proof: RegisteredUpdateProof,
     sector_key_path: R,
     sector_key_cache_path: S,
     replica_path: T,
@@ -198,7 +198,7 @@ where
 pub fn generate_empty_sector_update_proof_inner<
     Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
 >(
-    registered_proof: RegisteredEmptySectorUpdateProof,
+    registered_proof: RegisteredUpdateProof,
     comm_r_old: Commitment,
     comm_r_new: Commitment,
     comm_d_new: Commitment,
@@ -227,7 +227,7 @@ pub fn generate_empty_sector_update_proof_inner<
 }
 
 pub fn generate_empty_sector_update_proof<R, S, T, U>(
-    registered_proof: RegisteredEmptySectorUpdateProof,
+    registered_proof: RegisteredUpdateProof,
     comm_r_old: Commitment,
     comm_r_new: Commitment,
     comm_d_new: Commitment,
@@ -264,7 +264,7 @@ where
 pub fn verify_empty_sector_update_proof_inner<
     Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
 >(
-    registered_proof: RegisteredEmptySectorUpdateProof,
+    registered_proof: RegisteredUpdateProof,
     proof: &[u8],
     comm_r_old: Commitment,
     comm_r_new: Commitment,
@@ -289,7 +289,7 @@ pub fn verify_empty_sector_update_proof_inner<
 }
 
 pub fn verify_empty_sector_update_proof<R>(
-    registered_proof: RegisteredEmptySectorUpdateProof,
+    registered_proof: RegisteredUpdateProof,
     proof: &[u8],
     comm_r_old: Commitment,
     comm_r_new: Commitment,

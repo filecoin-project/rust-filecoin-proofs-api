@@ -34,16 +34,16 @@ pub enum RegisteredAggregationProof {
     SnarkPackV1,
 }
 
-/// Available EmtpySectorUpdateProof types.
-/// Enum is append-only: once published, a `RegisteredEmptySectorUpdateProof` value must never change.
+/// Available RegisteredUpdateProof types.
+/// Enum is append-only: once published, a `RegisteredUpdateProof` value must never change.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum RegisteredEmptySectorUpdateProof {
-    // Note: SnapDeal*V1 maps to api version V1_1
-    SnapDeal2KiBV1,
-    SnapDeal8MiBV1,
-    SnapDeal512MiBV1,
-    SnapDeal32GiBV1,
-    SnapDeal64GiBV1,
+pub enum RegisteredUpdateProof {
+    // Note: StackedDrg*V1 maps to api version V1_1
+    StackedDrg2KiBV1,
+    StackedDrg8MiBV1,
+    StackedDrg512MiBV1,
+    StackedDrg32GiBV1,
+    StackedDrg64GiBV1,
 }
 
 // Hack to delegate to self config types.
@@ -520,14 +520,14 @@ impl RegisteredPoStProof {
     }
 }
 
-impl RegisteredEmptySectorUpdateProof {
+impl RegisteredUpdateProof {
     /// Return the version for this proof.
     pub fn version(self) -> ApiVersion {
-        use RegisteredEmptySectorUpdateProof::*;
+        use RegisteredUpdateProof::*;
 
         match self {
-            SnapDeal2KiBV1 | SnapDeal8MiBV1 | SnapDeal512MiBV1 | SnapDeal32GiBV1
-            | SnapDeal64GiBV1 => ApiVersion::V1_1_0,
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
+            | StackedDrg64GiBV1 => ApiVersion::V1_1_0,
         }
     }
 
@@ -548,42 +548,42 @@ impl RegisteredEmptySectorUpdateProof {
 
     /// Return the sector size for this proof.
     pub fn sector_size(self) -> SectorSize {
-        use RegisteredEmptySectorUpdateProof::*;
+        use RegisteredUpdateProof::*;
         let size = match self {
-            SnapDeal2KiBV1 => constants::SECTOR_SIZE_2_KIB,
-            SnapDeal8MiBV1 => constants::SECTOR_SIZE_8_MIB,
-            SnapDeal512MiBV1 => constants::SECTOR_SIZE_512_MIB,
-            SnapDeal32GiBV1 => constants::SECTOR_SIZE_32_GIB,
-            SnapDeal64GiBV1 => constants::SECTOR_SIZE_64_GIB,
+            StackedDrg2KiBV1 => constants::SECTOR_SIZE_2_KIB,
+            StackedDrg8MiBV1 => constants::SECTOR_SIZE_8_MIB,
+            StackedDrg512MiBV1 => constants::SECTOR_SIZE_512_MIB,
+            StackedDrg32GiBV1 => constants::SECTOR_SIZE_32_GIB,
+            StackedDrg64GiBV1 => constants::SECTOR_SIZE_64_GIB,
         };
         SectorSize(size)
     }
 
     /// Return the number of partitions for this proof.
     pub fn partitions(self) -> u8 {
-        use RegisteredEmptySectorUpdateProof::*;
+        use RegisteredUpdateProof::*;
         match self {
-            SnapDeal2KiBV1 => *constants::POREP_PARTITIONS
+            StackedDrg2KiBV1 => *constants::POREP_PARTITIONS
                 .read()
                 .expect("porep partitions read error")
                 .get(&constants::SECTOR_SIZE_2_KIB)
                 .expect("invalid sector size"),
-            SnapDeal8MiBV1 => *constants::POREP_PARTITIONS
+            StackedDrg8MiBV1 => *constants::POREP_PARTITIONS
                 .read()
                 .expect("porep partitions read error")
                 .get(&constants::SECTOR_SIZE_8_MIB)
                 .expect("invalid sector size"),
-            SnapDeal512MiBV1 => *constants::POREP_PARTITIONS
+            StackedDrg512MiBV1 => *constants::POREP_PARTITIONS
                 .read()
                 .expect("porep partitions read error")
                 .get(&constants::SECTOR_SIZE_512_MIB)
                 .expect("invalid sector size"),
-            SnapDeal32GiBV1 => *constants::POREP_PARTITIONS
+            StackedDrg32GiBV1 => *constants::POREP_PARTITIONS
                 .read()
                 .expect("porep partitions read error")
                 .get(&constants::SECTOR_SIZE_32_GIB)
                 .expect("invalid sector size"),
-            SnapDeal64GiBV1 => *constants::POREP_PARTITIONS
+            StackedDrg64GiBV1 => *constants::POREP_PARTITIONS
                 .read()
                 .expect("porep partitions read error")
                 .get(&constants::SECTOR_SIZE_64_GIB)
@@ -593,18 +593,18 @@ impl RegisteredEmptySectorUpdateProof {
 
     /// Return the number of sector update partitions for this proof.
     pub fn update_partitions(self) -> usize {
-        use RegisteredEmptySectorUpdateProof::*;
+        use RegisteredUpdateProof::*;
         const NODE_SIZE: u64 = 32;
         match self {
-            SnapDeal2KiBV1 => partition_count((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize),
-            SnapDeal8MiBV1 => partition_count((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize),
-            SnapDeal512MiBV1 => {
+            StackedDrg2KiBV1 => partition_count((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize),
+            StackedDrg8MiBV1 => partition_count((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize),
+            StackedDrg512MiBV1 => {
                 partition_count((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)
             }
-            SnapDeal32GiBV1 => {
+            StackedDrg32GiBV1 => {
                 partition_count((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)
             }
-            SnapDeal64GiBV1 => {
+            StackedDrg64GiBV1 => {
                 partition_count((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)
             }
         }
@@ -612,30 +612,30 @@ impl RegisteredEmptySectorUpdateProof {
 
     /// Return the h_select value this sector update proof.
     pub fn h_select(self) -> usize {
-        use RegisteredEmptySectorUpdateProof::*;
+        use RegisteredUpdateProof::*;
         const NODE_SIZE: u64 = 32;
         match self {
-            SnapDeal2KiBV1 => hs((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize)[0],
-            SnapDeal8MiBV1 => hs((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize)[0],
-            SnapDeal512MiBV1 => hs((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)[0],
-            SnapDeal32GiBV1 => hs((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)[0],
-            SnapDeal64GiBV1 => hs((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)[0],
+            StackedDrg2KiBV1 => hs((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize)[0],
+            StackedDrg8MiBV1 => hs((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize)[0],
+            StackedDrg512MiBV1 => hs((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)[0],
+            StackedDrg32GiBV1 => hs((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)[0],
+            StackedDrg64GiBV1 => hs((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)[0],
         }
     }
 
     pub fn single_partition_proof_len(self) -> usize {
-        use RegisteredEmptySectorUpdateProof::*;
+        use RegisteredUpdateProof::*;
 
         match self {
-            SnapDeal2KiBV1 | SnapDeal8MiBV1 | SnapDeal512MiBV1 | SnapDeal32GiBV1
-            | SnapDeal64GiBV1 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
+            | StackedDrg64GiBV1 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
         }
     }
 
     fn nonce(self) -> u64 {
         #[allow(clippy::match_single_binding)]
         match self {
-            // If we ever need to change the nonce for any given RegisteredEmptySectorUpdateProof, match it here.
+            // If we ever need to change the nonce for any given RegisteredUpdateProof, match it here.
             _ => 0,
         }
     }
@@ -651,10 +651,10 @@ impl RegisteredEmptySectorUpdateProof {
     }
 
     pub fn as_v1_config(self) -> PoRepConfig {
-        use RegisteredEmptySectorUpdateProof::*;
+        use RegisteredUpdateProof::*;
         match self {
-            SnapDeal2KiBV1 | SnapDeal8MiBV1 | SnapDeal512MiBV1 | SnapDeal32GiBV1
-            | SnapDeal64GiBV1 => {
+            StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
+            | StackedDrg64GiBV1 => {
                 assert_eq!(self.version(), ApiVersion::V1_1_0);
                 PoRepConfig {
                     sector_size: self.sector_size(),
@@ -675,7 +675,7 @@ impl RegisteredEmptySectorUpdateProof {
             ApiVersion::V1_1_0 => {
                 self_shape!(
                     get_cache_identifier,
-                    RegisteredEmptySectorUpdateProof,
+                    RegisteredUpdateProof,
                     self,
                     String
                 )
@@ -688,7 +688,7 @@ impl RegisteredEmptySectorUpdateProof {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
             ApiVersion::V1_1_0 => self_shape!(
                 get_cache_verifying_key_path,
-                RegisteredEmptySectorUpdateProof,
+                RegisteredUpdateProof,
                 self,
                 PathBuf
             ),
@@ -701,7 +701,7 @@ impl RegisteredEmptySectorUpdateProof {
             ApiVersion::V1_1_0 => {
                 self_shape!(
                     get_cache_params_path,
-                    RegisteredEmptySectorUpdateProof,
+                    RegisteredUpdateProof,
                     self,
                     PathBuf
                 )
