@@ -5,8 +5,8 @@ use filecoin_proofs_v1::with_shape;
 
 use crate::types::VanillaProofBytes;
 use crate::{
-    ChallengeSeed, FallbackPoStSectorProof, MerkleTreeTrait, PoStType, PrivateReplicaInfo,
-    ProverId, PublicReplicaInfo, RegisteredPoStProof, SectorId, SnarkProof,
+    ChallengeSeed, FallbackPoStSectorProof, MerkleTreeTrait, PartitionSnarkProof, PoStType,
+    PrivateReplicaInfo, ProverId, PublicReplicaInfo, RegisteredPoStProof, SectorId, SnarkProof,
 };
 
 pub fn generate_winning_post_sector_challenge(
@@ -492,4 +492,90 @@ fn verify_window_post_inner<Tree: 'static + MerkleTreeTrait>(
     // once there are multiple versions, merge them before returning
 
     Ok(valid_v1)
+}
+
+pub fn get_num_partition_for_fallback_post(
+    registered_post_proof_v1: RegisteredPoStProof,
+    num_sectors: usize,
+) -> Result<usize> {
+    ensure!(
+        registered_post_proof_v1.typ() == PoStType::Window,
+        "invalid post type provided"
+    );
+    ensure!(
+        registered_post_proof_v1.major_version() == 1,
+        "only V1 supported"
+    );
+
+    Ok(filecoin_proofs_v1::get_num_partition_for_fallback_post(
+        &registered_post_proof_v1.as_v1_config(),
+        num_sectors,
+    ))
+}
+
+pub fn merge_window_post_partition_proofs(
+    registered_post_proof_v1: RegisteredPoStProof,
+    proofs: Vec<PartitionSnarkProof>,
+) -> Result<SnarkProof> {
+    ensure!(
+        registered_post_proof_v1.typ() == PoStType::Window,
+        "invalid post type provided"
+    );
+    ensure!(
+        registered_post_proof_v1.major_version() == 1,
+        "only V1 supported"
+    );
+
+    filecoin_proofs_v1::merge_window_post_partition_proofs(proofs)
+}
+
+pub fn generate_single_window_post_with_vanilla_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_post_proof_v1: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    prover_id: ProverId,
+    vanilla_proofs: &[VanillaProofBytes],
+    partition_index: usize,
+) -> Result<PartitionSnarkProof> {
+    let fallback_post_sector_proofs: Vec<FallbackPoStSectorProof<Tree>> = vanilla_proofs
+        .iter()
+        .map(|proof_bytes| {
+            let proof: FallbackPoStSectorProof<Tree> = bincode::deserialize(proof_bytes)?;
+            Ok(proof)
+        })
+        .collect::<Result<_>>()?;
+
+    filecoin_proofs_v1::generate_single_window_post_with_vanilla(
+        &registered_post_proof_v1.as_v1_config(),
+        randomness,
+        prover_id,
+        fallback_post_sector_proofs,
+        partition_index,
+    )
+}
+
+pub fn generate_single_window_post_with_vanilla(
+    registered_post_proof_v1: RegisteredPoStProof,
+    randomness: &ChallengeSeed,
+    prover_id: ProverId,
+    vanilla_proofs: &[VanillaProofBytes],
+    partition_index: usize,
+) -> Result<PartitionSnarkProof> {
+    ensure!(
+        registered_post_proof_v1.typ() == PoStType::Window,
+        "invalid post type provided"
+    );
+    ensure!(
+        registered_post_proof_v1.major_version() == 1,
+        "only V1 supported"
+    );
+
+    with_shape!(
+        u64::from(registered_post_proof_v1.sector_size()),
+        generate_single_window_post_with_vanilla_inner,
+        registered_post_proof_v1,
+        randomness,
+        prover_id,
+        vanilla_proofs,
+        partition_index,
+    )
 }
