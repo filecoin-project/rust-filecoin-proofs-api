@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [10.1.0] - 2021-10-25
+
+- Add new Window PoSt per partition API calls [#66](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/66)
+
 ## [10.0.0] - 2021-10-01
 
 - Update all dependencies to use proofs v10.0.0 [#63](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/63)
@@ -109,7 +113,9 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v9.0.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v10.1.0...HEAD
+[10.1.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v10.1.0
+[10.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v10.0.0
 [9.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v9.0.0
 [8.0.1]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v8.0.1
 [8.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v8.0.0
