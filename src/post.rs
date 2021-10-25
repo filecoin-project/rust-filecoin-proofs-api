@@ -529,7 +529,7 @@ pub fn merge_window_post_partition_proofs(
     filecoin_proofs_v1::merge_window_post_partition_proofs(proofs)
 }
 
-pub fn generate_single_window_post_with_vanilla_inner<Tree: 'static + MerkleTreeTrait>(
+fn generate_single_window_post_with_vanilla_inner<Tree: 'static + MerkleTreeTrait>(
     registered_post_proof_v1: RegisteredPoStProof,
     randomness: &ChallengeSeed,
     prover_id: ProverId,
