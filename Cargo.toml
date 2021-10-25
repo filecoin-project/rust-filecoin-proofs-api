@@ -20,7 +20,6 @@ serde = "1.0.104"
 #storage-proofs-core = { version = "~10.0", default-features = false }
 #storage-proofs-porep = { version = "~10.0", default-features = false }
 
-neptune = "=5.0.0"
 filecoin-proofs-v1 = { package = "filecoin-proofs", git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "feat-decouple-post-partition", default-features = false }
 filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "feat-decouple-post-partition", default-features = false, features = ["poseidon", "sha256"] }
 fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "feat-decouple-post-partition", default-features = false }
