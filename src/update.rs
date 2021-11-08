@@ -286,16 +286,13 @@ pub fn verify_empty_sector_update_proof_inner<
     )
 }
 
-pub fn verify_empty_sector_update_proof<R>(
+pub fn verify_empty_sector_update_proof(
     registered_proof: RegisteredUpdateProof,
     proof: &[u8],
     comm_r_old: Commitment,
     comm_r_new: Commitment,
     comm_d_new: Commitment,
-) -> Result<bool>
-where
-    R: AsRef<Path>,
-{
+) -> Result<bool> {
     ensure!(
         registered_proof.major_version() == 1,
         "unusupported version"
