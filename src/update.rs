@@ -2,7 +2,9 @@ use std::path::Path;
 
 use anyhow::{ensure, Result};
 
-use filecoin_proofs_v1::types::{EmptySectorUpdateProof, MerkleTreeTrait};
+use filecoin_proofs_v1::types::{
+    EmptySectorUpdateEncoded, EmptySectorUpdateProof, MerkleTreeTrait, SectorUpdateConfig,
+};
 use filecoin_proofs_v1::{with_shape, TreeRHasher};
 
 use crate::{Commitment, PieceInfo, RegisteredUpdateProof};
@@ -17,7 +19,7 @@ pub fn empty_sector_update_encode_into_inner<
     sector_key_cache_path: &Path,
     staged_data_path: &Path,
     piece_infos: &[PieceInfo],
-) -> Result<(Commitment, Commitment, Commitment)> {
+) -> Result<EmptySectorUpdateEncoded> {
     ensure!(
         registered_proof.major_version() == 1,
         "unusupported version"
@@ -46,7 +48,7 @@ pub fn empty_sector_update_encode_into<R, S, T, U, V>(
     sector_key_cache_path: U,
     staged_data_path: V,
     piece_infos: &[PieceInfo],
-) -> Result<(Commitment, Commitment, Commitment)>
+) -> Result<EmptySectorUpdateEncoded>
 where
     R: AsRef<Path>,
     S: AsRef<Path>,
@@ -88,9 +90,10 @@ pub fn empty_sector_update_decode_from_inner<
     );
 
     let config = registered_proof.as_v1_config();
+    let update_config = SectorUpdateConfig::from_porep_config(config);
 
     filecoin_proofs_v1::decode_from::<Tree>(
-        config,
+        update_config,
         out_data_path,
         replica_path,
         sector_key_path,
@@ -148,9 +151,10 @@ pub fn empty_sector_update_remove_encoded_data_inner<
     );
 
     let config = registered_proof.as_v1_config();
+    let update_config = SectorUpdateConfig::from_porep_config(config);
 
     filecoin_proofs_v1::remove_encoded_data::<Tree>(
-        config,
+        update_config,
         sector_key_path,
         sector_key_cache_path,
         replica_path,
@@ -269,7 +273,6 @@ pub fn verify_empty_sector_update_proof_inner<
     comm_r_old: Commitment,
     comm_r_new: Commitment,
     comm_d_new: Commitment,
-    sector_key_cache_path: &Path,
 ) -> Result<bool> {
     ensure!(
         registered_proof.major_version() == 1,
@@ -279,12 +282,7 @@ pub fn verify_empty_sector_update_proof_inner<
     let config = registered_proof.as_v1_config();
 
     filecoin_proofs_v1::verify_empty_sector_update_proof::<Tree>(
-        config,
-        proof,
-        comm_r_old,
-        comm_r_new,
-        comm_d_new,
-        sector_key_cache_path,
+        config, proof, comm_r_old, comm_r_new, comm_d_new,
     )
 }
 
@@ -294,7 +292,6 @@ pub fn verify_empty_sector_update_proof<R>(
     comm_r_old: Commitment,
     comm_r_new: Commitment,
     comm_d_new: Commitment,
-    sector_key_cache_path: R,
 ) -> Result<bool>
 where
     R: AsRef<Path>,
@@ -312,6 +309,5 @@ where
         comm_r_old,
         comm_r_new,
         comm_d_new,
-        sector_key_cache_path.as_ref(),
     )
 }

@@ -1,11 +1,8 @@
 use std::path::PathBuf;
 
 use anyhow::{ensure, Result};
-use filecoin_proofs_v1::{constants, hs, partition_count, with_shape};
-use filecoin_proofs_v1::{
-    HSelect, PoRepConfig, PoRepProofPartitions, PoStConfig, PoStType, SectorSize,
-    UpdateProofPartitions,
-};
+use filecoin_proofs_v1::{constants, with_shape};
+use filecoin_proofs_v1::{PoRepConfig, PoRepProofPartitions, PoStConfig, PoStType, SectorSize};
 use serde::{Deserialize, Serialize};
 
 use crate::{get_parameter_data, get_verifying_key_data, ApiVersion, MerkleTreeTrait};
@@ -130,52 +127,6 @@ impl RegisteredSealProof {
         }
     }
 
-    /// Return the number of sector update partitions for this proof.
-    pub fn update_partitions(self) -> usize {
-        use RegisteredSealProof::*;
-        const NODE_SIZE: u64 = 32;
-        match self {
-            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 => {
-                partition_count((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize)
-            }
-            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 => {
-                partition_count((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize)
-            }
-            StackedDrg512MiBV1 | StackedDrg512MiBV1_1 => {
-                partition_count((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)
-            }
-            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 => {
-                partition_count((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)
-            }
-            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 => {
-                partition_count((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)
-            }
-        }
-    }
-
-    /// Return the h_select value this sector update proof.
-    pub fn h_select(self) -> usize {
-        use RegisteredSealProof::*;
-        const NODE_SIZE: u64 = 32;
-        match self {
-            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 => {
-                hs((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize)[0]
-            }
-            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 => {
-                hs((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize)[0]
-            }
-            StackedDrg512MiBV1 | StackedDrg512MiBV1_1 => {
-                hs((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)[0]
-            }
-            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 => {
-                hs((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)[0]
-            }
-            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 => {
-                hs((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)[0]
-            }
-        }
-    }
-
     pub fn single_partition_proof_len(self) -> usize {
         use RegisteredSealProof::*;
 
@@ -215,8 +166,6 @@ impl RegisteredSealProof {
                 PoRepConfig {
                     sector_size: self.sector_size(),
                     partitions: PoRepProofPartitions(self.partitions()),
-                    update_partitions: UpdateProofPartitions::from(self.update_partitions()),
-                    h_select: HSelect::from(self.h_select()),
                     porep_id: self.porep_id(),
                     api_version: self.version(),
                 }
@@ -227,8 +176,6 @@ impl RegisteredSealProof {
                 PoRepConfig {
                     sector_size: self.sector_size(),
                     partitions: PoRepProofPartitions(self.partitions()),
-                    update_partitions: UpdateProofPartitions::from(self.update_partitions()),
-                    h_select: HSelect::from(self.h_select()),
                     porep_id: self.porep_id(),
                     api_version: self.version(),
                 }
@@ -591,42 +538,6 @@ impl RegisteredUpdateProof {
         }
     }
 
-    /// Return the number of sector update partitions for this proof.
-    pub fn update_partitions(self) -> usize {
-        use RegisteredUpdateProof::*;
-        const NODE_SIZE: u64 = 32;
-        match self {
-            StackedDrg2KiBV1 => {
-                partition_count((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize)
-            }
-            StackedDrg8MiBV1 => {
-                partition_count((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize)
-            }
-            StackedDrg512MiBV1 => {
-                partition_count((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)
-            }
-            StackedDrg32GiBV1 => {
-                partition_count((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)
-            }
-            StackedDrg64GiBV1 => {
-                partition_count((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)
-            }
-        }
-    }
-
-    /// Return the h_select value this sector update proof.
-    pub fn h_select(self) -> usize {
-        use RegisteredUpdateProof::*;
-        const NODE_SIZE: u64 = 32;
-        match self {
-            StackedDrg2KiBV1 => hs((constants::SECTOR_SIZE_2_KIB / NODE_SIZE) as usize)[0],
-            StackedDrg8MiBV1 => hs((constants::SECTOR_SIZE_8_MIB / NODE_SIZE) as usize)[0],
-            StackedDrg512MiBV1 => hs((constants::SECTOR_SIZE_512_MIB / NODE_SIZE) as usize)[0],
-            StackedDrg32GiBV1 => hs((constants::SECTOR_SIZE_32_GIB / NODE_SIZE) as usize)[0],
-            StackedDrg64GiBV1 => hs((constants::SECTOR_SIZE_64_GIB / NODE_SIZE) as usize)[0],
-        }
-    }
-
     pub fn single_partition_proof_len(self) -> usize {
         use RegisteredUpdateProof::*;
 
@@ -663,8 +574,6 @@ impl RegisteredUpdateProof {
                 PoRepConfig {
                     sector_size: self.sector_size(),
                     partitions: PoRepProofPartitions(self.partitions()),
-                    update_partitions: UpdateProofPartitions::from(self.update_partitions()),
-                    h_select: HSelect::from(self.h_select()),
                     porep_id: self.porep_id(),
                     api_version: self.version(),
                 }
