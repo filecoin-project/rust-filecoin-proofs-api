@@ -303,19 +303,13 @@ pub fn generate_empty_sector_update_proof_inner_with_vanilla<
     )
 }
 
-pub fn generate_empty_sector_update_proof_with_vanilla<R, S, T, U>(
+pub fn generate_empty_sector_update_proof_with_vanilla(
     registered_proof: RegisteredUpdateProof,
     vanilla_proofs: Vec<PartitionProofBytes>,
     comm_r_old: Commitment,
     comm_r_new: Commitment,
     comm_d_new: Commitment,
-) -> Result<EmptySectorUpdateProof>
-where
-    R: AsRef<Path>,
-    S: AsRef<Path>,
-    T: AsRef<Path>,
-    U: AsRef<Path>,
-{
+) -> Result<EmptySectorUpdateProof> {
     ensure!(
         registered_proof.major_version() == 1,
         "unusupported version"
