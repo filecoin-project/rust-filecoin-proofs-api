@@ -10,9 +10,7 @@ use filecoin_proofs_v1::{with_shape, TreeRHasher};
 
 use crate::{types::PartitionProofBytes, Commitment, PieceInfo, RegisteredUpdateProof};
 
-pub fn empty_sector_update_encode_into_inner<
-    Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
->(
+fn empty_sector_update_encode_into_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>>(
     registered_proof: RegisteredUpdateProof,
     new_replica_path: &Path,
     new_cache_path: &Path,
@@ -75,9 +73,7 @@ where
     )
 }
 
-pub fn empty_sector_update_decode_from_inner<
-    Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
->(
+fn empty_sector_update_decode_from_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>>(
     registered_proof: RegisteredUpdateProof,
     out_data_path: &Path,
     replica_path: &Path,
@@ -135,7 +131,7 @@ where
     )
 }
 
-pub fn empty_sector_update_remove_encoded_data_inner<
+fn empty_sector_update_remove_encoded_data_inner<
     Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
 >(
     registered_proof: RegisteredUpdateProof,
@@ -200,7 +196,7 @@ where
     )
 }
 
-pub fn generate_partition_proofs_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>>(
+fn generate_partition_proofs_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>>(
     registered_proof: RegisteredUpdateProof,
     comm_r_old: Commitment,
     comm_r_new: Commitment,
@@ -272,7 +268,62 @@ where
     )
 }
 
-pub fn generate_empty_sector_update_proof_inner_with_vanilla<
+fn verify_partition_proofs_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>>(
+    registered_proof: RegisteredUpdateProof,
+    partition_proofs: &[PartitionProofBytes],
+    comm_r_old: Commitment,
+    comm_r_new: Commitment,
+    comm_d_new: Commitment,
+) -> Result<bool> {
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    let config = registered_proof.as_v1_config();
+    let sector_config = SectorUpdateConfig::from_porep_config(config);
+
+    let mut proofs = Vec::with_capacity(partition_proofs.len());
+    for proof in partition_proofs {
+        let proof: PartitionProof<Tree> = bincode::deserialize(&proof.0)?;
+        proofs.push(proof);
+    }
+
+    let valid = filecoin_proofs_v1::verify_partition_proofs::<Tree>(
+        sector_config,
+        &proofs,
+        comm_r_old,
+        comm_r_new,
+        comm_d_new,
+    )?;
+
+    Ok(valid)
+}
+
+pub fn verify_partition_proofs(
+    registered_proof: RegisteredUpdateProof,
+    partition_proofs: &[PartitionProofBytes],
+    comm_r_old: Commitment,
+    comm_r_new: Commitment,
+    comm_d_new: Commitment,
+) -> Result<bool> {
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        verify_partition_proofs_inner,
+        registered_proof,
+        partition_proofs,
+        comm_r_old,
+        comm_r_new,
+        comm_d_new,
+    )
+}
+
+fn generate_empty_sector_update_proof_inner_with_vanilla<
     Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
 >(
     registered_proof: RegisteredUpdateProof,
@@ -326,7 +377,7 @@ pub fn generate_empty_sector_update_proof_with_vanilla(
     )
 }
 
-pub fn generate_empty_sector_update_proof_inner<
+fn generate_empty_sector_update_proof_inner<
     Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
 >(
     registered_proof: RegisteredUpdateProof,
@@ -392,9 +443,7 @@ where
     )
 }
 
-pub fn verify_empty_sector_update_proof_inner<
-    Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
->(
+fn verify_empty_sector_update_proof_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>>(
     registered_proof: RegisteredUpdateProof,
     proof: &[u8],
     comm_r_old: Commitment,
