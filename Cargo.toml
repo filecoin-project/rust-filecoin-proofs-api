@@ -20,11 +20,11 @@ serde = "1.0.104"
 #storage-proofs-core = { version = "~10.1", default-features = false }
 #storage-proofs-porep = { version = "~10.1", default-features = false }
 
-filecoin-proofs-v1 = { package = "filecoin-proofs", git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "empty-sector-update", default-features = false }
-filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "empty-sector-update", default-features = false, features = ["poseidon", "sha256"] }
-fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "empty-sector-update", default-features = false }
-storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "empty-sector-update", default-features = false }
-storage-proofs-porep = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "empty-sector-update", default-features = false }
+filecoin-proofs-v1 = { package = "filecoin-proofs", git = "https://github.com/filecoin-project/rust-fil-proofs", default-features = false }
+filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", default-features = false, features = ["poseidon", "sha256"] }
+fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", default-features = false }
+storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", default-features = false }
+storage-proofs-porep = { git = "https://github.com/filecoin-project/rust-fil-proofs", default-features = false }
 
 [features]
 default = ["opencl"]
