@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [11.0.0] - 2022-01-10
 
-- Add API calls required for empty sector update proofs [#66](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/66)
+- Add API calls required for empty sector update proofs [#64](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/64)
 
 ## [10.1.0] - 2021-10-25
 
