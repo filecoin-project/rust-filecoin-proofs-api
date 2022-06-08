@@ -3,6 +3,7 @@ use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, ensure, Error, Result};
+use bellperson::groth16::aggregate::AggregateVersion;
 use blstrs::Scalar as Fr;
 use filecoin_hashers::Hasher;
 
@@ -615,9 +616,15 @@ pub fn aggregate_seal_commit_proofs(
     );
 
     ensure!(
-        registered_aggregation == RegisteredAggregationProof::SnarkPackV1,
-        "unusupported aggregation version"
+        (registered_aggregation == RegisteredAggregationProof::SnarkPackV1
+            || registered_aggregation == RegisteredAggregationProof::SnarkPackV2),
+        "unsupported aggregation or registered proof version"
     );
+
+    let aggregate_version = match registered_aggregation {
+        RegisteredAggregationProof::SnarkPackV1 => AggregateVersion::V1,
+        RegisteredAggregationProof::SnarkPackV2 => AggregateVersion::V2,
+    };
 
     with_shape!(
         u64::from(registered_proof.sector_size()),
@@ -626,6 +633,7 @@ pub fn aggregate_seal_commit_proofs(
         comm_rs,
         seeds,
         commit_outputs,
+        aggregate_version,
     )
 }
 
@@ -634,6 +642,7 @@ pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
     comm_rs: &[Commitment],
     seeds: &[Ticket],
     commit_outputs: &[SealCommitPhase2Output],
+    aggregate_version: AggregateVersion,
 ) -> Result<AggregateSnarkProof> {
     let config = registered_proof.as_v1_config();
     let outputs: Vec<filecoin_proofs_v1::types::SealCommitOutput> = commit_outputs
@@ -643,7 +652,13 @@ pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
         })
         .collect();
 
-    filecoin_proofs_v1::aggregate_seal_commit_proofs::<Tree>(config, comm_rs, seeds, &outputs)
+    filecoin_proofs_v1::aggregate_seal_commit_proofs::<Tree>(
+        config,
+        comm_rs,
+        seeds,
+        &outputs,
+        aggregate_version,
+    )
 }
 
 pub fn verify_aggregate_seal_commit_proofs(
@@ -660,9 +675,15 @@ pub fn verify_aggregate_seal_commit_proofs(
     );
 
     ensure!(
-        registered_aggregation == RegisteredAggregationProof::SnarkPackV1,
-        "unusupported aggregation version"
+        (registered_aggregation == RegisteredAggregationProof::SnarkPackV1
+            || registered_aggregation == RegisteredAggregationProof::SnarkPackV2),
+        "unsupported aggregation or registered proof version"
     );
+
+    let aggregate_version = match registered_aggregation {
+        RegisteredAggregationProof::SnarkPackV1 => AggregateVersion::V1,
+        RegisteredAggregationProof::SnarkPackV2 => AggregateVersion::V2,
+    };
 
     with_shape!(
         u64::from(registered_proof.sector_size()),
@@ -672,6 +693,7 @@ pub fn verify_aggregate_seal_commit_proofs(
         comm_rs,
         seeds,
         commit_inputs,
+        aggregate_version,
     )
 }
 
@@ -681,6 +703,7 @@ pub fn verify_aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait
     comm_rs: &[Commitment],
     seeds: &[Ticket],
     commit_inputs: Vec<Vec<Fr>>,
+    aggregate_version: AggregateVersion,
 ) -> Result<bool> {
     let config = registered_proof.as_v1_config();
 
@@ -690,6 +713,7 @@ pub fn verify_aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait
         comm_rs,
         seeds,
         commit_inputs,
+        aggregate_version,
     )
 }
 
