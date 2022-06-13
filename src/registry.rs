@@ -1,8 +1,10 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use anyhow::{ensure, Result};
 use filecoin_proofs_v1::{constants, with_shape};
 use filecoin_proofs_v1::{PoRepConfig, PoRepProofPartitions, PoStConfig, PoStType, SectorSize};
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
 use crate::{get_parameter_data, get_verifying_key_data, ApiVersion, MerkleTreeTrait};
@@ -24,11 +26,30 @@ pub enum RegisteredSealProof {
     StackedDrg64GiBV1_1,
 }
 
+// This maps all registered seal proof enum types to porep_id values.
+lazy_static! {
+    pub static ref REGISTERED_PROOF_IDS: HashMap<RegisteredSealProof, u64> = vec![
+        (RegisteredSealProof::StackedDrg2KiBV1, 0),
+        (RegisteredSealProof::StackedDrg8MiBV1, 1),
+        (RegisteredSealProof::StackedDrg512MiBV1, 2),
+        (RegisteredSealProof::StackedDrg32GiBV1, 3),
+        (RegisteredSealProof::StackedDrg64GiBV1, 4),
+        (RegisteredSealProof::StackedDrg2KiBV1_1, 5),
+        (RegisteredSealProof::StackedDrg8MiBV1_1, 6),
+        (RegisteredSealProof::StackedDrg512MiBV1_1, 7),
+        (RegisteredSealProof::StackedDrg32GiBV1_1, 8),
+        (RegisteredSealProof::StackedDrg64GiBV1_1, 9),
+    ]
+    .into_iter()
+    .collect();
+}
+
 /// Available aggregation proof types.
 /// Enum is append-only: once published, a `RegisteredAggregationProof` value must never change.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredAggregationProof {
     SnarkPackV1,
+    SnarkPackV2,
 }
 
 /// Available RegisteredUpdateProof types.
@@ -149,7 +170,9 @@ impl RegisteredSealProof {
 
     fn porep_id(self) -> [u8; 32] {
         let mut porep_id = [0; 32];
-        let registered_proof_id = self as u64;
+        let registered_proof_id = REGISTERED_PROOF_IDS
+            .get(&self)
+            .expect("unknown registered proof type!");
         let nonce = self.nonce();
 
         porep_id[0..8].copy_from_slice(&registered_proof_id.to_le_bytes());
