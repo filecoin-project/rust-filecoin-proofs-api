@@ -1,3 +1,4 @@
+//! Proof-of-Replication for sealing, unsealing, and verifying data sectors
 use std::convert::TryInto;
 use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
@@ -24,7 +25,11 @@ use crate::{
     RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex, UnpaddedBytesAmount,
 };
 
-/// The output of `seal_pre_commit_phase1`.
+/// The output of [`seal_pre_commit_phase1`].
+///  * 'registered_proof' - The seal proof type.
+///  * `labels` - Label for each node in Merkle tree showing hash of all child nodes below it.
+///  * 'config' - Struct detailing how the Merkle tree is stored on disk.
+///  * 'comm_d' - The root hash of the unsealed sector’s Merkle tree, also referred to as data commitment.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SealPreCommitPhase1Output {
     pub registered_proof: RegisteredSealProof,
@@ -142,7 +147,7 @@ impl<Tree: 'static + MerkleTreeTrait> TryInto<RawLabels<Tree>> for Labels {
     }
 }
 
-/// The output of `seal_pre_commit_phase2`.
+/// The output of [`seal_pre_commit_phase2`].
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SealPreCommitPhase2Output {
     pub registered_proof: RegisteredSealProof,
@@ -297,12 +302,35 @@ pub struct SealCommitPhase2Output {
     pub proof: Vec<u8>,
 }
 
+/// Ensure that any persisted cached data for specified sector size is discarded.
+///
+/// # Arguments
+///
+/// * `sector_size` - Sector size associated with cache data to clear.
+/// * `cache_path` - Path to directory where cached data is stored.
 pub fn clear_cache(sector_size: u64, cache_path: &Path) -> Result<()> {
     use filecoin_proofs_v1::clear_cache;
 
     with_shape!(sector_size, clear_cache, cache_path)
 }
 
+/// First step in sector sealing process. Called before [`seal_pre_commit_phase2`].
+/// Reads unsealed data from `in_path`, generates sealed data and writes to `out_path`.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Seal proof to generate.
+/// * `cache_path` - Directory path to use for generation of Merkle tree on disk.
+/// * `in_path` - File path of the input sector file to perform the seal operation on.
+/// * `out_path` - File path to write the resultant sealed sector to.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+/// * `ticket` - The ticket used to generate this sector's replica-id. For Filecoin this
+///              randomness drawn from the Filecoin blockchain’s verifiable random function
+///              (VRF), which generates tickets with each new block.
+/// * `piece_infos` - The piece info (commitment and byte length) for each piece in the sector.
+///
+/// Returns Merkle tree labels and commitment for use by [`seal_pre_commit_phase2`].
 pub fn seal_pre_commit_phase1<R, S, T>(
     registered_proof: RegisteredSealProof,
     cache_path: R,
@@ -374,6 +402,17 @@ fn seal_pre_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
+/// Second phase of seal precommit operation, must be called with output of
+/// [`seal_pre_commit_phase1`]. Generates `comm_r` replica commitment from outputs
+/// of previous step.
+///
+/// # Arguments
+///
+/// * `phase1_output` - Struct returned from [`seal_pre_commit_phase1`].
+/// * `cache_path` - Directory path to use for generation of Merkle tree on disk.
+/// * `out_path` - File path of the sealed sector replica.
+///
+/// Returns data and replica commitments required for [`seal_commit_phase1`].
 pub fn seal_pre_commit_phase2<R, S>(
     phase1_output: SealPreCommitPhase1Output,
     cache_path: R,
@@ -438,6 +477,14 @@ fn seal_pre_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
+/// Computes a sectors's `comm_d` data commitment given its pieces.
+///
+/// # Arguments
+///
+/// * `porep_config` - this sector's porep config that contains the number of bytes in the sector.
+/// * `piece_infos` - the piece info (commitment and byte length) for each piece in this sector.
+///
+/// Returns `comm_d` data commitment.
 pub fn compute_comm_d(
     registered_proof: RegisteredSealProof,
     piece_infos: &[PieceInfo],
@@ -445,6 +492,19 @@ pub fn compute_comm_d(
     filecoin_proofs_v1::compute_comm_d(registered_proof.sector_size(), piece_infos)
 }
 
+/// Generate Merkle tree proofs for sector replica. Must be called with output from [`seal_pre_commit_phase2`].
+///
+/// # Arguments
+///
+/// * `cache_path` - Directory path to use for generation of Merkle tree on disk.
+/// * `replica_path` - out_path from [`seal_pre_commit_phase2`], which points to generated sector replica.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+/// * `ticket` - The ticket used to generate this sector's replica-id.
+/// * `seed` - Interactive randomnessthe seed used to derive the Proof-of-Replication (PoRep) challenges.
+/// * `piece_infos` - The piece info (commitment and byte length) for each piece in the sector.
+///
+/// Returns vanilla Merkle tree proof for use by [`seal_commit_phase2`].
 pub fn seal_commit_phase1<T: AsRef<Path>>(
     cache_path: T,
     replica_path: T,
@@ -528,6 +588,15 @@ fn seal_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
+/// Generates zk-SNARK proof for sector replica. Must be called with output of [`seal_commit_phase1`].
+///
+/// # Arguments
+///
+/// * `phase1_output` - Struct returned from [`seal_commit_phase1`] containing Merkle tree proof.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+///
+/// Returns [`SealCommitPhase2Output`] struct containing vector of zk-SNARK proofs.
 pub fn seal_commit_phase2(
     phase1_output: SealCommitPhase1Output,
     prover_id: ProverId,
@@ -581,6 +650,24 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
+/// Given the specified arguments, this method returns the inputs that were used to
+/// generate the seal proof. This can be useful for proof aggregation, as verification
+/// requires these inputs.
+///
+/// This method allows them to be retrieved when needed, rather than storing them for
+/// some amount of time.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal operation.
+/// * `comm_r` - A commitment to a sector's replica.
+/// * `comm_d` - A commitment to a sector's data.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+/// * `ticket` - The ticket used to generate this sector's replica-id.
+/// * `seed` - The seed used to derive the porep challenges.
+///
+/// Returns the inputs that were used to generate seal proof.
 pub fn get_seal_inputs(
     registered_proof: RegisteredSealProof,
     comm_r: Commitment,
@@ -608,6 +695,7 @@ pub fn get_seal_inputs(
     )
 }
 
+// TODO: does this need to be public?
 pub fn get_seal_inputs_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof: RegisteredSealProof,
     comm_r: Commitment,
@@ -624,6 +712,18 @@ pub fn get_seal_inputs_inner<Tree: 'static + MerkleTreeTrait>(
     )
 }
 
+/// Given a `porep_config` and a list of seal commit outputs, this method aggregates
+/// those proofs (naively padding the count if necessary up to a power of 2) and
+/// returns the aggregate proof bytes.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal operation.
+/// * `registered_aggregation` - Aggregation proof types.
+/// * `seeds` - Ordered list of seeds used to derive the PoRep challenges.
+/// * `commit_outputs` - Ordered list of seal proof outputs returned from [`seal_commit_phase2`].
+///
+/// Returns aggregate of zk-SNARK proofs in [`AggregateSnarkProof`].
 pub fn aggregate_seal_commit_proofs(
     registered_proof: RegisteredSealProof,
     registered_aggregation: RegisteredAggregationProof,
@@ -658,6 +758,7 @@ pub fn aggregate_seal_commit_proofs(
     )
 }
 
+// TODO: Does this need to be public?
 pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof: RegisteredSealProof,
     comm_rs: &[Commitment],
@@ -682,6 +783,20 @@ pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
     )
 }
 
+/// Given a `porep_config`, an aggregate proof, a list of seeds and a combined and flattened list
+/// of public inputs, this method verifies the aggregate seal proof.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal operation.
+/// * `registered_aggregation` - Aggregation proof types.
+/// * `aggregate_proof_bytes` - The returned aggregate proof from [`aggregate_seal_commit_proofs`].
+/// * `comm_rs` - Ordered list of sector replica commitments.
+/// * `seeds` - Ordered list of seeds used to derive the PoRep challenges.
+/// * `commit_inputs` - A flattened/combined and ordered list of all public inputs, which must match
+///    the ordering of the seal proofs when aggregated.
+///
+/// Returns true if proof is validated.
 pub fn verify_aggregate_seal_commit_proofs(
     registered_proof: RegisteredSealProof,
     registered_aggregation: RegisteredAggregationProof,
@@ -718,6 +833,7 @@ pub fn verify_aggregate_seal_commit_proofs(
     )
 }
 
+// TODO: Does this need to be public?
 pub fn verify_aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof: RegisteredSealProof,
     aggregate_proof_bytes: AggregateSnarkProof,
@@ -738,6 +854,16 @@ pub fn verify_aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait
     )
 }
 
+// Special case implementation of porep sealing which does not depend on slow sealing,
+// intended to be used at chain genesis.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal operation.
+/// * `cache_path` - Directory path to use for generation of Merkle tree on disk.
+/// * `replica_path` - out_path from [`seal_pre_commit_phase2`], which points to generated sector replica.
+///
+/// Returns [`Commitment`] data for the faux replica.
 pub fn fauxrep<R: AsRef<Path>, S: AsRef<Path>>(
     registered_proof: RegisteredSealProof,
     cache_path: R,
@@ -789,6 +915,15 @@ pub fn fauxrep<R: AsRef<Path>, S: AsRef<Path>>(
     }
 }
 
+/// fauxrep2 is a faster way to generate sectors for network genesis setup by reusing data from
+/// a previously generated sector.
+///
+/// # Arguments
+/// * `registered_proof` - Selected seal operation.
+/// * `cache_path` - Directory path to use for generation of Merkle tree on disk.
+/// * `existing_p_aux_path` - `p_aux` file path from previously generated sector.
+///
+/// Returns [`Commitment`] data for the faux replica.
 pub fn fauxrep2<R: AsRef<Path>, S: AsRef<Path>>(
     registered_proof: RegisteredSealProof,
     cache_path: R,
@@ -839,6 +974,19 @@ pub fn fauxrep2<R: AsRef<Path>, S: AsRef<Path>>(
     }
 }
 
+/// Verify a single proof of a sealed sector.
+///
+/// # Arguments
+/// * `registered_proof` - Selected seal operation.
+/// * `comm_r_in` - comm_r replica commitment from seal operation.
+/// * `comm_d_in` - comm_d data commitment from seal operation.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+/// * `ticket` - The ticket used to generate this sector's replica-id.
+/// * `seed` - The seed used to derive the porep challenges.
+/// * `proof_vec` - Proof to verify.
+///
+/// Returns result of the proof verification.
 pub fn verify_seal(
     registered_proof: RegisteredSealProof,
     comm_r_in: Commitment,
@@ -866,6 +1014,20 @@ pub fn verify_seal(
     )
 }
 
+/// Verify multiple proofs of sealed sector. Each input argument is an ordered vector
+/// corresponding to the proof to verify.
+///
+/// # Arguments
+/// * `registered_proof` - Selected seal operation.
+/// * `comm_r_ins` - comm_r replica commitment from seal operation.
+/// * `comm_d_in` - comm_d data commitment from seal operation.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+/// * `ticket` - The ticket used to generate this sector's replica-id.
+/// * `seed` - The seed used to derive the porep challenges.
+/// * `proof_vec` - Proofs to verify.
+///
+/// Returns result of proofs verification.
 pub fn verify_batch_seal(
     registered_proof: RegisteredSealProof,
     comm_r_ins: &[Commitment],
@@ -893,6 +1055,25 @@ pub fn verify_batch_seal(
     )
 }
 
+/// Unseals the sector at `sealed_path` and returns the bytes for a piece
+/// whose first (unpadded) byte begins at `offset` and ends at `offset` plus
+/// `num_bytes`, inclusive. Note that the entire sector is unsealed each time
+/// this function is called.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal operation.
+/// * `cache_path` - Path to the directory in which the sector data's Merkle tree is written.
+/// * `sealed_path` - Path to the sealed sector file that we will unseal and read a byte range.
+/// * `output_path` - Path to a file that we will write the requested byte range to.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+/// * `comm_d` - The commitment to the sector's data.
+/// * `ticket` - The ticket that was used to generate the sector's replica-id.
+/// * `offset` - The byte index in the unsealed sector of the first byte that we want to read.
+/// * `num_bytes` - The number of bytes that we want to read.
+///
+/// Returns count of bytes unsealed.
 pub fn get_unsealed_range<T: Into<PathBuf> + AsRef<Path>>(
     registered_proof: RegisteredSealProof,
     cache_path: T,
@@ -954,6 +1135,25 @@ fn get_unsealed_range_inner<Tree: 'static + MerkleTreeTrait>(
     )
 }
 
+/// Unseals the sector read from `sealed_sector`, memory maps the sector into virtal
+/// memory, and returns the bytes for a piece whose first (unpadded) byte begins at `offset`
+/// and ends at `offset` plus `num_bytes`, inclusive. Note that the entire sector is unsealed
+/// each time this function is called.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal operation.
+/// * `cache_path` - Path to the directory in which the sector data's Merkle tree is written.
+/// * `sealed_sector` - A byte source from which we read sealed sector data.
+/// * `unsealed_output` - A byte sink to which we write unsealed, un-bit-padded sector bytes.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+/// * `comm_d` - The commitment to the sector's data.
+/// * `ticket` - The ticket that was used to generate the sector's replica-id.
+/// * `offset` - The byte index in the unsealed sector of the first byte that we want to read.
+/// * `num_bytes` - The number of bytes that we want to read.
+///
+/// Returns count of bytes unsealed.
 pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
     registered_proof: RegisteredSealProof,
     cache_path: T,
@@ -1102,6 +1302,25 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
     }
 }
 
+/// Unseals the sector read from `sealed_sector` and returns the bytes for a
+/// piece whose first (unpadded) byte begins at `offset` and ends at `offset`
+/// plus `num_bytes`, inclusive. Note that the entire sector is unsealed each
+/// time this function is called.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal operation.
+/// * `cache_path` - Path to the directory in which the sector data's Merkle tree is written.
+/// * `sealed_sector` - A byte source from which we read sealed sector data.
+/// * `unsealed_output` - A byte sink to which we write unsealed, un-bit-padded sector bytes.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+/// * `comm_d` - The commitment to the sector's data.
+/// * `ticket` - The ticket that was used to generate the sector's replica-id.
+/// * `offset` - The byte index in the unsealed sector of the first byte that we want to read.
+/// * `num_bytes` - The number of bytes that we want to read.
+///
+/// Returns count of bytes unsealed.
 pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
     registered_proof: RegisteredSealProof,
     cache_path: T,
@@ -1250,6 +1469,17 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
     }
 }
 
+/// Generates a piece commitment for the provided byte source. Returns an error
+/// if the byte source produced more than `piece_size` bytes.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal proof for this byte source.
+/// * `source` - A readable source of unprocessed piece bytes. The piece's commitment will be
+/// generated for the bytes read from the source plus any added padding.
+/// * `piece_size` - The number of unpadded user-bytes which can be read from source before EOF.
+///
+/// Returns piece commitment in [`PieceInfo`] struct.
 pub fn generate_piece_commitment<T: Read>(
     registered_proof: RegisteredSealProof,
     source: T,
@@ -1265,6 +1495,29 @@ pub fn generate_piece_commitment<T: Read>(
     }
 }
 
+/// Computes a NUL-byte prefix and/or suffix for `source` using the provided
+/// `piece_lengths` and `piece_size` (such that the `source`, after
+/// preprocessing, will occupy a subtree of a Merkle tree built using the bytes
+/// from `target`), runs the resultant byte stream through the preprocessor,
+/// and writes the result to `target`. Returns a tuple containing the number of
+/// bytes written to `target` (`source` plus alignment) and the commitment.
+///
+/// WARNING: Depending on the ordering and size of the pieces in
+/// `piece_lengths`, this function could write a prefix of NUL bytes which
+/// wastes ($SIZESECTORSIZE/2)-$MINIMUM_PIECE_SIZE space. This function will be
+/// deprecated in favor of `write_and_preprocess`, and miners will be prevented
+/// from sealing sectors containing more than $TOOMUCH alignment bytes.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal proof for this byte source.
+/// * `source` - A readable source of unprocessed piece bytes.
+/// * `target` - A writer where we will write the processed piece bytes.
+/// * `piece_size` - The number of unpadded user-bytes which can be read from source before EOF.
+/// * `piece_lengths` - The number of bytes for each previous piece in the sector.
+///
+/// Returns a tuple containing the number of bytes written to `target` (`source` plus alignment)
+/// and the commitment.
 pub fn add_piece<R, W>(
     registered_proof: RegisteredSealProof,
     source: R,
@@ -1286,6 +1539,23 @@ where
     }
 }
 
+/// Writes bytes from `source` to `target`, adding bit-padding ("preprocessing")
+/// as needed. Returns a tuple containing the number of bytes written to
+/// `target` and the commitment.
+///
+/// WARNING: This function neither prepends nor appends alignment bytes to the
+/// `target`; it is the caller's responsibility to ensure properly sized
+/// and ordered writes to `target` such that `source`-bytes occupy whole
+/// subtrees of the final Merkle tree built over `target`.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal proof for this byte source.
+/// * `source` - A readable source of unprocessed piece bytes.
+/// * `target` - A writer where we will write the processed piece bytes.
+/// * `piece_size` - The number of unpadded user-bytes which can be read from source before EOF.
+///
+/// Returns a tuple containing the number of bytes written to `target` and the commitment.
 pub fn write_and_preprocess<R, W>(
     registered_proof: RegisteredSealProof,
     source: R,

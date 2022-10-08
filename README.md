@@ -8,7 +8,7 @@ This library is meant to be the official public API into the proofs library.
 
 ## Default build options
 
-The build options enabled by default are `pairing` and `gpu`.  An alternative backend that can be used is `blst`.  The `pairing` and `blst` options specify which bls12-381 pairing library to use..
+The build options enabled by default are `pairing` and `gpu`. An alternative backend that can be used is `blst`. The `pairing` and `blst` options specify which bls12-381 pairing library to use.
 
 ## Running the tests
 
