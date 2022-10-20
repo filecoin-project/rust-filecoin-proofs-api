@@ -1,3 +1,4 @@
+//! Update data within existing sealed sectors.
 use std::path::Path;
 
 use anyhow::{ensure, Result};
@@ -38,7 +39,16 @@ fn empty_sector_update_encode_into_inner<Tree: 'static + MerkleTreeTrait<Hasher 
 }
 
 /// Encodes data into an existing replica.
-/// Returns tuple of (comm_r_new, comm_r_last_new, comm_d_new)
+///
+/// # Arguments
+/// * `registered_proof` - Selected sector update proof.
+/// * `new_replica_path` - Output path of new updated replica.
+/// * `new_cache_path` - Output path of new cache.
+/// * `sector_key_path` - Path to sector key originally used to seal sector.
+/// * `staged_data_path` - Path to staged data to encode into existing replica.
+/// * `piece_infos` - The piece info (commitment and byte length) for each piece in the sector.
+///
+/// Returns new commitments in [`EmptySectorUpdateEncoded`] struct.
 pub fn empty_sector_update_encode_into<R, S, T, U, V>(
     registered_proof: RegisteredUpdateProof,
     new_replica_path: R,
@@ -99,7 +109,15 @@ fn empty_sector_update_decode_from_inner<Tree: 'static + MerkleTreeTrait<Hasher 
     )
 }
 
-/// Reverses the encoding process and outputs the data into out_data_path.
+/// Reverses the encoding process and outputs the data into `out_data_path`.
+///
+/// # Arguments
+/// * `registered_proof` - Selected sector update proof.
+/// * `out_data_path` - File path to output decoded data.
+/// * `replica_path` - File path of replica.
+/// * `sector_key_path` - Path to sector key originally used to seal sector.
+/// * `staged_data_path` - Path to staged data to encode into existing replica.
+/// * `comm_d_new` - Data commitment from updated replica.
 pub fn empty_sector_update_decode_from<R, S, T, U>(
     registered_proof: RegisteredUpdateProof,
     out_data_path: R,
@@ -162,6 +180,15 @@ fn empty_sector_update_remove_encoded_data_inner<
 }
 
 /// Removes encoded data and outputs the sector key.
+///
+/// # Arguments
+/// * `registered_proof` - Selected sector update proof.
+/// * `sector_key_path` - Path to sector key originally used to seal sector.
+/// * `sector_key_cache_path` - Path to write updated `tree_r_last`.
+/// * `replica_path` - File path of new sealed replica.
+/// * `replica_cache_path` - Directory cache path for replica (for `p_aux`).
+/// * `data_path` - File path for new staged data.
+/// * `comm_d_new` - Data commitment.
 pub fn empty_sector_update_remove_encoded_data<R, S, T, U, V>(
     registered_proof: RegisteredUpdateProof,
     sector_key_path: R,
@@ -233,6 +260,19 @@ fn generate_partition_proofs_inner<Tree: 'static + MerkleTreeTrait<Hasher = Tree
     Ok(returned_proofs)
 }
 
+/// Generate all vanilla partition proofs across all partitions.
+///
+/// # Arguments
+/// * `registered_proof` - Selected sector update proof.
+/// * `comm_r_old` - Previous replica commitment.
+/// * `comm_r_new` - New replica commitment.
+/// * `comm_d_new` - New data commitment.
+/// * `sector_key_path` - Path to sector key originally used to seal sector.
+/// * `sector_key_cache_path` - Path to write updated `tree_r_last`.
+/// * `replica_path` - File path of new sealed replica.
+/// * `replica_cache_path` - Directory cache path for replica (for `p_aux`).
+///
+/// Returns vector of partition proofs.
 pub fn generate_partition_proofs<R, S, T, U>(
     registered_proof: RegisteredUpdateProof,
     comm_r_old: Commitment,
@@ -300,6 +340,16 @@ fn verify_partition_proofs_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeRH
     Ok(valid)
 }
 
+/// Verify all vanilla partition proofs across all partitions.
+///
+/// # Arguments
+/// * `registered_proof` - Selected sector update proof.
+/// * `partition_proofs` - Proofs to verify.
+/// * `comm_r_old` - Previous replica commitment.
+/// * `comm_r_new` - New replica commitment.
+/// * `comm_d_new` - New data commitment.
+///
+/// Returns proof verification result.
 pub fn verify_partition_proofs(
     registered_proof: RegisteredUpdateProof,
     partition_proofs: &[PartitionProofBytes],
@@ -354,6 +404,16 @@ fn generate_empty_sector_update_proof_inner_with_vanilla<
     )
 }
 
+/// Generate updated proof from an empty sector provided the vanilla proof and new commitment.
+///
+/// # Arguments
+/// * `registered_proof` - Selected sector update proof.
+/// * `vanilla_proofs` - Vanilla Merkle tree proof for updated sector.
+/// * `comm_r_old` - Previous replica commitment.
+/// * `comm_r_new` - New replica commitment.
+/// * `comm_d_new` - New data commitment.
+///
+/// Returns new [`EmptySectorUpdateProof`].
 pub fn generate_empty_sector_update_proof_with_vanilla(
     registered_proof: RegisteredUpdateProof,
     vanilla_proofs: Vec<PartitionProofBytes>,
@@ -408,6 +468,19 @@ fn generate_empty_sector_update_proof_inner<
     )
 }
 
+/// Generate updated proof from an empty sector replica.
+///
+/// # Arguments
+/// * `registered_proof` - Selected sector update proof.
+/// * `comm_r_old` - Previous replica commitment.
+/// * `comm_r_new` - New replica commitment.
+/// * `comm_d_new` - New data commitment.
+/// * `sector_key_path` - Path to sector key originally used to seal sector.
+/// * `sector_key_cache_path` - Path to write updated `tree_r_last`.
+/// * `replica_path` - File path of new sealed replica.
+/// * `replica_cache_path` - Directory cache path for replica (for `p_aux`)
+///
+/// Returns [`EmptySectorUpdateProof`].
 pub fn generate_empty_sector_update_proof<R, S, T, U>(
     registered_proof: RegisteredUpdateProof,
     comm_r_old: Commitment,
@@ -462,6 +535,16 @@ fn verify_empty_sector_update_proof_inner<Tree: 'static + MerkleTreeTrait<Hasher
     )
 }
 
+/// Verify an empty sector update proof provided the proof and new and old commitments.
+///
+/// # Arguments
+/// * `registered_proof` - Selected sector update proof.
+/// * `proof` - Proof to verify.
+/// * `comm_r_old` - Previous replica commitment.
+/// * `comm_r_new` - New replica commitment.
+/// * `comm_d_new` - New data commitment.
+///
+/// Returns result of proof verification.
 pub fn verify_empty_sector_update_proof(
     registered_proof: RegisteredUpdateProof,
     proof: &[u8],

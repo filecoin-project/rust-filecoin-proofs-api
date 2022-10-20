@@ -1,3 +1,5 @@
+//! Data types used for Proof-of-Replication and Proof-of-Spacetime
+
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -10,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use crate::{get_parameter_data, get_verifying_key_data, ApiVersion, MerkleTreeTrait};
 
 /// Available seal proofs.
-/// Enum is append-only: once published, a `RegisteredSealProof` value must never change.
+// Enum is append-only: once published, a `RegisteredSealProof` value must never change.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredSealProof {
     StackedDrg2KiBV1,
@@ -44,16 +46,16 @@ lazy_static! {
     .collect();
 }
 
-/// Available aggregation proof types.
-/// Enum is append-only: once published, a `RegisteredAggregationProof` value must never change.
+/// Available aggregation of zk-SNARK proofs.
+// Enum is append-only: once published, a `RegisteredAggregationProof` value must never change.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredAggregationProof {
     SnarkPackV1,
     SnarkPackV2,
 }
 
-/// Available RegisteredUpdateProof types.
-/// Enum is append-only: once published, a `RegisteredUpdateProof` value must never change.
+/// Available proofs for updating sectors
+// Enum is append-only: once published, a `RegisteredUpdateProof` value must never change.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredUpdateProof {
     // Note: StackedDrg*V1 maps to api version V1_1
@@ -148,6 +150,7 @@ impl RegisteredSealProof {
         }
     }
 
+    /// Returns the size of a single zk-SNARK proof in bytes.
     pub fn single_partition_proof_len(self) -> usize {
         use RegisteredSealProof::*;
 
@@ -180,6 +183,7 @@ impl RegisteredSealProof {
         porep_id
     }
 
+    /// Returns the PoRepConfig with correct Proof-of-Replication settings for this seal proof type.
     pub fn as_v1_config(self) -> PoRepConfig {
         use RegisteredSealProof::*;
         match self {
@@ -215,6 +219,9 @@ impl RegisteredSealProof {
         }
     }
 
+    /// Returns the expected file path of the verifying key (*.vk file) for the seal proof. By default
+    /// this will be in the folder /var/tmp/filecoin-proof-parameters/ unless the default is changed by
+    /// setting the environment variable FIL_PROOFS_PARAMETER_CACHE.
     pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
         match self.version() {
             ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => self_shape!(
@@ -226,6 +233,9 @@ impl RegisteredSealProof {
         }
     }
 
+    /// Returns the expected file path of the params file (*.params) for the seal proof. By default
+    /// this will be in the folder /var/tmp/filecoin-proof-parameters/ unless the default is changed by
+    /// setting the environment variable FIL_PROOFS_PARAMETER_CACHE.
     pub fn cache_params_path(self) -> Result<PathBuf> {
         match self.version() {
             ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
@@ -234,6 +244,7 @@ impl RegisteredSealProof {
         }
     }
 
+    /// Get the correct verifying key data for the circuit identifier.
     pub fn verifying_key_cid(self) -> Result<String> {
         match self.version() {
             ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
@@ -249,6 +260,7 @@ impl RegisteredSealProof {
         }
     }
 
+    /// Get the correct parameter data for the circuit identifier.
     pub fn params_cid(self) -> Result<String> {
         match self.version() {
             ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
@@ -261,6 +273,7 @@ impl RegisteredSealProof {
         }
     }
 
+    /// Returns the correct Proof-of-Spacetime window type for this seal proof.
     pub fn into_winning_post(self) -> RegisteredPoStProof {
         use RegisteredPoStProof::*;
         use RegisteredSealProof::*;
@@ -273,6 +286,7 @@ impl RegisteredSealProof {
         }
     }
 
+    /// Returns the correct Proof-of-Spacetime window proof type for this seal proof.
     pub fn into_window_post(self) -> RegisteredPoStProof {
         use RegisteredPoStProof::*;
         use RegisteredSealProof::*;
@@ -287,7 +301,7 @@ impl RegisteredSealProof {
 }
 
 /// Available PoSt proofs.
-/// Enum is append-only: once published, a `RegisteredPoStProof` value must never change.
+// Enum is append-only: once published, a `RegisteredPoStProof` value must never change.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum RegisteredPoStProof {
     StackedDrgWinning2KiBV1,
@@ -367,6 +381,7 @@ impl RegisteredPoStProof {
         }
     }
 
+    // Return the proof length for a single partition in bytes.
     pub fn single_partition_proof_len(self) -> usize {
         match self.version() {
             ApiVersion::V1_0_0 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
@@ -396,6 +411,7 @@ impl RegisteredPoStProof {
         }
     }
 
+    /// Returns the PoStConfig with correct Proof-of-Spacetime settings for this proof type.
     pub fn as_v1_config(self) -> PoStConfig {
         assert_eq!(self.version(), ApiVersion::V1_0_0);
 
@@ -439,6 +455,9 @@ impl RegisteredPoStProof {
         }
     }
 
+    /// Returns the expected file path of the verifying key (*.vk file) for this PoSt proof. By default
+    /// this will be in the folder /var/tmp/filecoin-proof-parameters/ unless the default is changed by
+    /// setting the environment variable FIL_PROOFS_PARAMETER_CACHE.
     pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
         match self.version() {
             ApiVersion::V1_0_0 => self_shape!(
@@ -451,6 +470,9 @@ impl RegisteredPoStProof {
         }
     }
 
+    /// Returns the expected file path of the params file (*.params) for the PoSt proof. By default
+    /// this will be in the folder /var/tmp/filecoin-proof-parameters/ unless the default is changed by
+    /// setting the environment variable FIL_PROOFS_PARAMETER_CACHE.
     pub fn cache_params_path(self) -> Result<PathBuf> {
         match self.version() {
             ApiVersion::V1_0_0 => {
@@ -460,6 +482,7 @@ impl RegisteredPoStProof {
         }
     }
 
+    /// Get the correct verifying key data for the circuit identifier.
     pub fn verifying_key_cid(self) -> Result<String> {
         match self.version() {
             ApiVersion::V1_0_0 => {
@@ -476,6 +499,7 @@ impl RegisteredPoStProof {
         }
     }
 
+    /// Get the correct parameter data for the circuit identifier.
     pub fn params_cid(self) -> Result<String> {
         match self.version() {
             ApiVersion::V1_0_0 => {
@@ -561,6 +585,7 @@ impl RegisteredUpdateProof {
         }
     }
 
+    /// Returns length of proof for a single partition in bytes.
     pub fn single_partition_proof_len(self) -> usize {
         use RegisteredUpdateProof::*;
 
@@ -570,6 +595,7 @@ impl RegisteredUpdateProof {
         }
     }
 
+    /// Returns nonce value for this RegisteredUpdateProof, currently 0 but may be updated in the future.
     fn nonce(self) -> u64 {
         #[allow(clippy::match_single_binding)]
         match self {
@@ -588,6 +614,7 @@ impl RegisteredUpdateProof {
         porep_id
     }
 
+    /// Returns the PoRepConfig with correct Proof-of-Replication settings for this PoRep update proof.
     pub fn as_v1_config(self) -> PoRepConfig {
         use RegisteredUpdateProof::*;
         match self {
@@ -614,6 +641,9 @@ impl RegisteredUpdateProof {
         }
     }
 
+    /// Returns the expected file path of the verifying key (*.vk file) for this PoRep update proof. By
+    /// default this will be in the folder /var/tmp/filecoin-proof-parameters/ unless the default is
+    /// changed by setting the environment variable FIL_PROOFS_PARAMETER_CACHE.
     pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
@@ -626,6 +656,9 @@ impl RegisteredUpdateProof {
         }
     }
 
+    /// Returns the expected file path of the params file (*.params) for this PoRep update proof. By
+    /// default this will be in the folder /var/tmp/filecoin-proof-parameters/ unless the default is
+    ///  changed by setting the environment variable FIL_PROOFS_PARAMETER_CACHE.
     pub fn cache_params_path(self) -> Result<PathBuf> {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
@@ -635,6 +668,7 @@ impl RegisteredUpdateProof {
         }
     }
 
+    /// Get the correct verifying key data for this circuit identifier.
     pub fn verifying_key_cid(self) -> Result<String> {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
@@ -651,6 +685,7 @@ impl RegisteredUpdateProof {
         }
     }
 
+    /// Get the correct parameter data for this circuit identifier.
     pub fn params_cid(self) -> Result<String> {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),

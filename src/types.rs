@@ -1,3 +1,4 @@
+//! Data types for sector replication.
 use std::path::PathBuf;
 
 use crate::{Commitment, RegisteredPoStProof};
@@ -10,15 +11,13 @@ pub type VanillaProofBytes = Vec<u8>;
 #[derive(Clone, Debug)]
 pub struct PartitionProofBytes(pub Vec<u8>);
 
-/// The minimal information required about a replica, in order to be able to generate
-/// a PoSt over it.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PrivateReplicaInfo {
     /// The version of this replica.
     pub(crate) registered_proof: RegisteredPoStProof,
     /// The replica commitment.
     pub(crate) comm_r: Commitment,
-    /// Contains sector-specific (e.g. merkle trees) assets
+    /// Contains sector-specific (e.g. Merkle trees) assets.
     pub(crate) cache_dir: PathBuf,
     /// Contains the replica.
     pub(crate) replica_path: PathBuf,
