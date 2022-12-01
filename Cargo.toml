@@ -19,10 +19,9 @@ filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~12.0.0", default
 filecoin-hashers = { version = "~7.0.0", default-features = false, features = ["poseidon", "sha256"] }
 fr32 = { version = "~5.0.0", default-features = false }
 storage-proofs-core = { version = "~12.0.0", default-features = false }
-storage-proofs-porep = { version = "~12.0.0", default-features = false }
 
 [features]
 default = ["opencl"]
-cuda = ["filecoin-proofs-v1/cuda", "filecoin-hashers/cuda", "storage-proofs-core/cuda", "storage-proofs-porep/cuda", "bellperson/cuda"]
-opencl = ["filecoin-proofs-v1/opencl", "filecoin-hashers/opencl", "storage-proofs-core/opencl", "storage-proofs-porep/opencl", "bellperson/opencl"]
-multicore-sdr = ["storage-proofs-porep/multicore-sdr"]
+cuda = ["filecoin-proofs-v1/cuda", "filecoin-hashers/cuda", "storage-proofs-core/cuda", "bellperson/cuda"]
+opencl = ["filecoin-proofs-v1/opencl", "filecoin-hashers/opencl", "storage-proofs-core/opencl", "bellperson/opencl"]
+multicore-sdr = ["filecoin-proofs-v1/multicore-sdr"]
