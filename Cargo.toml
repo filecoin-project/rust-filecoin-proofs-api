@@ -21,7 +21,7 @@ fr32 = { version = "~5.0.0", default-features = false }
 storage-proofs-core = { version = "~12.0.0", default-features = false }
 
 [features]
-default = ["opencl"]
+default = ["opencl", "cuda"]
 cuda = ["filecoin-proofs-v1/cuda", "filecoin-hashers/cuda", "storage-proofs-core/cuda", "bellperson/cuda"]
 opencl = ["filecoin-proofs-v1/opencl", "filecoin-hashers/opencl", "storage-proofs-core/opencl", "bellperson/opencl"]
 multicore-sdr = ["filecoin-proofs-v1/multicore-sdr"]
