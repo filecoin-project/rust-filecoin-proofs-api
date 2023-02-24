@@ -4,11 +4,11 @@ executors:
   linux:
     docker:
       - image: cimg/rust:1.67
+    resource_class: small
 
 jobs:
   test:
     executor: linux
-    resource_class: small
     environment:
       RUST_LOG: trace
     steps:
@@ -24,7 +24,6 @@ jobs:
 
   rustfmt:
     executor: linux
-    resource_class: small
     steps:
       - checkout
       - run:
@@ -33,7 +32,6 @@ jobs:
 
   clippy:
     executor: linux
-    resource_class: small
     steps:
       - checkout
       - run:
