@@ -1,156 +1,70 @@
 version: 2.1
 
+executors:
+  linux:
+    docker:
+      - image: cimg/rust:1.67
+
 jobs:
-  ensure_groth_parameters_and_keys_linux:
-    docker:
-      - image: filecoin/rust:latest
-    working_directory: /mnt/crate
-    resource_class: 2xlarge+
+  test:
+    executor: linux
+    resource_class: small
+    environment:
+      RUST_LOG: trace
     steps:
-      - configure_environment_variables
-      - checkout
-      - ensure_filecoin_parameters
-  cargo_fetch:
-    docker:
-      - image: filecoin/rust:latest
-    working_directory: /mnt/crate
-    resource_class: 2xlarge+
-    steps:
-      - configure_environment_variables
       - checkout
       - run:
           name: Install requirements
-          command: apt-get install sudo -yqq
-      - run:
-          name: Install hwloc 2.3.0
           command: |
-            cd /tmp
-            curl https://download.open-mpi.org/release/hwloc/v2.3/hwloc-2.3.0.tar.gz --location --output /tmp/hwloc-2.3.0.tar.gz
-            tar xzvf hwloc-2.3.0.tar.gz
-            cd hwloc-2.3.0
-            ./configure
-            make
-            sudo make install
-      - run:
-          name: Calculate dependencies
-          command: cargo generate-lockfile
-      - restore_cache:
-          keys:
-            - cargo-v13-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
-      - run: rustup install $(cat rust-toolchain)
-      - run: rustup default $(cat rust-toolchain)
-      - run: rustup component add rustfmt-preview
-      - run: rustup component add clippy-preview
-      - run: cargo update
-      - run: cargo fetch
-      - run: rustc +$(cat rust-toolchain) --version
-      - persist_to_workspace:
-          root: "."
-          paths:
-            - Cargo.lock
-      - save_cache:
-          key: cargo-v13-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
-          paths:
-            - /root/.cargo
-            - /root/.rustup
-  test:
-    docker:
-      - image: filecoin/rust:latest
-    working_directory: /mnt/crate
-    resource_class: 2xlarge+
-    steps:
-      - configure_environment_variables
-      - checkout
-      - attach_workspace:
-          at: "."
-      - restore_cache:
-          keys:
-            - cargo-v13-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
+            sudo apt update
+            sudo apt install ocl-icd-opencl-dev --yes
       - run:
           name: Test
-          command: cargo +$(cat rust-toolchain) test --verbose 
-          no_output_timeout: 15m
-          
+          command: cargo test --verbose
+
   rustfmt:
-    docker:
-      - image: filecoin/rust:latest
-    working_directory: /mnt/crate
-    resource_class: 2xlarge
+    executor: linux
+    resource_class: small
     steps:
-      - configure_environment_variables
       - checkout
-      - attach_workspace:
-          at: "."
-      - restore_cache:
-          keys:
-            - cargo-v13-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
       - run:
           name: Run cargo fmt
           command: cargo fmt --all -- --check
 
   clippy:
-    docker:
-      - image: filecoin/rust:latest
-    working_directory: /mnt/crate
-    resource_class: 2xlarge
+    executor: linux
+    resource_class: small
     steps:
-      - configure_environment_variables
       - checkout
-      - attach_workspace:
-          at: "."
-      - restore_cache:
-          keys:
-            - cargo-v13-{{ checksum "rust-toolchain" }}-{{ checksum "Cargo.toml" }}-{{ checksum "Cargo.lock" }}-{{ arch }}
       - run:
           name: Run cargo clippy
-          command: cargo clippy --workspace
+          command: cargo clippy --workspace -- -D warnings
 
   test_darwin:
     macos:
       xcode: "13.4.1"
-    working_directory: ~/crate
-    resource_class: large
+    resource_class: medium
+    environment:
+      RUST_LOG: trace
     steps:
-      - configure_environment_variables
       - checkout
       - run:
           name: Install other dependencies with Homebrew
-          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install hwloc
+          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install hwloc rustup-init
       - run:
           name: Install Rust
           command: |
-            curl https://sh.rustup.rs -sSf | sh -s -- -y
-      - run: rustup install $(cat rust-toolchain)
-      - run: rustup default $(cat rust-toolchain)
-      - run: cargo update
-      - run: cargo fetch
+            rustup-init --profile minimal --default-toolchain $(cat rust-toolchain) -y
+            source ${HOME}/.cargo/env
       - run:
           name: Test (Darwin)
-          command: cargo +$(cat rust-toolchain) test --release --verbose
-          no_output_timeout: 15m
-
-commands:
-  configure_environment_variables:
-    steps:
-      - run:
-          name: Configure environment variables
-          command: |
-            echo 'export FIL_PROOFS_PARAMETER_CACHE="${HOME}/filecoin-proof-parameters/"' >> $BASH_ENV
-            echo 'export PATH="${HOME}/.cargo/bin:${PATH}"' >> $BASH_ENV
-            echo 'export RUST_LOG=info' >> $BASH_ENV
+          command: cargo test --release --verbose
 
 workflows:
   version: 2.1
   test_all:
     jobs:
-      - cargo_fetch
-      - rustfmt:
-          requires:
-            - cargo_fetch
-      - clippy:
-          requires:
-            - cargo_fetch
-      - test:
-          requires:
-            - cargo_fetch
+      - rustfmt
+      - clippy
+      - test
       - test_darwin
