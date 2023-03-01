@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+- Enable CUDA by default [#81](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/76)
+
 ## [12.0.0] - 2022-08-04
 
 - Update to latest Proofs and dependencies [#76](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/76)
