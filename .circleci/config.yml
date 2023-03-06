@@ -40,10 +40,10 @@ jobs:
       # in order to compile
       - run:
           name: Run cargo clippy
-          command: cargo clippy --workspace -- -D warnings
+          command: cargo clippy --no-default-features --features opencl --workspace -- -D warnings
       - run:
           name: Test
-          command: cargo test --verbose
+          command: cargo test --no-default-features --features opencl --verbose
 
   rustfmt:
     executor: linux
