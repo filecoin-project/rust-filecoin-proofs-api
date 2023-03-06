@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
-- Enable CUDA by default [#81](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/76)
+## [13.0.0] - 2023-03-06
+
+- Update rust-toolchain to 1.67.1 [#82](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/82)
+- Enable CUDA by default [#81](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/81)
+- Simpify CI [#80](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/80)
+- Remove the dependency on storage-proofs-porep [#78](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/78)
+- Add documentation to API code [#77](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/77)
 
 ## [12.0.0] - 2022-08-04
 
@@ -124,7 +130,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v12.0.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v13.0.0...HEAD
+[13.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v13.0.0
 [12.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v12.0.0
 [11.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v11.0.0
 [10.1.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v10.1.0
