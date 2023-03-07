@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
-## [13.0.0] - 2023-03-06
+## [13.0.0] - 2023-03-07
 
 - Update rust-toolchain to 1.67.1 [#82](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/82)
 - Enable CUDA by default [#81](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/81)
