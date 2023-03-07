@@ -18,10 +18,10 @@ Running the tests with the default features can be done like this:
 cargo test --release --all
 ```
 
-Running with the `cuda` feature only can be done like this:
+Running with the `opencl` feature only can be done like this:
 
 ```
-cargo test --no-default-features --features cuda --release --all
+cargo test --no-default-features --features opencl --release --all
 ```
 
 ## License
