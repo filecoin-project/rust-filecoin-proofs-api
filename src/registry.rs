@@ -213,7 +213,7 @@ impl RegisteredSealProof {
     /// Returns the circuit identifier.
     pub fn circuit_identifier(self) -> Result<String> {
         match self.version() {
-            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
+            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 self_shape!(get_cache_identifier, RegisteredSealProof, self, String)
             }
         }
@@ -224,7 +224,7 @@ impl RegisteredSealProof {
     /// setting the environment variable FIL_PROOFS_PARAMETER_CACHE.
     pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
         match self.version() {
-            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => self_shape!(
+            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => self_shape!(
                 get_cache_verifying_key_path,
                 RegisteredSealProof,
                 self,
@@ -238,7 +238,7 @@ impl RegisteredSealProof {
     /// setting the environment variable FIL_PROOFS_PARAMETER_CACHE.
     pub fn cache_params_path(self) -> Result<PathBuf> {
         match self.version() {
-            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
+            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 self_shape!(get_cache_params_path, RegisteredSealProof, self, PathBuf)
             }
         }
@@ -247,7 +247,7 @@ impl RegisteredSealProof {
     /// Get the correct verifying key data for the circuit identifier.
     pub fn verifying_key_cid(self) -> Result<String> {
         match self.version() {
-            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
+            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_verifying_key_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
@@ -263,7 +263,7 @@ impl RegisteredSealProof {
     /// Get the correct parameter data for the circuit identifier.
     pub fn params_cid(self) -> Result<String> {
         match self.version() {
-            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 => {
+            ApiVersion::V1_0_0 | ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_parameter_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
@@ -309,11 +309,19 @@ pub enum RegisteredPoStProof {
     StackedDrgWinning512MiBV1,
     StackedDrgWinning32GiBV1,
     StackedDrgWinning64GiBV1,
+
     StackedDrgWindow2KiBV1,
     StackedDrgWindow8MiBV1,
     StackedDrgWindow512MiBV1,
     StackedDrgWindow32GiBV1,
     StackedDrgWindow64GiBV1,
+
+    // WindowPoSt uses V1_2 to fix the grindability issue.
+    StackedDrgWindow2KiBV1_2,
+    StackedDrgWindow8MiBV1_2,
+    StackedDrgWindow512MiBV1_2,
+    StackedDrgWindow32GiBV1_2,
+    StackedDrgWindow64GiBV1_2,
 }
 
 impl RegisteredPoStProof {
@@ -332,6 +340,11 @@ impl RegisteredPoStProof {
             | StackedDrgWindow512MiBV1
             | StackedDrgWindow32GiBV1
             | StackedDrgWindow64GiBV1 => ApiVersion::V1_0_0,
+            StackedDrgWindow2KiBV1_2
+            | StackedDrgWindow8MiBV1_2
+            | StackedDrgWindow512MiBV1_2
+            | StackedDrgWindow32GiBV1_2
+            | StackedDrgWindow64GiBV1_2 => ApiVersion::V1_2_0,
         }
     }
 
@@ -355,11 +368,21 @@ impl RegisteredPoStProof {
         use RegisteredPoStProof::*;
 
         let size = match self {
-            StackedDrgWinning2KiBV1 | StackedDrgWindow2KiBV1 => constants::SECTOR_SIZE_2_KIB,
-            StackedDrgWinning8MiBV1 | StackedDrgWindow8MiBV1 => constants::SECTOR_SIZE_8_MIB,
-            StackedDrgWinning512MiBV1 | StackedDrgWindow512MiBV1 => constants::SECTOR_SIZE_512_MIB,
-            StackedDrgWinning32GiBV1 | StackedDrgWindow32GiBV1 => constants::SECTOR_SIZE_32_GIB,
-            StackedDrgWinning64GiBV1 | StackedDrgWindow64GiBV1 => constants::SECTOR_SIZE_64_GIB,
+            StackedDrgWinning2KiBV1 | StackedDrgWindow2KiBV1 | StackedDrgWindow2KiBV1_2 => {
+                constants::SECTOR_SIZE_2_KIB
+            }
+            StackedDrgWinning8MiBV1 | StackedDrgWindow8MiBV1 | StackedDrgWindow8MiBV1_2 => {
+                constants::SECTOR_SIZE_8_MIB
+            }
+            StackedDrgWinning512MiBV1 | StackedDrgWindow512MiBV1 | StackedDrgWindow512MiBV1_2 => {
+                constants::SECTOR_SIZE_512_MIB
+            }
+            StackedDrgWinning32GiBV1 | StackedDrgWindow32GiBV1 | StackedDrgWindow32GiBV1_2 => {
+                constants::SECTOR_SIZE_32_GIB
+            }
+            StackedDrgWinning64GiBV1 | StackedDrgWindow64GiBV1 | StackedDrgWindow64GiBV1_2 => {
+                constants::SECTOR_SIZE_64_GIB
+            }
         };
         SectorSize(size)
     }
@@ -377,7 +400,12 @@ impl RegisteredPoStProof {
             | StackedDrgWindow8MiBV1
             | StackedDrgWindow512MiBV1
             | StackedDrgWindow32GiBV1
-            | StackedDrgWindow64GiBV1 => PoStType::Window,
+            | StackedDrgWindow64GiBV1
+            | StackedDrgWindow2KiBV1_2
+            | StackedDrgWindow8MiBV1_2
+            | StackedDrgWindow512MiBV1_2
+            | StackedDrgWindow32GiBV1_2
+            | StackedDrgWindow64GiBV1_2 => PoStType::Window,
         }
     }
 
@@ -403,7 +431,12 @@ impl RegisteredPoStProof {
             | StackedDrgWindow8MiBV1
             | StackedDrgWindow512MiBV1
             | StackedDrgWindow32GiBV1
-            | StackedDrgWindow64GiBV1 => *constants::WINDOW_POST_SECTOR_COUNT
+            | StackedDrgWindow64GiBV1
+            | StackedDrgWindow2KiBV1_2
+            | StackedDrgWindow8MiBV1_2
+            | StackedDrgWindow512MiBV1_2
+            | StackedDrgWindow32GiBV1_2
+            | StackedDrgWindow64GiBV1_2 => *constants::WINDOW_POST_SECTOR_COUNT
                 .read()
                 .expect("window post sector count failure")
                 .get(&u64::from(self.sector_size()))
@@ -434,7 +467,12 @@ impl RegisteredPoStProof {
             | StackedDrgWindow8MiBV1
             | StackedDrgWindow512MiBV1
             | StackedDrgWindow32GiBV1
-            | StackedDrgWindow64GiBV1 => PoStConfig {
+            | StackedDrgWindow64GiBV1
+            | StackedDrgWindow2KiBV1_2
+            | StackedDrgWindow8MiBV1_2
+            | StackedDrgWindow512MiBV1_2
+            | StackedDrgWindow32GiBV1_2
+            | StackedDrgWindow64GiBV1_2 => PoStConfig {
                 typ: self.typ(),
                 sector_size: self.sector_size(),
                 sector_count: self.sector_count(),
@@ -635,7 +673,7 @@ impl RegisteredUpdateProof {
     pub fn circuit_identifier(self) -> Result<String> {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
-            ApiVersion::V1_1_0 => {
+            ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 self_shape!(get_cache_identifier, RegisteredUpdateProof, self, String)
             }
         }
@@ -647,7 +685,7 @@ impl RegisteredUpdateProof {
     pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
-            ApiVersion::V1_1_0 => self_shape!(
+            ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => self_shape!(
                 get_cache_verifying_key_path,
                 RegisteredUpdateProof,
                 self,
@@ -662,7 +700,7 @@ impl RegisteredUpdateProof {
     pub fn cache_params_path(self) -> Result<PathBuf> {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
-            ApiVersion::V1_1_0 => {
+            ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 self_shape!(get_cache_params_path, RegisteredUpdateProof, self, PathBuf)
             }
         }
@@ -672,7 +710,7 @@ impl RegisteredUpdateProof {
     pub fn verifying_key_cid(self) -> Result<String> {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
-            ApiVersion::V1_1_0 => {
+            ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_verifying_key_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
@@ -689,7 +727,7 @@ impl RegisteredUpdateProof {
     pub fn params_cid(self) -> Result<String> {
         match self.version() {
             ApiVersion::V1_0_0 => panic!("Not supported on API V1.0.0"),
-            ApiVersion::V1_1_0 => {
+            ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_parameter_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
