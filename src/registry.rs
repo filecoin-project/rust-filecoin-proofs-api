@@ -412,7 +412,9 @@ impl RegisteredPoStProof {
     // Return the proof length for a single partition in bytes.
     pub fn single_partition_proof_len(self) -> usize {
         match self.version() {
-            ApiVersion::V1_0_0 => filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN,
+            ApiVersion::V1_0_0 | ApiVersion::V1_2_0 => {
+                filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN
+            }
             _ => panic!("Invalid PoSt api version"),
         }
     }
@@ -446,7 +448,10 @@ impl RegisteredPoStProof {
 
     /// Returns the PoStConfig with correct Proof-of-Spacetime settings for this proof type.
     pub fn as_v1_config(self) -> PoStConfig {
-        assert_eq!(self.version(), ApiVersion::V1_0_0);
+        assert!(
+            self.version() == ApiVersion::V1_0_0 || self.version() == ApiVersion::V1_2_0,
+            "Unsupported V1 PoSt Api version"
+        );
 
         use RegisteredPoStProof::*;
 
@@ -486,7 +491,7 @@ impl RegisteredPoStProof {
     /// Returns the circuit identifier.
     pub fn circuit_identifier(self) -> Result<String> {
         match self.version() {
-            ApiVersion::V1_0_0 => {
+            ApiVersion::V1_0_0 | ApiVersion::V1_2_0 => {
                 self_shape!(get_cache_identifier, RegisteredPoStProof, self, String)
             }
             _ => panic!("Invalid PoSt api version"),
@@ -498,7 +503,7 @@ impl RegisteredPoStProof {
     /// setting the environment variable FIL_PROOFS_PARAMETER_CACHE.
     pub fn cache_verifying_key_path(self) -> Result<PathBuf> {
         match self.version() {
-            ApiVersion::V1_0_0 => self_shape!(
+            ApiVersion::V1_0_0 | ApiVersion::V1_2_0 => self_shape!(
                 get_cache_verifying_key_path,
                 RegisteredPoStProof,
                 self,
@@ -513,7 +518,7 @@ impl RegisteredPoStProof {
     /// setting the environment variable FIL_PROOFS_PARAMETER_CACHE.
     pub fn cache_params_path(self) -> Result<PathBuf> {
         match self.version() {
-            ApiVersion::V1_0_0 => {
+            ApiVersion::V1_0_0 | ApiVersion::V1_2_0 => {
                 self_shape!(get_cache_params_path, RegisteredPoStProof, self, PathBuf)
             }
             _ => panic!("Invalid PoSt api version"),
@@ -523,7 +528,7 @@ impl RegisteredPoStProof {
     /// Get the correct verifying key data for the circuit identifier.
     pub fn verifying_key_cid(self) -> Result<String> {
         match self.version() {
-            ApiVersion::V1_0_0 => {
+            ApiVersion::V1_0_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_verifying_key_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
@@ -540,7 +545,7 @@ impl RegisteredPoStProof {
     /// Get the correct parameter data for the circuit identifier.
     pub fn params_cid(self) -> Result<String> {
         match self.version() {
-            ApiVersion::V1_0_0 => {
+            ApiVersion::V1_0_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_parameter_data(&id);
                 ensure!(params.is_some(), "missing params for {}", &id);
