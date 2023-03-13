@@ -274,6 +274,10 @@ impl RegisteredSealProof {
     }
 
     /// Returns the correct Proof-of-Spacetime window type for this seal proof.
+    #[deprecated(
+        since = "13.0.0",
+        note = "contact the developers if this method is required"
+    )]
     pub fn into_winning_post(self) -> RegisteredPoStProof {
         use RegisteredPoStProof::*;
         use RegisteredSealProof::*;
@@ -286,16 +290,23 @@ impl RegisteredSealProof {
         }
     }
 
-    /// Returns the correct Proof-of-Spacetime window proof type for this seal proof.
+    // Returns the correct Proof-of-Spacetime window proof type for this seal proof.
+    //
+    // This call is deprecated, as it can no longer do the right thing
+    // without a new SealProof type to map to WindowPoSt V1_2_0.
+    #[deprecated(
+        since = "13.0.0",
+        note = "contact the developers if this method is required"
+    )]
     pub fn into_window_post(self) -> RegisteredPoStProof {
         use RegisteredPoStProof::*;
         use RegisteredSealProof::*;
         match self {
-            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 => StackedDrgWindow2KiBV1,
-            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 => StackedDrgWindow8MiBV1,
-            StackedDrg512MiBV1 | StackedDrg512MiBV1_1 => StackedDrgWindow512MiBV1,
-            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 => StackedDrgWindow32GiBV1,
-            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 => StackedDrgWindow64GiBV1,
+            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 => StackedDrgWindow2KiBV1_2,
+            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 => StackedDrgWindow8MiBV1_2,
+            StackedDrg512MiBV1 | StackedDrg512MiBV1_1 => StackedDrgWindow512MiBV1_2,
+            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 => StackedDrgWindow32GiBV1_2,
+            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 => StackedDrgWindow64GiBV1_2,
         }
     }
 }
@@ -448,6 +459,14 @@ impl RegisteredPoStProof {
 
     /// Returns the PoStConfig with correct Proof-of-Spacetime settings for this proof type.
     pub fn as_v1_config(self) -> PoStConfig {
+        // PoSt did not change between ApiVersion V1_0_0 and V1_1_0.
+        // Before adding the set of StackedDrgWindow*V1_2 registered
+        // PoSt Proof types, there was no way to signal to Proofs that
+        // different behaviour was expected.  Now that there is an
+        // update in PoSt in ApiVersion::V1_2_0, we allow the new PoSt
+        // version to be used.  It's not technically incorrect for the
+        // ApiVersion to be V1_1_0, but there is currently no way to
+        // wire that in via registered PoSt Proof types.
         assert!(
             self.version() == ApiVersion::V1_0_0 || self.version() == ApiVersion::V1_2_0,
             "Unsupported V1 PoSt Api version"
