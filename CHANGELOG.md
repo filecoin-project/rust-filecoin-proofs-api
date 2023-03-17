@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [14.0.0] - 2023-03-17
+
+- Add support for PoSt V1_2_0 [#85](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/85)
+- Add support for grindability fix via Proofs version [#83](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/83)
+
 ## [13.0.0] - 2023-03-07
 
 - Update rust-toolchain to 1.67.1 [#82](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/82)
@@ -130,7 +135,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v13.0.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v14.0.0...HEAD
+[14.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v14.0.0
 [13.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v13.0.0
 [12.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v12.0.0
 [11.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v11.0.0
