@@ -55,7 +55,7 @@ impl Labels {
         use std::any::Any;
         use RegisteredSealProof::*;
         match proof {
-            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 => {
+            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 | StackedDrg2KiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(labels) = <dyn Any>::downcast_ref::<RawLabels<SectorShape2KiB>>(labels)
                 {
                     Ok(Labels::StackedDrg2KiBV1(labels.clone()))
@@ -63,7 +63,7 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
-            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 => {
+            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 | StackedDrg8MiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(labels) = <dyn Any>::downcast_ref::<RawLabels<SectorShape8MiB>>(labels)
                 {
                     Ok(Labels::StackedDrg8MiBV1(labels.clone()))
@@ -71,7 +71,9 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
-            StackedDrg512MiBV1 | StackedDrg512MiBV1_1 => {
+            StackedDrg512MiBV1
+            | StackedDrg512MiBV1_1
+            | StackedDrg512MiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(labels) =
                     <dyn Any>::downcast_ref::<RawLabels<SectorShape512MiB>>(labels)
                 {
@@ -80,7 +82,7 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
-            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 => {
+            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 | StackedDrg32GiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(labels) = <dyn Any>::downcast_ref::<RawLabels<SectorShape32GiB>>(labels)
                 {
                     Ok(Labels::StackedDrg32GiBV1(labels.clone()))
@@ -88,7 +90,7 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
-            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 => {
+            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(labels) = <dyn Any>::downcast_ref::<RawLabels<SectorShape64GiB>>(labels)
                 {
                     Ok(Labels::StackedDrg64GiBV1(labels.clone()))
@@ -184,7 +186,7 @@ impl VanillaSealProof {
         use std::any::Any;
         use RegisteredSealProof::*;
         match proof {
-            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 => {
+            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 | StackedDrg2KiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape2KiB>>>,
                 >(proofs)
@@ -194,7 +196,7 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
-            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 => {
+            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 | StackedDrg8MiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape8MiB>>>,
                 >(proofs)
@@ -204,7 +206,9 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
-            StackedDrg512MiBV1 | StackedDrg512MiBV1_1 => {
+            StackedDrg512MiBV1
+            | StackedDrg512MiBV1_1
+            | StackedDrg512MiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape512MiB>>>,
                 >(proofs)
@@ -214,7 +218,7 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
-            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 => {
+            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 | StackedDrg32GiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape32GiB>>>,
                 >(proofs)
@@ -224,7 +228,7 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
-            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 => {
+            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape64GiB>>>,
                 >(proofs)
@@ -1619,9 +1623,21 @@ pub fn generate_piece_commitment<T: Read>(
 ) -> Result<PieceInfo> {
     use RegisteredSealProof::*;
     match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
-        | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
-        | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => {
+        StackedDrg2KiBV1
+        | StackedDrg8MiBV1
+        | StackedDrg512MiBV1
+        | StackedDrg32GiBV1
+        | StackedDrg64GiBV1
+        | StackedDrg2KiBV1_1
+        | StackedDrg8MiBV1_1
+        | StackedDrg512MiBV1_1
+        | StackedDrg32GiBV1_1
+        | StackedDrg64GiBV1_1
+        | StackedDrg2KiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
             filecoin_proofs_v1::generate_piece_commitment(source, piece_size)
         }
     }
@@ -1663,9 +1679,21 @@ where
 {
     use RegisteredSealProof::*;
     match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
-        | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
-        | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => {
+        StackedDrg2KiBV1
+        | StackedDrg8MiBV1
+        | StackedDrg512MiBV1
+        | StackedDrg32GiBV1
+        | StackedDrg64GiBV1
+        | StackedDrg2KiBV1_1
+        | StackedDrg8MiBV1_1
+        | StackedDrg512MiBV1_1
+        | StackedDrg32GiBV1_1
+        | StackedDrg64GiBV1_1
+        | StackedDrg2KiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
             filecoin_proofs_v1::add_piece(source, target, piece_size, piece_lengths)
         }
     }
@@ -1700,9 +1728,21 @@ where
 {
     use RegisteredSealProof::*;
     match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
-        | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
-        | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => {
+        StackedDrg2KiBV1
+        | StackedDrg8MiBV1
+        | StackedDrg512MiBV1
+        | StackedDrg32GiBV1
+        | StackedDrg64GiBV1
+        | StackedDrg2KiBV1_1
+        | StackedDrg8MiBV1_1
+        | StackedDrg512MiBV1_1
+        | StackedDrg32GiBV1_1
+        | StackedDrg64GiBV1_1
+        | StackedDrg2KiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
             filecoin_proofs_v1::write_and_preprocess(source, target, piece_size)
         }
     }
