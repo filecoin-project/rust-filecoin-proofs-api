@@ -8,6 +8,7 @@ use std::collections::BTreeMap;
 use storage_proofs_core::sector::SectorId;
 
 #[test]
+#[cfg(feature = "big-tests")]
 fn verify_post() {
     let randomness = ChallengeSeed::from([
         47, 180, 15, 215, 4, 51, 54, 214, 69, 205, 19, 137, 99, 198, 249, 96, 246, 73, 219, 83,
