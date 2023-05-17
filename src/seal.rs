@@ -378,7 +378,7 @@ fn seal_pre_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
     let config = registered_proof.as_v1_config();
 
     let output = filecoin_proofs_v1::seal_pre_commit_phase1::<_, _, _, Tree>(
-        config,
+        &config,
         cache_path,
         in_path,
         out_path,
@@ -462,7 +462,7 @@ fn seal_pre_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     )?;
 
     let output = filecoin_proofs_v1::seal_pre_commit_phase2::<_, _, Tree>(
-        registered_proof.as_v1_config(),
+        &registered_proof.as_v1_config(),
         seal_pre_commit_phase1_output,
         cache_path,
         out_path,
@@ -556,7 +556,7 @@ fn seal_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
     filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
 
     let output = filecoin_proofs_v1::seal_commit_phase1::<_, Tree>(
-        config,
+        &config,
         cache_path,
         replica_path,
         prover_id,
@@ -643,7 +643,7 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
         ticket,
     };
 
-    let output = filecoin_proofs_v1::seal_commit_phase2::<Tree>(config, co, prover_id, sector_id)?;
+    let output = filecoin_proofs_v1::seal_commit_phase2::<Tree>(&config, co, prover_id, sector_id)?;
 
     Ok(SealCommitPhase2Output {
         proof: output.proof,
@@ -708,7 +708,7 @@ pub fn get_seal_inputs_inner<Tree: 'static + MerkleTreeTrait>(
     let config = registered_proof.as_v1_config();
 
     filecoin_proofs_v1::get_seal_inputs::<Tree>(
-        config, comm_r, comm_d, prover_id, sector_id, ticket, seed,
+        &config, comm_r, comm_d, prover_id, sector_id, ticket, seed,
     )
 }
 
@@ -775,7 +775,7 @@ pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
         .collect();
 
     filecoin_proofs_v1::aggregate_seal_commit_proofs::<Tree>(
-        config,
+        &config,
         comm_rs,
         seeds,
         &outputs,
@@ -845,7 +845,7 @@ pub fn verify_aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait
     let config = registered_proof.as_v1_config();
 
     filecoin_proofs_v1::verify_aggregate_seal_commit_proofs::<Tree>(
-        config,
+        &config,
         aggregate_proof_bytes,
         comm_rs,
         seeds,
@@ -882,34 +882,36 @@ pub fn fauxrep<R: AsRef<Path>, S: AsRef<Path>>(
     // Note also that not all of these sector sizes are production, so some could be pruned.
     match sector_size {
         SECTOR_SIZE_2_KIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, SectorShape2KiB>(config, cache_path, replica_path)
+            filecoin_proofs_v1::fauxrep::<_, _, SectorShape2KiB>(&config, cache_path, replica_path)
         }
         SECTOR_SIZE_4_KIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, SectorShape4KiB>(config, cache_path, replica_path)
+            filecoin_proofs_v1::fauxrep::<_, _, SectorShape4KiB>(&config, cache_path, replica_path)
         }
         SECTOR_SIZE_16_KIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, SectorShape16KiB>(config, cache_path, replica_path)
+            filecoin_proofs_v1::fauxrep::<_, _, SectorShape16KiB>(&config, cache_path, replica_path)
         }
         SECTOR_SIZE_32_KIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, SectorShape32KiB>(config, cache_path, replica_path)
+            filecoin_proofs_v1::fauxrep::<_, _, SectorShape32KiB>(&config, cache_path, replica_path)
         }
         SECTOR_SIZE_8_MIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, SectorShape8MiB>(config, cache_path, replica_path)
+            filecoin_proofs_v1::fauxrep::<_, _, SectorShape8MiB>(&config, cache_path, replica_path)
         }
         SECTOR_SIZE_16_MIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, SectorShape16MiB>(config, cache_path, replica_path)
+            filecoin_proofs_v1::fauxrep::<_, _, SectorShape16MiB>(&config, cache_path, replica_path)
         }
-        SECTOR_SIZE_512_MIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, SectorShape512MiB>(config, cache_path, replica_path)
-        }
+        SECTOR_SIZE_512_MIB => filecoin_proofs_v1::fauxrep::<_, _, SectorShape512MiB>(
+            &config,
+            cache_path,
+            replica_path,
+        ),
         SECTOR_SIZE_1_GIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, SectorShape1GiB>(config, cache_path, replica_path)
+            filecoin_proofs_v1::fauxrep::<_, _, SectorShape1GiB>(&config, cache_path, replica_path)
         }
         SECTOR_SIZE_32_GIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, SectorShape32GiB>(config, cache_path, replica_path)
+            filecoin_proofs_v1::fauxrep::<_, _, SectorShape32GiB>(&config, cache_path, replica_path)
         }
         SECTOR_SIZE_64_GIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, SectorShape64GiB>(config, cache_path, replica_path)
+            filecoin_proofs_v1::fauxrep::<_, _, SectorShape64GiB>(&config, cache_path, replica_path)
         }
         _ => panic!("unsupported sector size: {}", sector_size),
     }
@@ -1003,7 +1005,7 @@ pub fn verify_seal(
     with_shape!(
         u64::from(registered_proof.sector_size()),
         verify_seal,
-        config,
+        &config,
         comm_r_in,
         comm_d_in,
         prover_id,
@@ -1044,7 +1046,7 @@ pub fn verify_batch_seal(
     with_shape!(
         u64::from(registered_proof.sector_size()),
         verify_batch_seal,
-        config,
+        &config,
         comm_r_ins,
         comm_d_ins,
         prover_ids,
@@ -1122,7 +1124,7 @@ fn get_unsealed_range_inner<Tree: 'static + MerkleTreeTrait>(
     let config = registered_proof.as_v1_config();
 
     filecoin_proofs_v1::get_unsealed_range::<_, Tree>(
-        config,
+        &config,
         cache_path,
         sealed_path,
         output_path,
@@ -1179,7 +1181,7 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
     // Note also that not all of these sector sizes are production, so some could be pruned.
     match sector_size {
         SECTOR_SIZE_2_KIB => filecoin_proofs_v1::unseal_range_mapped::<_, _, SectorShape2KiB>(
-            config,
+            &config,
             cache_path,
             sealed_path.into(),
             unsealed_output,
@@ -1191,7 +1193,7 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_4_KIB => filecoin_proofs_v1::unseal_range_mapped::<_, _, SectorShape4KiB>(
-            config,
+            &config,
             cache_path,
             sealed_path.into(),
             unsealed_output,
@@ -1203,7 +1205,7 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_16_KIB => filecoin_proofs_v1::unseal_range_mapped::<_, _, SectorShape16KiB>(
-            config,
+            &config,
             cache_path,
             sealed_path.into(),
             unsealed_output,
@@ -1215,7 +1217,7 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_32_KIB => filecoin_proofs_v1::unseal_range_mapped::<_, _, SectorShape32KiB>(
-            config,
+            &config,
             cache_path,
             sealed_path.into(),
             unsealed_output,
@@ -1227,7 +1229,7 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_8_MIB => filecoin_proofs_v1::unseal_range_mapped::<_, _, SectorShape8MiB>(
-            config,
+            &config,
             cache_path,
             sealed_path.into(),
             unsealed_output,
@@ -1239,7 +1241,7 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_16_MIB => filecoin_proofs_v1::unseal_range_mapped::<_, _, SectorShape16MiB>(
-            config,
+            &config,
             cache_path,
             sealed_path.into(),
             unsealed_output,
@@ -1251,7 +1253,7 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_512_MIB => filecoin_proofs_v1::unseal_range_mapped::<_, _, SectorShape512MiB>(
-            config,
+            &config,
             cache_path,
             sealed_path.into(),
             unsealed_output,
@@ -1263,7 +1265,7 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_1_GIB => filecoin_proofs_v1::unseal_range_mapped::<_, _, SectorShape1GiB>(
-            config,
+            &config,
             cache_path,
             sealed_path.into(),
             unsealed_output,
@@ -1275,7 +1277,7 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_32_GIB => filecoin_proofs_v1::unseal_range_mapped::<_, _, SectorShape32GiB>(
-            config,
+            &config,
             cache_path,
             sealed_path.into(),
             unsealed_output,
@@ -1287,7 +1289,7 @@ pub fn get_unsealed_range_mapped<T: Into<PathBuf> + AsRef<Path>, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_64_GIB => filecoin_proofs_v1::unseal_range_mapped::<_, _, SectorShape64GiB>(
-            config,
+            &config,
             cache_path,
             sealed_path.into(),
             unsealed_output,
@@ -1346,7 +1348,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
     // Note also that not all of these sector sizes are production, so some could be pruned.
     match sector_size {
         SECTOR_SIZE_2_KIB => filecoin_proofs_v1::unseal_range::<_, _, _, SectorShape2KiB>(
-            config,
+            &config,
             cache_path,
             sealed_sector,
             unsealed_output,
@@ -1358,7 +1360,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_4_KIB => filecoin_proofs_v1::unseal_range::<_, _, _, SectorShape4KiB>(
-            config,
+            &config,
             cache_path,
             sealed_sector,
             unsealed_output,
@@ -1370,7 +1372,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_16_KIB => filecoin_proofs_v1::unseal_range::<_, _, _, SectorShape16KiB>(
-            config,
+            &config,
             cache_path,
             sealed_sector,
             unsealed_output,
@@ -1382,7 +1384,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_32_KIB => filecoin_proofs_v1::unseal_range::<_, _, _, SectorShape32KiB>(
-            config,
+            &config,
             cache_path,
             sealed_sector,
             unsealed_output,
@@ -1394,7 +1396,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_8_MIB => filecoin_proofs_v1::unseal_range::<_, _, _, SectorShape8MiB>(
-            config,
+            &config,
             cache_path,
             sealed_sector,
             unsealed_output,
@@ -1406,7 +1408,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_16_MIB => filecoin_proofs_v1::unseal_range::<_, _, _, SectorShape16MiB>(
-            config,
+            &config,
             cache_path,
             sealed_sector,
             unsealed_output,
@@ -1418,7 +1420,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_512_MIB => filecoin_proofs_v1::unseal_range::<_, _, _, SectorShape512MiB>(
-            config,
+            &config,
             cache_path,
             sealed_sector,
             unsealed_output,
@@ -1430,7 +1432,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_1_GIB => filecoin_proofs_v1::unseal_range::<_, _, _, SectorShape1GiB>(
-            config,
+            &config,
             cache_path,
             sealed_sector,
             unsealed_output,
@@ -1442,7 +1444,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_32_GIB => filecoin_proofs_v1::unseal_range::<_, _, _, SectorShape32GiB>(
-            config,
+            &config,
             cache_path,
             sealed_sector,
             unsealed_output,
@@ -1454,7 +1456,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             num_bytes,
         ),
         SECTOR_SIZE_64_GIB => filecoin_proofs_v1::unseal_range::<_, _, _, SectorShape64GiB>(
-            config,
+            &config,
             cache_path,
             sealed_sector,
             unsealed_output,

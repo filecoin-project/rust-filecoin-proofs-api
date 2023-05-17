@@ -10,9 +10,9 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.26"
-bellperson = { version = "0.24.1", default-features = false }
+bellperson = { version = "0.25", default-features = false }
 bincode = "1.1.2"
-blstrs = "0.6.1"
+blstrs = "0.7"
 lazy_static = "1.2"
 serde = "1.0.104"
 filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~14.0.0", default-features = false }
@@ -26,3 +26,9 @@ cuda = ["filecoin-proofs-v1/cuda", "filecoin-hashers/cuda", "storage-proofs-core
 opencl = ["filecoin-proofs-v1/opencl", "filecoin-hashers/opencl", "storage-proofs-core/opencl", "bellperson/opencl"]
 multicore-sdr = ["filecoin-proofs-v1/multicore-sdr"]
 big-tests = []
+
+[patch.crates-io]
+filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "master" }
+filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "master" }
+storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "master" }
+fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "master" }

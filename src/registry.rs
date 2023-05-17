@@ -195,6 +195,7 @@ impl RegisteredSealProof {
                     partitions: PoRepProofPartitions(self.partitions()),
                     porep_id: self.porep_id(),
                     api_version: self.version(),
+                    api_features: Vec::new(),
                 }
             }
             StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
@@ -205,6 +206,7 @@ impl RegisteredSealProof {
                     partitions: PoRepProofPartitions(self.partitions()),
                     porep_id: self.porep_id(),
                     api_version: self.version(),
+                    api_features: Vec::new(),
                 }
             } // _ => panic!("Can only be called on V1 configs"),
         }
@@ -688,6 +690,7 @@ impl RegisteredUpdateProof {
                     partitions: PoRepProofPartitions(self.partitions()),
                     porep_id: self.porep_id(),
                     api_version: self.version(),
+                    api_features: Vec::new(),
                 }
             } // _ => panic!("Can only be called on V1 configs"),
         }

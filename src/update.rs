@@ -28,7 +28,7 @@ fn empty_sector_update_encode_into_inner<Tree: 'static + MerkleTreeTrait<Hasher 
     let config = registered_proof.as_v1_config();
 
     filecoin_proofs_v1::encode_into::<Tree>(
-        config,
+        &config,
         new_replica_path,
         new_cache_path,
         sector_key_path,
@@ -97,7 +97,7 @@ fn empty_sector_update_decode_from_inner<Tree: 'static + MerkleTreeTrait<Hasher 
     );
 
     let config = registered_proof.as_v1_config();
-    let update_config = SectorUpdateConfig::from_porep_config(config);
+    let update_config = SectorUpdateConfig::from_porep_config(&config);
 
     filecoin_proofs_v1::decode_from::<Tree>(
         update_config,
@@ -166,7 +166,7 @@ fn empty_sector_update_remove_encoded_data_inner<
     );
 
     let config = registered_proof.as_v1_config();
-    let update_config = SectorUpdateConfig::from_porep_config(config);
+    let update_config = SectorUpdateConfig::from_porep_config(&config);
 
     filecoin_proofs_v1::remove_encoded_data::<Tree>(
         update_config,
@@ -239,7 +239,7 @@ fn generate_partition_proofs_inner<Tree: 'static + MerkleTreeTrait<Hasher = Tree
     );
 
     let config = registered_proof.as_v1_config();
-    let sector_config = SectorUpdateConfig::from_porep_config(config);
+    let sector_config = SectorUpdateConfig::from_porep_config(&config);
 
     let partition_proofs = filecoin_proofs_v1::generate_partition_proofs::<Tree>(
         sector_config,
@@ -321,7 +321,7 @@ fn verify_partition_proofs_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeRH
     );
 
     let config = registered_proof.as_v1_config();
-    let sector_config = SectorUpdateConfig::from_porep_config(config);
+    let sector_config = SectorUpdateConfig::from_porep_config(&config);
 
     let mut proofs = Vec::with_capacity(partition_proofs.len());
     for proof in partition_proofs {
@@ -396,7 +396,7 @@ fn generate_empty_sector_update_proof_inner_with_vanilla<
     }
 
     filecoin_proofs_v1::generate_empty_sector_update_proof_with_vanilla::<Tree>(
-        config,
+        &config,
         partition_proofs,
         comm_r_old,
         comm_r_new,
@@ -457,7 +457,7 @@ fn generate_empty_sector_update_proof_inner<
     let config = registered_proof.as_v1_config();
 
     filecoin_proofs_v1::generate_empty_sector_update_proof::<Tree>(
-        config,
+        &config,
         comm_r_old,
         comm_r_new,
         comm_d_new,
@@ -531,7 +531,7 @@ fn verify_empty_sector_update_proof_inner<Tree: 'static + MerkleTreeTrait<Hasher
     let config = registered_proof.as_v1_config();
 
     filecoin_proofs_v1::verify_empty_sector_update_proof::<Tree>(
-        config, proof, comm_r_old, comm_r_new, comm_d_new,
+        &config, proof, comm_r_old, comm_r_new, comm_d_new,
     )
 }
 
