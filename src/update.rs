@@ -1,4 +1,5 @@
 //! Update data within existing sealed sectors.
+use std::io::{Read, Write};
 use std::path::Path;
 
 use anyhow::{ensure, Result};
@@ -146,6 +147,58 @@ where
         sector_key_path.as_ref(),
         sector_key_cache_path.as_ref(),
         comm_d_new,
+    )
+}
+
+/// Reverses the encoding process for a certain range.
+///
+/// This function is similar to [`emptu_sector_update_decode_from`], the difference is that it
+/// operates directly on the given file descriptions. The current position of the file descriptors
+/// is where the decoding starts, i.e. you need to seek to the intended offset before you call this
+/// funtion.
+///
+/// # Arguments
+/// * `registered_proof` - Selected sector update proof.
+/// * `nodes_count` - Total number of nodes within the file.
+/// * `comm_d` - Data commitment from the updated replica.
+/// * `comm_r` - Replica commitment of the empty sector.
+/// * `input_data` - File descriptor to the encoded data.
+/// * `sector_key_data` - File descriptor to replica of the empty sector.
+/// * `output_data` - File descriptor where the decoded data is written to.
+/// * `nodes_offset` - Node offset relative to the beginning of the file.
+/// * `num_nodes` - Number of nodes to be decoded starting at the current position.
+pub fn empty_sector_update_decode_from_range<R, S, W>(
+    registered_proof: RegisteredUpdateProof,
+    comm_d: Commitment,
+    comm_r: Commitment,
+    input_data: R,
+    sector_key_data: S,
+    output_data: &mut W,
+    nodes_offset: usize,
+    num_nodes: usize,
+) -> Result<()>
+where
+    R: Read,
+    S: Read,
+    W: Write,
+{
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    let config = registered_proof.as_v1_config();
+    let update_config = SectorUpdateConfig::from_porep_config(&config);
+
+    filecoin_proofs_v1::decode_from_range(
+        update_config.nodes_count,
+        comm_d,
+        comm_r,
+        input_data,
+        sector_key_data,
+        output_data,
+        nodes_offset,
+        num_nodes,
     )
 }
 
