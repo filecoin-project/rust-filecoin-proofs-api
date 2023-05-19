@@ -11,7 +11,7 @@ use filecoin_hashers::Hasher;
 use filecoin_proofs_v1::constants::{
     SectorShape16KiB, SectorShape16MiB, SectorShape1GiB, SectorShape2KiB, SectorShape32GiB,
     SectorShape32KiB, SectorShape4KiB, SectorShape512MiB, SectorShape64GiB, SectorShape8MiB,
-    SECTOR_SIZE_16_KIB, SECTOR_SIZE_16_MIB, SECTOR_SIZE_1_GIB, SECTOR_SIZE_2_KIB,
+    LAYERS, SECTOR_SIZE_16_KIB, SECTOR_SIZE_16_MIB, SECTOR_SIZE_1_GIB, SECTOR_SIZE_2_KIB,
     SECTOR_SIZE_32_GIB, SECTOR_SIZE_32_KIB, SECTOR_SIZE_4_KIB, SECTOR_SIZE_512_MIB,
     SECTOR_SIZE_64_GIB, SECTOR_SIZE_8_MIB,
 };
@@ -402,6 +402,46 @@ fn seal_pre_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
+/// Generate label layers (SDR).
+///
+/// # Arguments
+/// * `registered_proof` - Selected seal operation.
+/// * `cache_path` - Directory path to use for generation of Merkle tree on disk.
+/// * `output_dir` - Directory where the TreeRLast(s) are stored.
+pub fn sdr<R>(
+    registered_proof: RegisteredSealProof,
+    cache_path: R,
+    replica_id: <filecoin_proofs_v1::constants::DefaultTreeHasher as Hasher>::Domain,
+) -> Result<()>
+where
+    R: AsRef<Path>,
+{
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        sdr_inner,
+        registered_proof,
+        cache_path.as_ref(),
+        replica_id,
+    )?;
+
+    Ok(())
+}
+
+fn sdr_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof: RegisteredSealProof,
+    cache_path: &Path,
+    replica_id: <Tree::Hasher as Hasher>::Domain,
+) -> Result<()> {
+    let config = registered_proof.as_v1_config();
+    filecoin_proofs_v1::sdr::<_, Tree>(&config, cache_path, &replica_id)?;
+    Ok(())
+}
+
 /// Second phase of seal precommit operation, must be called with output of
 /// [`seal_pre_commit_phase1`]. Generates `comm_r` replica commitment from outputs
 /// of previous step.
@@ -475,6 +515,96 @@ fn seal_pre_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
         comm_d,
         comm_r,
     })
+}
+
+/// Generate Merkle tree for sector replica (TreeRLast) and return the root hash (CommRLast).
+///
+/// # Arguments
+/// * `registered_proof` - Selected seal operation.
+/// * `replica_path` - File path of replica.
+/// * `output_dir` - Directory where the TreeRLast(s) are stored.
+pub fn generate_tree_r_last<O, R>(
+    registered_proof: RegisteredSealProof,
+    replica_path: R,
+    output_dir: O,
+) -> Result<Commitment>
+where
+    O: AsRef<Path>,
+    R: AsRef<Path>,
+{
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    let sector_size = u64::from(registered_proof.sector_size());
+    let comm_r_last = with_shape!(
+        sector_size,
+        generate_tree_r_last_inner,
+        sector_size,
+        replica_path.as_ref(),
+        output_dir.as_ref(),
+    )?;
+
+    Ok(comm_r_last.into())
+}
+
+fn generate_tree_r_last_inner<Tree: 'static + MerkleTreeTrait>(
+    sector_size: u64,
+    replica_path: &Path,
+    output_dir: &Path,
+) -> Result<<Tree::Hasher as Hasher>::Domain> {
+    filecoin_proofs_v1::generate_tree_r_last::<_, _, Tree>(sector_size, &replica_path, &output_dir)
+}
+
+/// Generate Merkle tree for the label layers (TreeC) and return the root hash (CommC).
+///
+/// # Arguments
+/// * `registered_proof` - Selected seal operation.
+/// * `input_dir` - Directory where the label layers are stored.
+/// * `output_dir` - Directory where the TreeRLast(s) are stored.
+pub fn generate_tree_c<O, R>(
+    registered_proof: RegisteredSealProof,
+    input_dir: R,
+    output_dir: O,
+) -> Result<Commitment>
+where
+    O: AsRef<Path>,
+    R: AsRef<Path>,
+{
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    let sector_size = u64::from(registered_proof.sector_size());
+    let comm_c = with_shape!(
+        sector_size,
+        generate_tree_c_inner,
+        sector_size,
+        input_dir.as_ref(),
+        output_dir.as_ref(),
+    )?;
+
+    Ok(comm_c.into())
+}
+
+fn generate_tree_c_inner<Tree: 'static + MerkleTreeTrait>(
+    sector_size: u64,
+    input_dir: &Path,
+    output_dir: &Path,
+) -> Result<<Tree::Hasher as Hasher>::Domain> {
+    let num_layers = *LAYERS
+        .read()
+        .expect("LAYERS poisoned")
+        .get(&sector_size)
+        .expect("unknown sector size");
+    filecoin_proofs_v1::generate_tree_c::<_, _, Tree>(
+        sector_size,
+        &input_dir,
+        &output_dir,
+        num_layers,
+    )
 }
 
 /// Computes a sectors's `comm_d` data commitment given its pieces.
