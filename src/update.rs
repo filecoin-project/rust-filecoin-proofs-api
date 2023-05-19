@@ -167,7 +167,7 @@ where
 /// * `output_data` - File descriptor where the decoded data is written to.
 /// * `nodes_offset` - Node offset relative to the beginning of the file.
 /// * `num_nodes` - Number of nodes to be decoded starting at the current position.
-pub fn decode_from_range<R, S, W>(
+pub fn empty_sector_update_decode_from_range<R, S, W>(
     registered_proof: RegisteredUpdateProof,
     comm_d: Commitment,
     comm_r: Commitment,
