@@ -477,6 +477,46 @@ fn seal_pre_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
+/// Generate Merkle tree for sector replica (TreeRLast) and return the root hash (CommRLast).
+///
+/// # Arguments
+/// * `registered_proof` - Selected seal operation.
+/// * `replica_path` - File path of replica.
+/// * `output_dir` - Directory where the TreeRLast(s) are stored.
+pub fn generate_tree_r_last<O, R>(
+    registered_proof: RegisteredSealProof,
+    replica_path: R,
+    output_dir: O,
+) -> Result<Commitment>
+where
+    O: AsRef<Path>,
+    R: AsRef<Path>,
+{
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    let sector_size = u64::from(registered_proof.sector_size());
+    let comm_r_last = with_shape!(
+        sector_size,
+        generate_tree_r_last_inner,
+        sector_size,
+        replica_path.as_ref(),
+        output_dir.as_ref(),
+    )?;
+
+    Ok(comm_r_last.into())
+}
+
+fn generate_tree_r_last_inner<Tree: 'static + MerkleTreeTrait>(
+    sector_size: u64,
+    replica_path: &Path,
+    output_dir: &Path,
+) -> Result<<Tree::Hasher as Hasher>::Domain> {
+    filecoin_proofs_v1::generate_tree_r_last::<_, _, Tree>(sector_size, &replica_path, &output_dir)
+}
+
 /// Computes a sectors's `comm_d` data commitment given its pieces.
 ///
 /// # Arguments

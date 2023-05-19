@@ -28,7 +28,8 @@ multicore-sdr = ["filecoin-proofs-v1/multicore-sdr"]
 big-tests = []
 
 [patch.crates-io]
-filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "decode_from_range" }
-filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "decode_from_range" }
-storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "decode_from_range" }
-fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "decode_from_range" }
+filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "sdr-api" }
+filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "sdr-api" }
+storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "sdr-api" }
+fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "sdr-api" }
+merkletree = { git = "https://github.com/filecoin-project/merkletree" }
