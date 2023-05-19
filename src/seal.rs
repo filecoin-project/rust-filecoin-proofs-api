@@ -402,6 +402,46 @@ fn seal_pre_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
+/// Generate label layers (SDR).
+///
+/// # Arguments
+/// * `registered_proof` - Selected seal operation.
+/// * `cache_path` - Directory path to use for generation of Merkle tree on disk.
+/// * `output_dir` - Directory where the TreeRLast(s) are stored.
+pub fn sdr<R>(
+    registered_proof: RegisteredSealProof,
+    cache_path: R,
+    replica_id: <filecoin_proofs_v1::constants::DefaultTreeHasher as Hasher>::Domain,
+) -> Result<()>
+where
+    R: AsRef<Path>,
+{
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        sdr_inner,
+        registered_proof,
+        cache_path.as_ref(),
+        replica_id,
+    )?;
+
+    Ok(())
+}
+
+fn sdr_inner<Tree: 'static + MerkleTreeTrait>(
+    registered_proof: RegisteredSealProof,
+    cache_path: &Path,
+    replica_id: <Tree::Hasher as Hasher>::Domain,
+) -> Result<()> {
+    let config = registered_proof.as_v1_config();
+    filecoin_proofs_v1::sdr::<_, Tree>(&config, cache_path, &replica_id)?;
+    Ok(())
+}
+
 /// Second phase of seal precommit operation, must be called with output of
 /// [`seal_pre_commit_phase1`]. Generates `comm_r` replica commitment from outputs
 /// of previous step.
