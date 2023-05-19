@@ -32,4 +32,3 @@ filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs",
 filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "sdr-api" }
 storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "sdr-api" }
 fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "sdr-api" }
-merkletree = { git = "https://github.com/filecoin-project/merkletree" }
