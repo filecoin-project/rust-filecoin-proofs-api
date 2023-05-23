@@ -318,6 +318,18 @@ pub fn clear_cache(sector_size: u64, cache_path: &Path) -> Result<()> {
     with_shape!(sector_size, clear_cache, cache_path)
 }
 
+/// Ensure that any persisted synthetic proofs are discarded.
+///
+/// # Arguments
+///
+/// * `sector_size` - Sector size associated with cache data to clear.
+/// * `cache_path` - Path to directory where cached data is stored.
+pub fn clear_synthetic_proofs(sector_size: u64, cache_path: &Path) -> Result<()> {
+    use filecoin_proofs_v1::clear_synthetic_proofs;
+
+    with_shape!(sector_size, clear_synthetic_proofs, cache_path)
+}
+
 /// First step in sector sealing process. Called before [`seal_pre_commit_phase2`].
 /// Reads unsealed data from `in_path`, generates sealed data and writes to `out_path`.
 ///
