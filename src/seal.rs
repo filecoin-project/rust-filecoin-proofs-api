@@ -15,13 +15,12 @@ use filecoin_proofs_v1::constants::{
     SECTOR_SIZE_32_GIB, SECTOR_SIZE_32_KIB, SECTOR_SIZE_4_KIB, SECTOR_SIZE_512_MIB,
     SECTOR_SIZE_64_GIB, SECTOR_SIZE_8_MIB,
 };
-use filecoin_proofs_v1::types::MerkleTreeTrait;
-use filecoin_proofs_v1::types::VanillaSealProof as RawVanillaSealProof;
+use filecoin_proofs_v1::types::{MerkleTreeTrait, VanillaSealProof as RawVanillaSealProof};
 use filecoin_proofs_v1::{with_shape, Labels as RawLabels};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AggregateSnarkProof, Commitment, PieceInfo, ProverId, RegisteredAggregationProof,
+    AggregateSnarkProof, ApiFeature, Commitment, PieceInfo, ProverId, RegisteredAggregationProof,
     RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex, UnpaddedBytesAmount,
 };
 
@@ -698,6 +697,19 @@ fn seal_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
 
     let config = registered_proof.as_v1_config();
     let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
+
+    if config.feature_enabled(ApiFeature::SyntheticPoRep) {
+        filecoin_proofs_v1::generate_synth_proofs::<_, Tree>(
+            &config,
+            cache_path,
+            replica_path,
+            prover_id,
+            sector_id,
+            ticket,
+            pc.clone(),
+            piece_infos,
+        )?;
+    }
 
     filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
 

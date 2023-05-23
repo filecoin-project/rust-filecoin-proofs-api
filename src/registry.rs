@@ -293,6 +293,11 @@ impl RegisteredSealProof {
         }
     }
 
+    /// Returns if the feature is enabled based on the proof type
+    pub fn feature_enabled(self, api_feature: ApiFeature) -> bool {
+        self.as_v1_config().api_features.contains(&api_feature)
+    }
+
     /// Returns the circuit identifier.
     pub fn circuit_identifier(self) -> Result<String> {
         match self.version() {
