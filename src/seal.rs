@@ -383,9 +383,6 @@ fn generate_synth_proofs_inner<Tree: 'static + MerkleTreeTrait>(
 
     filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
 
-    // In this case, we call this method instead of
-    // seal_commit_phase1, as generating the synth proofs calls it for
-    // us internally.
     filecoin_proofs_v1::generate_synth_proofs::<_, Tree>(
         &config,
         cache_path,
@@ -779,7 +776,10 @@ fn seal_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
     let config = registered_proof.as_v1_config();
     let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
 
-    filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
+    // If we're NOT using synthetic porep, validate that all required data (e.g. layers) are present.
+    if !registered_proof.feature_enabled(ApiFeature::SyntheticPoRep) {
+        filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
+    }
 
     let output = filecoin_proofs_v1::seal_commit_phase1::<_, Tree>(
         &config,
