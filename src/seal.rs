@@ -395,6 +395,18 @@ fn generate_synth_proofs_inner<Tree: 'static + MerkleTreeTrait>(
     )
 }
 
+/// Ensure that any persisted layers are discarded.
+///
+/// # Arguments
+///
+/// * `sector_size` - Sector size associated with cache data to clear.
+/// * `cache_path` - Path to directory where cached data is stored.
+pub fn clear_layer_data(sector_size: u64, cache_path: &Path) -> Result<()> {
+    use filecoin_proofs_v1::clear_layer_data;
+
+    with_shape!(sector_size, clear_layer_data, cache_path)
+}
+
 /// Ensure that any persisted synthetic proofs are discarded.
 ///
 /// # Arguments
