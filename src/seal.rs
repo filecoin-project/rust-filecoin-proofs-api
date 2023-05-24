@@ -317,6 +317,87 @@ pub fn clear_cache(sector_size: u64, cache_path: &Path) -> Result<()> {
     with_shape!(sector_size, clear_cache, cache_path)
 }
 
+/// Generate and persist synthetic Merkle tree proofs for sector replica. Must be called with output from [`seal_pre_commit_phase2`].
+///
+/// # Arguments
+///
+/// * `cache_path` - Directory path to use for generation of Merkle tree on disk.
+/// * `replica_path` - out_path from [`seal_pre_commit_phase2`], which points to generated sector replica.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+/// * `ticket` - The ticket used to generate this sector's replica-id.
+/// * `seed` - Interactive randomnessthe seed used to derive the Proof-of-Replication (PoRep) challenges.
+/// * `piece_infos` - The piece info (commitment and byte length) for each piece in the sector.
+///
+/// Returns vanilla Merkle tree proof for use by [`seal_commit_phase2`].
+pub fn generate_synth_proofs<T: AsRef<Path>>(
+    cache_path: T,
+    replica_path: T,
+    prover_id: ProverId,
+    sector_id: SectorId,
+    ticket: Ticket,
+    pre_commit: SealPreCommitPhase2Output,
+    piece_infos: &[PieceInfo],
+) -> Result<()> {
+    ensure!(
+        pre_commit.registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+    ensure!(
+        pre_commit
+            .registered_proof
+            .feature_enabled(ApiFeature::SyntheticPoRep),
+        "synthetic porep feature MUST be enabled"
+    );
+
+    with_shape!(
+        u64::from(pre_commit.registered_proof.sector_size()),
+        generate_synth_proofs_inner,
+        cache_path.as_ref(),
+        replica_path.as_ref(),
+        prover_id,
+        sector_id,
+        ticket,
+        pre_commit,
+        piece_infos,
+    )
+}
+
+fn generate_synth_proofs_inner<Tree: 'static + MerkleTreeTrait>(
+    cache_path: &Path,
+    replica_path: &Path,
+    prover_id: ProverId,
+    sector_id: SectorId,
+    ticket: Ticket,
+    pre_commit: SealPreCommitPhase2Output,
+    piece_infos: &[PieceInfo],
+) -> Result<()> {
+    let SealPreCommitPhase2Output {
+        comm_r,
+        comm_d,
+        registered_proof,
+    } = pre_commit;
+
+    let config = registered_proof.as_v1_config();
+    let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
+
+    filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
+
+    // In this case, we call this method instead of
+    // seal_commit_phase1, as generating the synth proofs calls it for
+    // us internally.
+    filecoin_proofs_v1::generate_synth_proofs::<_, Tree>(
+        &config,
+        cache_path,
+        replica_path,
+        prover_id,
+        sector_id,
+        ticket,
+        pc,
+        piece_infos,
+    )
+}
+
 /// Ensure that any persisted synthetic proofs are discarded.
 ///
 /// # Arguments
@@ -697,19 +778,6 @@ fn seal_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
 
     let config = registered_proof.as_v1_config();
     let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
-
-    if config.feature_enabled(ApiFeature::SyntheticPoRep) {
-        filecoin_proofs_v1::generate_synth_proofs::<_, Tree>(
-            &config,
-            cache_path,
-            replica_path,
-            prover_id,
-            sector_id,
-            ticket,
-            pc.clone(),
-            piece_infos,
-        )?;
-    }
 
     filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
 
