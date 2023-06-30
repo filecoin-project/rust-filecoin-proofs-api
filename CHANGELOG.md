@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [15.0.0] - 2023-06-30
+
+- Add new APIs extended in the latest proofs version [#89](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/89)
+- Add new API features separate from API versions [#88](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/88)
+- Add a test to validate proofs from calibnet [#86](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/86)
+
 ## [14.0.0] - 2023-03-17
 
 - Add support for PoSt V1_2_0 [#85](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/85)
@@ -135,7 +141,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v14.0.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v15.0.0...HEAD
+[15.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v15.0.0
 [14.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v14.0.0
 [13.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v13.0.0
 [12.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v12.0.0
