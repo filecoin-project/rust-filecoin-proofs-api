@@ -1,15 +1,15 @@
-use filecoin_proofs_api::post::verify_window_post;
-use filecoin_proofs_api::RegisteredPoStProof::{
-    StackedDrgWindow32GiBV1, StackedDrgWindow32GiBV1_2,
-};
-use filecoin_proofs_api::{PublicReplicaInfo, RegisteredPoStProof};
-use filecoin_proofs_v1::{ChallengeSeed, ProverId};
-use std::collections::BTreeMap;
-use storage_proofs_core::sector::SectorId;
-
 #[test]
 #[cfg(feature = "big-tests")]
 fn verify_post() {
+    use filecoin_proofs_api::post::verify_window_post;
+    use filecoin_proofs_api::RegisteredPoStProof::{
+        StackedDrgWindow32GiBV1, StackedDrgWindow32GiBV1_2,
+    };
+    use filecoin_proofs_api::{PublicReplicaInfo, RegisteredPoStProof};
+    use filecoin_proofs_v1::{ChallengeSeed, ProverId};
+    use std::collections::BTreeMap;
+    use storage_proofs_core::sector::SectorId;
+
     let randomness = ChallengeSeed::from([
         47, 180, 15, 215, 4, 51, 54, 214, 69, 205, 19, 137, 99, 198, 249, 96, 246, 73, 219, 83,
         160, 245, 50, 226, 100, 89, 142, 159, 83, 226, 237, 35,
