@@ -15,10 +15,10 @@ bincode = "1.1.2"
 blstrs = "0.7"
 lazy_static = "1.2"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~14.0.0", default-features = false }
-filecoin-hashers = { version = "~9.0.0", default-features = false, features = ["poseidon", "sha256"] }
-fr32 = { version = "~7.0.0", default-features = false }
-storage-proofs-core = { version = "~14.0.0", default-features = false }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~15.0.0", default-features = false }
+filecoin-hashers = { version = "~10.0.0", default-features = false, features = ["poseidon", "sha256"] }
+fr32 = { version = "~8.0.0", default-features = false }
+storage-proofs-core = { version = "~15.0.0", default-features = false }
 
 [features]
 default = ["opencl", "cuda"]
@@ -26,9 +26,3 @@ cuda = ["filecoin-proofs-v1/cuda", "filecoin-hashers/cuda", "storage-proofs-core
 opencl = ["filecoin-proofs-v1/opencl", "filecoin-hashers/opencl", "storage-proofs-core/opencl", "bellperson/opencl"]
 multicore-sdr = ["filecoin-proofs-v1/multicore-sdr"]
 big-tests = []
-
-[patch.crates-io]
-filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "master" }
-filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "master" }
-storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "master" }
-fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "master" }
