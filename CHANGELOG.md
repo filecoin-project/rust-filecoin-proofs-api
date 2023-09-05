@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [16.0.0] - 2023-09-05
+
+- Add cuda-supraseal feature [#90](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/90)
+- Add support for SyntheticPoRep [#87](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/87)
+
 ## [15.0.0] - 2023-06-30
 
 - Add new APIs extended in the latest proofs version [#89](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/89)
@@ -141,7 +146,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v15.0.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v16.0.0...HEAD
+[16.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v16.0.0
 [15.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v15.0.0
 [14.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v14.0.0
 [13.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v13.0.0
