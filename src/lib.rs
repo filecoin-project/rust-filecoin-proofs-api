@@ -36,7 +36,7 @@ pub use filecoin_proofs_v1::types::{
 pub use filecoin_proofs_v1::{FallbackPoStSectorProof, SnarkProof, VanillaProof};
 pub use fr32;
 pub use storage_proofs_core::{
-    api_version::ApiVersion,
+    api_version::{ApiFeature, ApiVersion},
     error::Error as StorageProofsError,
     merkle::MerkleTreeTrait,
     parameter_cache::{get_parameter_data, get_verifying_key_data},

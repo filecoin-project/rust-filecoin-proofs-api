@@ -15,13 +15,12 @@ use filecoin_proofs_v1::constants::{
     SECTOR_SIZE_32_GIB, SECTOR_SIZE_32_KIB, SECTOR_SIZE_4_KIB, SECTOR_SIZE_512_MIB,
     SECTOR_SIZE_64_GIB, SECTOR_SIZE_8_MIB,
 };
-use filecoin_proofs_v1::types::MerkleTreeTrait;
-use filecoin_proofs_v1::types::VanillaSealProof as RawVanillaSealProof;
+use filecoin_proofs_v1::types::{MerkleTreeTrait, VanillaSealProof as RawVanillaSealProof};
 use filecoin_proofs_v1::{with_shape, Labels as RawLabels};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AggregateSnarkProof, Commitment, PieceInfo, ProverId, RegisteredAggregationProof,
+    AggregateSnarkProof, ApiFeature, Commitment, PieceInfo, ProverId, RegisteredAggregationProof,
     RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex, UnpaddedBytesAmount,
 };
 
@@ -55,7 +54,7 @@ impl Labels {
         use std::any::Any;
         use RegisteredSealProof::*;
         match proof {
-            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 => {
+            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 | StackedDrg2KiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(labels) = <dyn Any>::downcast_ref::<RawLabels<SectorShape2KiB>>(labels)
                 {
                     Ok(Labels::StackedDrg2KiBV1(labels.clone()))
@@ -63,7 +62,7 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
-            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 => {
+            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 | StackedDrg8MiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(labels) = <dyn Any>::downcast_ref::<RawLabels<SectorShape8MiB>>(labels)
                 {
                     Ok(Labels::StackedDrg8MiBV1(labels.clone()))
@@ -71,7 +70,9 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
-            StackedDrg512MiBV1 | StackedDrg512MiBV1_1 => {
+            StackedDrg512MiBV1
+            | StackedDrg512MiBV1_1
+            | StackedDrg512MiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(labels) =
                     <dyn Any>::downcast_ref::<RawLabels<SectorShape512MiB>>(labels)
                 {
@@ -80,7 +81,7 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
-            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 => {
+            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 | StackedDrg32GiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(labels) = <dyn Any>::downcast_ref::<RawLabels<SectorShape32GiB>>(labels)
                 {
                     Ok(Labels::StackedDrg32GiBV1(labels.clone()))
@@ -88,7 +89,7 @@ impl Labels {
                     bail!("invalid labels provided")
                 }
             }
-            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 => {
+            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(labels) = <dyn Any>::downcast_ref::<RawLabels<SectorShape64GiB>>(labels)
                 {
                     Ok(Labels::StackedDrg64GiBV1(labels.clone()))
@@ -184,7 +185,7 @@ impl VanillaSealProof {
         use std::any::Any;
         use RegisteredSealProof::*;
         match proof {
-            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 => {
+            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 | StackedDrg2KiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape2KiB>>>,
                 >(proofs)
@@ -194,7 +195,7 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
-            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 => {
+            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 | StackedDrg8MiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape8MiB>>>,
                 >(proofs)
@@ -204,7 +205,9 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
-            StackedDrg512MiBV1 | StackedDrg512MiBV1_1 => {
+            StackedDrg512MiBV1
+            | StackedDrg512MiBV1_1
+            | StackedDrg512MiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape512MiB>>>,
                 >(proofs)
@@ -214,7 +217,7 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
-            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 => {
+            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 | StackedDrg32GiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape32GiB>>>,
                 >(proofs)
@@ -224,7 +227,7 @@ impl VanillaSealProof {
                     bail!("invalid proofs provided")
                 }
             }
-            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 => {
+            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape64GiB>>>,
                 >(proofs)
@@ -312,6 +315,108 @@ pub fn clear_cache(sector_size: u64, cache_path: &Path) -> Result<()> {
     use filecoin_proofs_v1::clear_cache;
 
     with_shape!(sector_size, clear_cache, cache_path)
+}
+
+/// Generate and persist synthetic Merkle tree proofs for sector replica. Must be called with output from [`seal_pre_commit_phase2`].
+///
+/// # Arguments
+///
+/// * `cache_path` - Directory path to use for generation of Merkle tree on disk.
+/// * `replica_path` - out_path from [`seal_pre_commit_phase2`], which points to generated sector replica.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+/// * `ticket` - The ticket used to generate this sector's replica-id.
+/// * `seed` - Interactive randomnessthe seed used to derive the Proof-of-Replication (PoRep) challenges.
+/// * `piece_infos` - The piece info (commitment and byte length) for each piece in the sector.
+///
+/// Returns vanilla Merkle tree proof for use by [`seal_commit_phase2`].
+pub fn generate_synth_proofs<T: AsRef<Path>>(
+    cache_path: T,
+    replica_path: T,
+    prover_id: ProverId,
+    sector_id: SectorId,
+    ticket: Ticket,
+    pre_commit: SealPreCommitPhase2Output,
+    piece_infos: &[PieceInfo],
+) -> Result<()> {
+    ensure!(
+        pre_commit.registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+    ensure!(
+        pre_commit
+            .registered_proof
+            .feature_enabled(ApiFeature::SyntheticPoRep),
+        "synthetic porep feature MUST be enabled"
+    );
+
+    with_shape!(
+        u64::from(pre_commit.registered_proof.sector_size()),
+        generate_synth_proofs_inner,
+        cache_path.as_ref(),
+        replica_path.as_ref(),
+        prover_id,
+        sector_id,
+        ticket,
+        pre_commit,
+        piece_infos,
+    )
+}
+
+fn generate_synth_proofs_inner<Tree: 'static + MerkleTreeTrait>(
+    cache_path: &Path,
+    replica_path: &Path,
+    prover_id: ProverId,
+    sector_id: SectorId,
+    ticket: Ticket,
+    pre_commit: SealPreCommitPhase2Output,
+    piece_infos: &[PieceInfo],
+) -> Result<()> {
+    let SealPreCommitPhase2Output {
+        comm_r,
+        comm_d,
+        registered_proof,
+    } = pre_commit;
+
+    let config = registered_proof.as_v1_config();
+    let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
+
+    filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
+
+    filecoin_proofs_v1::generate_synth_proofs::<_, Tree>(
+        &config,
+        cache_path,
+        replica_path,
+        prover_id,
+        sector_id,
+        ticket,
+        pc,
+        piece_infos,
+    )
+}
+
+/// Ensure that any persisted layers are discarded.
+///
+/// # Arguments
+///
+/// * `sector_size` - Sector size associated with cache data to clear.
+/// * `cache_path` - Path to directory where cached data is stored.
+pub fn clear_layer_data(sector_size: u64, cache_path: &Path) -> Result<()> {
+    use filecoin_proofs_v1::clear_layer_data;
+
+    with_shape!(sector_size, clear_layer_data, cache_path)
+}
+
+/// Ensure that any persisted synthetic proofs are discarded.
+///
+/// # Arguments
+///
+/// * `sector_size` - Sector size associated with cache data to clear.
+/// * `cache_path` - Path to directory where cached data is stored.
+pub fn clear_synthetic_proofs(sector_size: u64, cache_path: &Path) -> Result<()> {
+    use filecoin_proofs_v1::clear_synthetic_proofs;
+
+    with_shape!(sector_size, clear_synthetic_proofs, cache_path)
 }
 
 /// First step in sector sealing process. Called before [`seal_pre_commit_phase2`].
@@ -683,7 +788,10 @@ fn seal_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
     let config = registered_proof.as_v1_config();
     let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
 
-    filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
+    // If we're NOT using synthetic porep, validate that all required data (e.g. layers) are present.
+    if !registered_proof.feature_enabled(ApiFeature::SyntheticPoRep) {
+        filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
+    }
 
     let output = filecoin_proofs_v1::seal_commit_phase1::<_, Tree>(
         &config,
@@ -1619,9 +1727,21 @@ pub fn generate_piece_commitment<T: Read>(
 ) -> Result<PieceInfo> {
     use RegisteredSealProof::*;
     match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
-        | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
-        | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => {
+        StackedDrg2KiBV1
+        | StackedDrg8MiBV1
+        | StackedDrg512MiBV1
+        | StackedDrg32GiBV1
+        | StackedDrg64GiBV1
+        | StackedDrg2KiBV1_1
+        | StackedDrg8MiBV1_1
+        | StackedDrg512MiBV1_1
+        | StackedDrg32GiBV1_1
+        | StackedDrg64GiBV1_1
+        | StackedDrg2KiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
             filecoin_proofs_v1::generate_piece_commitment(source, piece_size)
         }
     }
@@ -1663,9 +1783,21 @@ where
 {
     use RegisteredSealProof::*;
     match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
-        | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
-        | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => {
+        StackedDrg2KiBV1
+        | StackedDrg8MiBV1
+        | StackedDrg512MiBV1
+        | StackedDrg32GiBV1
+        | StackedDrg64GiBV1
+        | StackedDrg2KiBV1_1
+        | StackedDrg8MiBV1_1
+        | StackedDrg512MiBV1_1
+        | StackedDrg32GiBV1_1
+        | StackedDrg64GiBV1_1
+        | StackedDrg2KiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
             filecoin_proofs_v1::add_piece(source, target, piece_size, piece_lengths)
         }
     }
@@ -1700,9 +1832,21 @@ where
 {
     use RegisteredSealProof::*;
     match registered_proof {
-        StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
-        | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
-        | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => {
+        StackedDrg2KiBV1
+        | StackedDrg8MiBV1
+        | StackedDrg512MiBV1
+        | StackedDrg32GiBV1
+        | StackedDrg64GiBV1
+        | StackedDrg2KiBV1_1
+        | StackedDrg8MiBV1_1
+        | StackedDrg512MiBV1_1
+        | StackedDrg32GiBV1_1
+        | StackedDrg64GiBV1_1
+        | StackedDrg2KiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
+        | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
             filecoin_proofs_v1::write_and_preprocess(source, target, piece_size)
         }
     }
