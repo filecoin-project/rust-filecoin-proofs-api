@@ -23,6 +23,7 @@ storage-proofs-core = { version = "~16.0.0", default-features = false }
 [features]
 default = ["opencl", "cuda"]
 cuda = ["filecoin-proofs-v1/cuda", "filecoin-hashers/cuda", "storage-proofs-core/cuda", "bellperson/cuda"]
+cuda-supraseal = ["filecoin-proofs-v1/cuda-supraseal", "filecoin-hashers/cuda", "storage-proofs-core/cuda-supraseal", "bellperson/cuda-supraseal"]
 opencl = ["filecoin-proofs-v1/opencl", "filecoin-hashers/opencl", "storage-proofs-core/opencl", "bellperson/opencl"]
 multicore-sdr = ["filecoin-proofs-v1/multicore-sdr"]
 big-tests = []
