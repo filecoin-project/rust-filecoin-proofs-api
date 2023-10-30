@@ -4,9 +4,7 @@ use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, ensure, Error, Result};
-use bellperson::groth16::aggregate::AggregateVersion;
 use blstrs::Scalar as Fr;
-use filecoin_hashers::Hasher;
 
 use filecoin_proofs_v1::constants::{
     SectorShape16KiB, SectorShape16MiB, SectorShape1GiB, SectorShape2KiB, SectorShape32GiB,
@@ -20,8 +18,9 @@ use filecoin_proofs_v1::{with_shape, Labels as RawLabels};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AggregateSnarkProof, ApiFeature, Commitment, PieceInfo, ProverId, RegisteredAggregationProof,
-    RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex, UnpaddedBytesAmount,
+    AggregateSnarkProof, AggregateVersion, ApiFeature, Commitment, Hasher, PieceInfo, ProverId,
+    RegisteredAggregationProof, RegisteredSealProof, SectorId, Ticket, UnpaddedByteIndex,
+    UnpaddedBytesAmount,
 };
 
 /// The output of [`seal_pre_commit_phase1`].

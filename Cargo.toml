@@ -10,20 +10,22 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.26"
-bellperson = { version = "0.26", default-features = false }
 bincode = "1.1.2"
 blstrs = "0.7"
 lazy_static = "1.2"
 serde = "1.0.104"
 filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~16.0.0", default-features = false }
-filecoin-hashers = { version = "~11.0.0", default-features = false, features = ["poseidon", "sha256"] }
 fr32 = { version = "~9.0.0", default-features = false }
 storage-proofs-core = { version = "~16.0.0", default-features = false }
 
 [features]
 default = ["opencl", "cuda"]
-cuda = ["filecoin-proofs-v1/cuda", "filecoin-hashers/cuda", "storage-proofs-core/cuda", "bellperson/cuda"]
-cuda-supraseal = ["filecoin-proofs-v1/cuda-supraseal", "filecoin-hashers/cuda", "storage-proofs-core/cuda-supraseal", "bellperson/cuda-supraseal"]
-opencl = ["filecoin-proofs-v1/opencl", "filecoin-hashers/opencl", "storage-proofs-core/opencl", "bellperson/opencl"]
+cuda = ["filecoin-proofs-v1/cuda", "storage-proofs-core/cuda"]
+cuda-supraseal = ["filecoin-proofs-v1/cuda-supraseal", "storage-proofs-core/cuda-supraseal"]
+opencl = ["filecoin-proofs-v1/opencl", "storage-proofs-core/opencl"]
 multicore-sdr = ["filecoin-proofs-v1/multicore-sdr"]
 big-tests = []
+
+[patch.crates-io]
+filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "pub-more" }
+storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "pub-more" }
