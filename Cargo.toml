@@ -15,10 +15,10 @@ bincode = "1.1.2"
 blstrs = "0.7"
 lazy_static = "1.2"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~16.0.0", default-features = false }
-filecoin-hashers = { version = "~11.0.0", default-features = false, features = ["poseidon", "sha256"] }
-fr32 = { version = "~9.0.0", default-features = false }
-storage-proofs-core = { version = "~16.0.0", default-features = false }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~16.1.0", default-features = false }
+filecoin-hashers = { version = "~11.1.0", default-features = false, features = ["poseidon", "sha256"] }
+fr32 = { version = "~9.1.0", default-features = false }
+storage-proofs-core = { version = "~16.1.0", default-features = false }
 
 [features]
 default = ["opencl", "cuda"]
@@ -27,3 +27,6 @@ cuda-supraseal = ["filecoin-proofs-v1/cuda-supraseal", "filecoin-hashers/cuda", 
 opencl = ["filecoin-proofs-v1/opencl", "filecoin-hashers/opencl", "storage-proofs-core/opencl", "bellperson/opencl"]
 multicore-sdr = ["filecoin-proofs-v1/multicore-sdr"]
 big-tests = []
+# This feature enables a fixed number of discarded rows for TreeR. The `FIL_PROOFS_ROWS_TO_DISCARD`
+# setting is ignored, no `TemporaryAux` file will be written.
+fixed-rows-to-discard = ["filecoin-proofs-v1/fixed-rows-to-discard", "storage-proofs-core/fixed-rows-to-discard"]
