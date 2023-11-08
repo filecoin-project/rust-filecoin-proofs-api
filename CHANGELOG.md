@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [16.1.0] - 2023-11-08
+
+- Add fixed-rows-to-discard feature flag [#94](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/94)
+- Switch CI Macos builds to Apple silicon [#93](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/93)
+
 ## [16.0.0] - 2023-09-05
 
 - Add cuda-supraseal feature [#90](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/90)
@@ -146,7 +151,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v16.0.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v16.1.0...HEAD
+[16.1.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v16.1.0
 [16.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v16.0.0
 [15.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v15.0.0
 [14.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v14.0.0
