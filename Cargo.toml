@@ -15,6 +15,7 @@ blstrs = "0.7"
 lazy_static = "1.2"
 serde = "1.0.104"
 filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~18.1.0", default-features = false }
+filecoin-hashers = { version = "~13.1.0", default-features = false, features = ["poseidon", "sha256"] }
 fr32 = { version = "~11.1.0", default-features = false }
 storage-proofs-core = { version = "~18.1.0", default-features = false }
 
