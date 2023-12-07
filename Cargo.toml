@@ -15,10 +15,14 @@ bincode = "1.1.2"
 blstrs = "0.7"
 lazy_static = "1.2"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~16.1.0", default-features = false }
-filecoin-hashers = { version = "~11.1.0", default-features = false, features = ["poseidon", "sha256"] }
-fr32 = { version = "~9.1.0", default-features = false }
-storage-proofs-core = { version = "~16.1.0", default-features = false }
+#filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~16.1.0", default-features = false }
+#filecoin-hashers = { version = "~11.1.0", default-features = false, features = ["poseidon", "sha256"] }
+#fr32 = { version = "~9.1.0", default-features = false }
+#storage-proofs-core = { version = "~16.1.0", default-features = false }
+filecoin-proofs-v1 = { package = "filecoin-proofs", git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "supersnaps", default-features = false }
+filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "supersnaps", default-features = false, features = ["poseidon", "sha256"] }
+fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "supersnaps", default-features = false }
+storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "supersnaps", default-features = false }
 
 [features]
 default = ["opencl", "cuda"]

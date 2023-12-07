@@ -3,14 +3,19 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use anyhow::{ensure, Result};
+use bellperson::groth16::aggregate::AggregateVersion;
+use blstrs::Scalar as Fr;
 
 use filecoin_proofs_v1::types::{
     EmptySectorUpdateEncoded, EmptySectorUpdateProof, MerkleTreeTrait, PartitionProof,
-    SectorUpdateConfig,
+    SectorUpdateConfig, SectorUpdateProofInputs, TreeRHasher,
 };
-use filecoin_proofs_v1::{with_shape, TreeRHasher};
+use filecoin_proofs_v1::with_shape;
 
-use crate::{types::PartitionProofBytes, Commitment, PieceInfo, RegisteredUpdateProof};
+use crate::{
+    types::PartitionProofBytes, AggregateSnarkProof, Commitment, PieceInfo,
+    RegisteredAggregationProof, RegisteredUpdateProof,
+};
 
 fn empty_sector_update_encode_into_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>>(
     registered_proof: RegisteredUpdateProof,
@@ -618,5 +623,175 @@ pub fn verify_empty_sector_update_proof(
         comm_r_old,
         comm_r_new,
         comm_d_new,
+    )
+}
+
+/// Given a `registered_proof` type and a list of sector update proofs, this method aggregates
+/// those proofs (naively padding the count if necessary up to a power of 2) and
+/// returns the aggregate proof bytes.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected sector update operation.
+/// * `registered_aggregation` - Aggregation proof types; note that this method only supports SnarkPackV2+.
+/// * `sector_update_inputs` - Ordered list of input commitments used to generate the individual sector update proofs.
+/// * `sector_update_proofs` - Ordered list of sector update proofs.
+///
+/// Returns aggregate of zk-SNARK proofs in [`AggregateSnarkProof`].
+pub fn aggregate_empty_sector_update_proofs(
+    registered_proof: RegisteredUpdateProof,
+    registered_aggregation: RegisteredAggregationProof,
+    sector_update_inputs: &[SectorUpdateProofInputs],
+    sector_update_proofs: &[filecoin_proofs_v1::types::EmptySectorUpdateProof],
+) -> Result<AggregateSnarkProof> {
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    ensure!(
+        registered_aggregation == RegisteredAggregationProof::SnarkPackV2,
+        "unsupported aggregation or registered proof version"
+    );
+
+    let aggregate_version = AggregateVersion::V2;
+
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        aggregate_empty_sector_update_proofs_inner,
+        registered_proof,
+        sector_update_inputs,
+        sector_update_proofs,
+        aggregate_version,
+    )
+}
+
+fn aggregate_empty_sector_update_proofs_inner<
+    Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
+>(
+    registered_proof: RegisteredUpdateProof,
+    sector_update_inputs: &[SectorUpdateProofInputs],
+    sector_update_proofs: &[EmptySectorUpdateProof],
+    aggregate_version: AggregateVersion,
+) -> Result<AggregateSnarkProof> {
+    let config = registered_proof.as_v1_config();
+
+    filecoin_proofs_v1::aggregate_empty_sector_update_proofs::<Tree>(
+        &config,
+        sector_update_proofs,
+        sector_update_inputs,
+        aggregate_version,
+    )
+}
+
+/// Given the specified arguments, this method returns the inputs that were used to
+/// generate the sector update proof. This can be useful for proof aggregation, as verification
+/// requires these inputs.
+///
+/// This method allows them to be retrieved when needed, rather than storing them for
+/// some amount of time.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected sector update proof operation.
+/// * `comm_r_old` - A commitment to a sector's previous replica.
+/// * `comm_r_new` - A commitment to a sector's current replica.
+/// * `comm_d_new` - A commitment to a sector's current data.
+///
+/// Returns the inputs that were used to generate seal proof.
+pub fn get_sector_update_inputs(
+    registered_proof: RegisteredUpdateProof,
+    comm_r_old: Commitment,
+    comm_r_new: Commitment,
+    comm_d_new: Commitment,
+) -> Result<Vec<Vec<Fr>>> {
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        get_sector_update_inputs_inner,
+        registered_proof,
+        comm_r_old,
+        comm_r_new,
+        comm_d_new,
+    )
+}
+
+fn get_sector_update_inputs_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>>(
+    registered_proof: RegisteredUpdateProof,
+    comm_r_old: Commitment,
+    comm_r_new: Commitment,
+    comm_d_new: Commitment,
+) -> Result<Vec<Vec<Fr>>> {
+    let config = registered_proof.as_v1_config();
+
+    filecoin_proofs_v1::get_sector_update_inputs::<Tree>(
+        &config, comm_r_old, comm_r_new, comm_d_new,
+    )
+}
+
+/// Given a `registered_proof`, an aggregate proof, a list of proofs and a combined and flattened
+/// list of sector update public inputs, this method verifies the aggregate empty sector update proof.
+///
+/// # Arguments
+///
+/// * `registered_proof` - Selected seal operation.
+/// * `registered_aggregation` - Aggregation proof types.
+/// * `aggregate_proof_bytes` - The returned aggregate proof from [`aggregate_empty_sector_update_proofs`].
+/// * `inputs` - Ordered list of sector update input commitments.
+/// * `sector_update_inputs` - A flattened/combined and ordered list of all public inputs, which must match
+///    the ordering of the sector update proofs when aggregated.
+///
+/// Returns true if proof is validated.
+pub fn verify_aggregate_empty_sector_update_proofs(
+    registered_proof: RegisteredUpdateProof,
+    registered_aggregation: RegisteredAggregationProof,
+    aggregate_proof_bytes: AggregateSnarkProof,
+    inputs: &[SectorUpdateProofInputs],
+    sector_update_inputs: Vec<Vec<Fr>>,
+) -> Result<bool> {
+    ensure!(
+        registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    ensure!(
+        registered_aggregation == RegisteredAggregationProof::SnarkPackV2,
+        "unsupported aggregation or registered proof version"
+    );
+
+    let aggregate_version = AggregateVersion::V2;
+
+    with_shape!(
+        u64::from(registered_proof.sector_size()),
+        verify_aggregate_empty_sector_update_proofs_inner,
+        registered_proof,
+        aggregate_proof_bytes,
+        inputs,
+        sector_update_inputs,
+        aggregate_version,
+    )
+}
+
+fn verify_aggregate_empty_sector_update_proofs_inner<
+    Tree: 'static + MerkleTreeTrait<Hasher = TreeRHasher>,
+>(
+    registered_proof: RegisteredUpdateProof,
+    aggregate_proof_bytes: AggregateSnarkProof,
+    inputs: &[SectorUpdateProofInputs],
+    sector_update_inputs: Vec<Vec<Fr>>,
+    aggregate_version: AggregateVersion,
+) -> Result<bool> {
+    let config = registered_proof.as_v1_config();
+
+    filecoin_proofs_v1::verify_aggregate_sector_update_proofs::<Tree>(
+        &config,
+        aggregate_proof_bytes,
+        inputs,
+        sector_update_inputs,
+        aggregate_version,
     )
 }

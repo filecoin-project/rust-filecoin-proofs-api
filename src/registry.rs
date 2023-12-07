@@ -691,7 +691,7 @@ impl RegisteredUpdateProof {
 
         match self {
             StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
-            | StackedDrg64GiBV1 => ApiVersion::V1_1_0,
+            | StackedDrg64GiBV1 => ApiVersion::V1_2_0,
         }
     }
 
@@ -790,7 +790,7 @@ impl RegisteredUpdateProof {
         match self {
             StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
             | StackedDrg64GiBV1 => {
-                assert_eq!(self.version(), ApiVersion::V1_1_0);
+                assert_eq!(self.version(), ApiVersion::V1_2_0);
                 PoRepConfig {
                     sector_size: self.sector_size(),
                     partitions: PoRepProofPartitions(self.partitions()),
