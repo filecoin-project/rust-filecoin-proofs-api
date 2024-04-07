@@ -26,7 +26,8 @@ fn empty_sector_update_encode_into_inner<Tree: 'static + MerkleTreeTrait<Hasher 
         "unusupported version"
     );
 
-    let config = registered_proof.as_v1_config();
+    let porep_config = registered_proof.as_v1_config();
+    let config = SectorUpdateConfig::from_porep_config(&porep_config);
 
     filecoin_proofs_v1::encode_into::<Tree>(
         &config,
