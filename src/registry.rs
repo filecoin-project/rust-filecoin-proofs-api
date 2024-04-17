@@ -33,6 +33,12 @@ pub enum RegisteredSealProof {
     StackedDrg512MiBV1_1_Feat_SyntheticPoRep,
     StackedDrg32GiBV1_1_Feat_SyntheticPoRep,
     StackedDrg64GiBV1_1_Feat_SyntheticPoRep,
+
+    StackedDrg2KiBV1_1_Feat_NonInteractivePoRep,
+    StackedDrg8MiBV1_1_Feat_NonInteractivePoRep,
+    StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep,
+    StackedDrg32GiBV1_1_Feat_NonInteractivePoRep,
+    StackedDrg64GiBV1_1_Feat_NonInteractivePoRep,
 }
 
 // This maps all registered seal proof enum types to porep_id values.
@@ -67,6 +73,26 @@ lazy_static! {
         (
             RegisteredSealProof::StackedDrg64GiBV1_1_Feat_SyntheticPoRep,
             14
+        ),
+        (
+            RegisteredSealProof::StackedDrg2KiBV1_1_Feat_NonInteractivePoRep,
+            15
+        ),
+        (
+            RegisteredSealProof::StackedDrg8MiBV1_1_Feat_NonInteractivePoRep,
+            16
+        ),
+        (
+            RegisteredSealProof::StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep,
+            17
+        ),
+        (
+            RegisteredSealProof::StackedDrg32GiBV1_1_Feat_NonInteractivePoRep,
+            18
+        ),
+        (
+            RegisteredSealProof::StackedDrg64GiBV1_1_Feat_NonInteractivePoRep,
+            19
         ),
     ]
     .into_iter()
@@ -121,7 +147,12 @@ impl RegisteredSealProof {
             | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
             | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
             | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
-            | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => ApiVersion::V1_1_0,
+            | StackedDrg64GiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg2KiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg8MiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep
+            | StackedDrg32GiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg64GiBV1_1_Feat_NonInteractivePoRep => ApiVersion::V1_1_0,
         }
     }
 
@@ -144,21 +175,26 @@ impl RegisteredSealProof {
     pub fn sector_size(self) -> SectorSize {
         use RegisteredSealProof::*;
         let size = match self {
-            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 | StackedDrg2KiBV1_1_Feat_SyntheticPoRep => {
-                constants::SECTOR_SIZE_2_KIB
-            }
-            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 | StackedDrg8MiBV1_1_Feat_SyntheticPoRep => {
-                constants::SECTOR_SIZE_8_MIB
-            }
+            StackedDrg2KiBV1
+            | StackedDrg2KiBV1_1
+            | StackedDrg2KiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg2KiBV1_1_Feat_NonInteractivePoRep => constants::SECTOR_SIZE_2_KIB,
+            StackedDrg8MiBV1
+            | StackedDrg8MiBV1_1
+            | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg8MiBV1_1_Feat_NonInteractivePoRep => constants::SECTOR_SIZE_8_MIB,
             StackedDrg512MiBV1
             | StackedDrg512MiBV1_1
-            | StackedDrg512MiBV1_1_Feat_SyntheticPoRep => constants::SECTOR_SIZE_512_MIB,
-            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 | StackedDrg32GiBV1_1_Feat_SyntheticPoRep => {
-                constants::SECTOR_SIZE_32_GIB
-            }
-            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
-                constants::SECTOR_SIZE_64_GIB
-            }
+            | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep => constants::SECTOR_SIZE_512_MIB,
+            StackedDrg32GiBV1
+            | StackedDrg32GiBV1_1
+            | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg32GiBV1_1_Feat_NonInteractivePoRep => constants::SECTOR_SIZE_32_GIB,
+            StackedDrg64GiBV1
+            | StackedDrg64GiBV1_1
+            | StackedDrg64GiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg64GiBV1_1_Feat_NonInteractivePoRep => constants::SECTOR_SIZE_64_GIB,
         };
         SectorSize(size)
     }
@@ -202,6 +238,13 @@ impl RegisteredSealProof {
                     .get(&constants::SECTOR_SIZE_64_GIB)
                     .expect("invalid sector size")
             }
+            StackedDrg2KiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg8MiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep
+            | StackedDrg32GiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg64GiBV1_1_Feat_NonInteractivePoRep => {
+                constants::get_porep_non_interactive_partitions(self.sector_size().into())
+            }
         }
     }
 
@@ -224,7 +267,12 @@ impl RegisteredSealProof {
             | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
             | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
             | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
-            | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
+            | StackedDrg64GiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg2KiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg8MiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep
+            | StackedDrg32GiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg64GiBV1_1_Feat_NonInteractivePoRep => {
                 filecoin_proofs_v1::SINGLE_PARTITION_PROOF_LEN
             }
         }
@@ -288,6 +336,20 @@ impl RegisteredSealProof {
                     porep_id: self.porep_id(),
                     api_version: self.version(),
                     api_features: vec![ApiFeature::SyntheticPoRep],
+                }
+            }
+            StackedDrg2KiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg8MiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep
+            | StackedDrg32GiBV1_1_Feat_NonInteractivePoRep
+            | StackedDrg64GiBV1_1_Feat_NonInteractivePoRep => {
+                assert_eq!(self.version(), ApiVersion::V1_1_0);
+                PoRepConfig {
+                    sector_size: self.sector_size(),
+                    partitions: PoRepProofPartitions(self.partitions()),
+                    porep_id: self.porep_id(),
+                    api_version: self.version(),
+                    api_features: vec![ApiFeature::NonInteractivePoRep],
                 }
             } // _ => panic!("Can only be called on V1 configs"),
         }
@@ -370,21 +432,26 @@ impl RegisteredSealProof {
         use RegisteredPoStProof::*;
         use RegisteredSealProof::*;
         match self {
-            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 | StackedDrg2KiBV1_1_Feat_SyntheticPoRep => {
-                StackedDrgWinning2KiBV1
-            }
-            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 | StackedDrg8MiBV1_1_Feat_SyntheticPoRep => {
-                StackedDrgWinning8MiBV1
-            }
+            StackedDrg2KiBV1
+            | StackedDrg2KiBV1_1
+            | StackedDrg2KiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg2KiBV1_1_Feat_NonInteractivePoRep => StackedDrgWinning2KiBV1,
+            StackedDrg8MiBV1
+            | StackedDrg8MiBV1_1
+            | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg8MiBV1_1_Feat_NonInteractivePoRep => StackedDrgWinning8MiBV1,
             StackedDrg512MiBV1
             | StackedDrg512MiBV1_1
-            | StackedDrg512MiBV1_1_Feat_SyntheticPoRep => StackedDrgWinning512MiBV1,
-            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 | StackedDrg32GiBV1_1_Feat_SyntheticPoRep => {
-                StackedDrgWinning32GiBV1
-            }
-            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
-                StackedDrgWinning64GiBV1
-            }
+            | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep => StackedDrgWinning512MiBV1,
+            StackedDrg32GiBV1
+            | StackedDrg32GiBV1_1
+            | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg32GiBV1_1_Feat_NonInteractivePoRep => StackedDrgWinning32GiBV1,
+            StackedDrg64GiBV1
+            | StackedDrg64GiBV1_1
+            | StackedDrg64GiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg64GiBV1_1_Feat_NonInteractivePoRep => StackedDrgWinning64GiBV1,
         }
     }
 
@@ -400,21 +467,26 @@ impl RegisteredSealProof {
         use RegisteredPoStProof::*;
         use RegisteredSealProof::*;
         match self {
-            StackedDrg2KiBV1 | StackedDrg2KiBV1_1 | StackedDrg2KiBV1_1_Feat_SyntheticPoRep => {
-                StackedDrgWindow2KiBV1_2
-            }
-            StackedDrg8MiBV1 | StackedDrg8MiBV1_1 | StackedDrg8MiBV1_1_Feat_SyntheticPoRep => {
-                StackedDrgWindow8MiBV1_2
-            }
+            StackedDrg2KiBV1
+            | StackedDrg2KiBV1_1
+            | StackedDrg2KiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg2KiBV1_1_Feat_NonInteractivePoRep => StackedDrgWindow2KiBV1_2,
+            StackedDrg8MiBV1
+            | StackedDrg8MiBV1_1
+            | StackedDrg8MiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg8MiBV1_1_Feat_NonInteractivePoRep => StackedDrgWindow8MiBV1_2,
             StackedDrg512MiBV1
             | StackedDrg512MiBV1_1
-            | StackedDrg512MiBV1_1_Feat_SyntheticPoRep => StackedDrgWindow512MiBV1_2,
-            StackedDrg32GiBV1 | StackedDrg32GiBV1_1 | StackedDrg32GiBV1_1_Feat_SyntheticPoRep => {
-                StackedDrgWindow32GiBV1_2
-            }
-            StackedDrg64GiBV1 | StackedDrg64GiBV1_1 | StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
-                StackedDrgWindow64GiBV1_2
-            }
+            | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep => StackedDrgWindow512MiBV1_2,
+            StackedDrg32GiBV1
+            | StackedDrg32GiBV1_1
+            | StackedDrg32GiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg32GiBV1_1_Feat_NonInteractivePoRep => StackedDrgWindow32GiBV1_2,
+            StackedDrg64GiBV1
+            | StackedDrg64GiBV1_1
+            | StackedDrg64GiBV1_1_Feat_SyntheticPoRep
+            | StackedDrg64GiBV1_1_Feat_NonInteractivePoRep => StackedDrgWindow64GiBV1_2,
         }
     }
 }
@@ -876,7 +948,7 @@ mod tests {
     use super::*;
     use filecoin_proofs_v1::MAX_LEGACY_REGISTERED_SEAL_PROOF_ID;
 
-    const REGISTERED_SEAL_PROOFS: [RegisteredSealProof; 15] = [
+    const REGISTERED_SEAL_PROOFS: [RegisteredSealProof; 20] = [
         RegisteredSealProof::StackedDrg2KiBV1,
         RegisteredSealProof::StackedDrg8MiBV1,
         RegisteredSealProof::StackedDrg512MiBV1,
@@ -892,6 +964,11 @@ mod tests {
         RegisteredSealProof::StackedDrg512MiBV1_1_Feat_SyntheticPoRep,
         RegisteredSealProof::StackedDrg32GiBV1_1_Feat_SyntheticPoRep,
         RegisteredSealProof::StackedDrg64GiBV1_1_Feat_SyntheticPoRep,
+        RegisteredSealProof::StackedDrg2KiBV1_1_Feat_NonInteractivePoRep,
+        RegisteredSealProof::StackedDrg8MiBV1_1_Feat_NonInteractivePoRep,
+        RegisteredSealProof::StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep,
+        RegisteredSealProof::StackedDrg32GiBV1_1_Feat_NonInteractivePoRep,
+        RegisteredSealProof::StackedDrg64GiBV1_1_Feat_NonInteractivePoRep,
     ];
 
     #[test]
@@ -948,6 +1025,21 @@ mod tests {
             RegisteredSealProof::StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
                 "0e00000000000000000000000000000000000000000000000000000000000000"
             }
+            RegisteredSealProof::StackedDrg2KiBV1_1_Feat_NonInteractivePoRep => {
+                "0f00000000000000000000000000000000000000000000000000000000000000"
+            }
+            RegisteredSealProof::StackedDrg8MiBV1_1_Feat_NonInteractivePoRep => {
+                "1000000000000000000000000000000000000000000000000000000000000000"
+            }
+            RegisteredSealProof::StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep => {
+                "1100000000000000000000000000000000000000000000000000000000000000"
+            }
+            RegisteredSealProof::StackedDrg32GiBV1_1_Feat_NonInteractivePoRep => {
+                "1200000000000000000000000000000000000000000000000000000000000000"
+            }
+            RegisteredSealProof::StackedDrg64GiBV1_1_Feat_NonInteractivePoRep => {
+                "1300000000000000000000000000000000000000000000000000000000000000"
+            }
         };
         let hex: String = rsp
             .porep_id()
@@ -985,7 +1077,12 @@ mod tests {
                 | RegisteredSealProof::StackedDrg8MiBV1_1_Feat_SyntheticPoRep
                 | RegisteredSealProof::StackedDrg512MiBV1_1_Feat_SyntheticPoRep
                 | RegisteredSealProof::StackedDrg32GiBV1_1_Feat_SyntheticPoRep
-                | RegisteredSealProof::StackedDrg64GiBV1_1_Feat_SyntheticPoRep => {
+                | RegisteredSealProof::StackedDrg64GiBV1_1_Feat_SyntheticPoRep
+                | RegisteredSealProof::StackedDrg2KiBV1_1_Feat_NonInteractivePoRep
+                | RegisteredSealProof::StackedDrg8MiBV1_1_Feat_NonInteractivePoRep
+                | RegisteredSealProof::StackedDrg512MiBV1_1_Feat_NonInteractivecPoRep
+                | RegisteredSealProof::StackedDrg32GiBV1_1_Feat_NonInteractivePoRep
+                | RegisteredSealProof::StackedDrg64GiBV1_1_Feat_NonInteractivePoRep => {
                     assert!(!is_legacy)
                 }
             }
