@@ -3,7 +3,7 @@ version: 2.1
 executors:
   linux:
     docker:
-      - image: cimg/rust:1.67
+      - image: cimg/rust:1.70
     resource_class: small
 
 jobs:
