@@ -914,6 +914,71 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     })
 }
 
+/// Generates zk-SNARK proof for sector replica. Must be called with output of [`seal_commit_phase1`].
+///
+/// This variant of `seal_commit_phase2` is intended specifically for
+/// returning the circuit proofs of a NonInteractivePoRep proof, such
+/// that it can later be aggregated with other NonInteractivePoRep
+/// proofs.  Using it outside of this context may cause errors.
+///
+/// # Arguments
+///
+/// * `phase1_output` - Struct returned from [`seal_commit_phase1`] containing Merkle tree proof.
+/// * `prover_id` - Unique ID of the storage provider.
+/// * `sector_id` - ID of the sector, usually relative to the miner.
+///
+/// Returns [`SealCommitPhase2Output`] struct containing vector of zk-SNARK proofs.
+pub fn seal_commit_phase2_circuit_proofs(
+    phase1_output: SealCommitPhase1Output,
+    sector_id: SectorId,
+) -> Result<SealCommitPhase2Output> {
+    ensure!(
+        phase1_output.registered_proof.major_version() == 1,
+        "unusupported version"
+    );
+
+    with_shape!(
+        u64::from(phase1_output.registered_proof.sector_size()),
+        seal_commit_phase2_circuit_proofs_inner,
+        phase1_output,
+        sector_id,
+    )
+}
+
+fn seal_commit_phase2_circuit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
+    phase1_output: SealCommitPhase1Output,
+    sector_id: SectorId,
+) -> Result<SealCommitPhase2Output> {
+    let SealCommitPhase1Output {
+        vanilla_proofs,
+        comm_r,
+        comm_d,
+        replica_id,
+        seed,
+        ticket,
+        registered_proof,
+    } = phase1_output;
+
+    let config = registered_proof.as_v1_config();
+    let replica_id: Fr = replica_id.into();
+
+    let co = filecoin_proofs_v1::types::SealCommitPhase1Output {
+        vanilla_proofs: vanilla_proofs.try_into()?,
+        comm_r,
+        comm_d,
+        replica_id: replica_id.into(),
+        seed,
+        ticket,
+    };
+
+    let output =
+        filecoin_proofs_v1::seal_commit_phase2_circuit_proofs::<Tree>(&config, co, sector_id)?;
+
+    Ok(SealCommitPhase2Output {
+        proof: output.proof,
+    })
+}
+
 /// Given the specified arguments, this method returns the inputs that were used to
 /// generate the seal proof. This can be useful for proof aggregation, as verification
 /// requires these inputs.
