@@ -15,10 +15,10 @@ bincode = "1.1.2"
 blstrs = "0.7"
 lazy_static = "1.2"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~17.0.0", default-features = false }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~18.0.0", default-features = false }
 filecoin-hashers = { version = "~12.0.0", default-features = false, features = ["poseidon", "sha256"] }
 fr32 = { version = "~10.0.0", default-features = false }
-storage-proofs-core = { version = "~17.0.0", default-features = false }
+storage-proofs-core = { version = "~18.0.0", default-features = false }
 
 [features]
 default = ["opencl", "cuda"]
@@ -30,9 +30,3 @@ big-tests = []
 # This feature enables a fixed number of discarded rows for TreeR. The `FIL_PROOFS_ROWS_TO_DISCARD`
 # setting is ignored, no `TemporaryAux` file will be written.
 fixed-rows-to-discard = ["filecoin-proofs-v1/fixed-rows-to-discard", "storage-proofs-core/fixed-rows-to-discard"]
-
-[patch.crates-io]
-filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs" }
-filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs" }
-fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs" }
-storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs" }
