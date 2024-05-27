@@ -79,7 +79,7 @@ impl Labels {
             StackedDrg512MiBV1
             | StackedDrg512MiBV1_1
             | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
-            | StackedDrg512MiBV1_2_Feat_NonInteractivecPoRep => {
+            | StackedDrg512MiBV1_2_Feat_NonInteractivePoRep => {
                 if let Some(labels) =
                     <dyn Any>::downcast_ref::<RawLabels<SectorShape512MiB>>(labels)
                 {
@@ -227,7 +227,7 @@ impl VanillaSealProof {
             StackedDrg512MiBV1
             | StackedDrg512MiBV1_1
             | StackedDrg512MiBV1_1_Feat_SyntheticPoRep
-            | StackedDrg512MiBV1_2_Feat_NonInteractivecPoRep => {
+            | StackedDrg512MiBV1_2_Feat_NonInteractivePoRep => {
                 if let Some(proofs) = <dyn Any>::downcast_ref::<
                     Vec<Vec<RawVanillaSealProof<SectorShape512MiB>>>,
                 >(proofs)
@@ -1835,7 +1835,7 @@ pub fn generate_piece_commitment<T: Read>(
         | StackedDrg64GiBV1_1_Feat_SyntheticPoRep
         | StackedDrg2KiBV1_2_Feat_NonInteractivePoRep
         | StackedDrg8MiBV1_2_Feat_NonInteractivePoRep
-        | StackedDrg512MiBV1_2_Feat_NonInteractivecPoRep
+        | StackedDrg512MiBV1_2_Feat_NonInteractivePoRep
         | StackedDrg32GiBV1_2_Feat_NonInteractivePoRep
         | StackedDrg64GiBV1_2_Feat_NonInteractivePoRep => {
             filecoin_proofs_v1::generate_piece_commitment(source, piece_size)
@@ -1896,7 +1896,7 @@ where
         | StackedDrg64GiBV1_1_Feat_SyntheticPoRep
         | StackedDrg2KiBV1_2_Feat_NonInteractivePoRep
         | StackedDrg8MiBV1_2_Feat_NonInteractivePoRep
-        | StackedDrg512MiBV1_2_Feat_NonInteractivecPoRep
+        | StackedDrg512MiBV1_2_Feat_NonInteractivePoRep
         | StackedDrg32GiBV1_2_Feat_NonInteractivePoRep
         | StackedDrg64GiBV1_2_Feat_NonInteractivePoRep => {
             filecoin_proofs_v1::add_piece(source, target, piece_size, piece_lengths)
@@ -1950,7 +1950,7 @@ where
         | StackedDrg64GiBV1_1_Feat_SyntheticPoRep
         | StackedDrg2KiBV1_2_Feat_NonInteractivePoRep
         | StackedDrg8MiBV1_2_Feat_NonInteractivePoRep
-        | StackedDrg512MiBV1_2_Feat_NonInteractivecPoRep
+        | StackedDrg512MiBV1_2_Feat_NonInteractivePoRep
         | StackedDrg32GiBV1_2_Feat_NonInteractivePoRep
         | StackedDrg64GiBV1_2_Feat_NonInteractivePoRep => {
             filecoin_proofs_v1::write_and_preprocess(source, target, piece_size)
