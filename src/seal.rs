@@ -536,11 +536,11 @@ fn seal_pre_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
 ///
 /// # Arguments
 /// * `registered_proof` - Selected seal operation.
-/// * `cache_path` - Directory path to use for generation of Merkle tree on disk.
-/// * `output_dir` - Directory where the TreeRLast(s) are stored.
+/// * `output_dir` - The directory where the label layers will be stored.
+/// * `replica_id` - The ReplicaID to use for the SDR
 pub fn sdr<R>(
     registered_proof: RegisteredSealProof,
-    cache_path: R,
+    output_dir: R,
     replica_id: <filecoin_proofs_v1::constants::DefaultTreeHasher as Hasher>::Domain,
 ) -> Result<()>
 where
@@ -555,7 +555,7 @@ where
         u64::from(registered_proof.sector_size()),
         sdr_inner,
         registered_proof,
-        cache_path.as_ref(),
+        output_dir.as_ref(),
         replica_id,
     )?;
 
@@ -564,11 +564,11 @@ where
 
 fn sdr_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof: RegisteredSealProof,
-    cache_path: &Path,
+    output_dir: &Path,
     replica_id: <Tree::Hasher as Hasher>::Domain,
 ) -> Result<()> {
     let config = registered_proof.as_v1_config();
-    filecoin_proofs_v1::sdr::<_, Tree>(&config, cache_path, &replica_id)?;
+    filecoin_proofs_v1::sdr::<_, Tree>(&config, output_dir, &replica_id)?;
     Ok(())
 }
 
@@ -692,7 +692,7 @@ fn generate_tree_r_last_inner<Tree: 'static + MerkleTreeTrait>(
 /// # Arguments
 /// * `registered_proof` - Selected seal operation.
 /// * `input_dir` - Directory where the label layers are stored.
-/// * `output_dir` - Directory where the TreeRLast(s) are stored.
+/// * `output_dir` - Directory where the TreeC is stored (may be split into several files).
 pub fn generate_tree_c<O, R>(
     registered_proof: RegisteredSealProof,
     input_dir: R,
@@ -923,7 +923,6 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
 /// # Arguments
 ///
 /// * `phase1_output` - Struct returned from [`seal_commit_phase1`] containing Merkle tree proof.
-/// * `prover_id` - Unique ID of the storage provider.
 /// * `sector_id` - ID of the sector, usually relative to the miner.
 ///
 /// Returns [`SealCommitPhase2Output`] struct containing vector of zk-SNARK proofs.
