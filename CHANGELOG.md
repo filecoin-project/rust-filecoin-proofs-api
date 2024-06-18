@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [18.1.0] - 2024-06-18
+
+- Update API doc comments [#101](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/101)
+- Refactor exported types [#100](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/100)
+
 ## [18.0.1] - 2024-05-28
 
 - Correct an error in NI-PoRep constants [#103](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/103)
@@ -163,7 +168,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v18.0.1...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v18.1.0...HEAD
+[18.1.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v18.1.0
 [18.0.1]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v18.0.1
 [18.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v18.0.0
 [17.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v17.0.0
