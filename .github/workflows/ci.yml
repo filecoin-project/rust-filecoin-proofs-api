@@ -1,0 +1,63 @@
+name: CI
+
+on: [pull_request, push]
+
+# Cancel a job if there's a new on on the same branch started.
+# Based on https://stackoverflow.com/questions/58895283/stop-already-running-workflow-job-in-github-actions/67223051#67223051
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+  # Faster crates.io index checkout.
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+  RUST_LOG: debug
+  # Build the kernel only for the single architecture . This should reduce
+  # the overall compile-time significantly.
+  EC_GPU_CUDA_NVCC_ARGS: --fatbin --gpu-architecture=sm_75 --generate-code=arch=compute_75,code=sm_75
+  BELLMAN_CUDA_NVCC_ARGS: --fatbin --gpu-architecture=sm_75 --generate-code=arch=compute_75,code=sm_75
+  NEPTUNE_CUDA_NVCC_ARGS: --fatbin --gpu-architecture=sm_75 --generate-code=arch=compute_75,code=sm_75
+
+jobs:
+  check_clippy:
+    runs-on: ubuntu-24.04
+    name: Clippy
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install required packages
+        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
+      - name: Run cargo clippy
+        run: cargo clippy --all-targets --workspace -- -D warnings
+
+  check_fmt:
+    runs-on: ubuntu-24.04
+    name: Checking fmt
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
+
+  test:
+    runs-on: ubuntu-24.04
+    name: Test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install required packages
+        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
+      # In case no GPUs are available, it's using the CPU fallback.
+      - name: Test
+        run: cargo test --verbose
+
+  test_macos:
+    runs-on: macos-latest
+    name: Test in release mode on MacOS
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install required packages
+        run: HOMEBREW_NO_AUTO_UPDATE=1 brew install hwloc
+
+      - name: Run usual tests in release profile
+        # CUDA isn't support on MacOS, hence only enable OpenCL.
+        run: cargo test --verbose --release --no-default-features -- --nocapture
