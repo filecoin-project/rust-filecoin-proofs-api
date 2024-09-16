@@ -27,8 +27,8 @@ jobs:
     name: Clippy
     steps:
       - uses: actions/checkout@v4
-      - name: Install required packages
-        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
+#      - name: Install required packages
+#        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
       - name: Run cargo clippy
         run: cargo clippy --all-targets --workspace -- -D warnings
 
@@ -47,8 +47,8 @@ jobs:
     name: Test
     steps:
       - uses: actions/checkout@v4
-      - name: Install required packages
-        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
+#      - name: Install required packages
+#        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
       # In case no GPUs are available, it's using the CPU fallback.
       - name: Test
         run: cargo test --verbose
