@@ -22,17 +22,19 @@ env:
 
 jobs:
   check_clippy:
-    runs-on: ubuntu-24.04
+#    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     name: Clippy
     steps:
       - uses: actions/checkout@v4
-      - name: Install required packages
-        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
+#      - name: Install required packages
+#        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
       - name: Run cargo clippy
         run: cargo clippy --all-targets --workspace -- -D warnings
 
   check_fmt:
-    runs-on: ubuntu-24.04
+#    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     name: Checking fmt
     steps:
       - uses: actions/checkout@v4
@@ -40,12 +42,13 @@ jobs:
         run: cargo fmt --all -- --check
 
   test:
-    runs-on: ubuntu-24.04
+#    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     name: Test
     steps:
       - uses: actions/checkout@v4
-      - name: Install required packages
-        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
+#      - name: Install required packages
+#        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
       # In case no GPUs are available, it's using the CPU fallback.
       - name: Test
         run: cargo test --verbose
