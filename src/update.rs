@@ -734,6 +734,12 @@ fn get_sector_update_inputs_inner<Tree: 'static + MerkleTreeTrait<Hasher = TreeR
     )
 }
 
+pub fn get_sector_update_h(registered_proof: RegisteredUpdateProof) -> usize {
+    let config = registered_proof.as_v1_config();
+
+    filecoin_proofs_v1::get_sector_update_h_select_from_porep_config(&config)
+}
+
 /// Given a `registered_proof`, an aggregate proof, a list of proofs and a combined and flattened
 /// list of sector update public inputs, this method verifies the aggregate empty sector update proof.
 ///
