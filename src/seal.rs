@@ -330,16 +330,13 @@ pub struct SealCommitPhase2Output {
     pub proof: Vec<u8>,
 }
 
-/// Ensure that any persisted cached data for specified sector size is discarded.
+/// Ensure that any persisted cached data is discarded.
 ///
 /// # Arguments
 ///
-/// * `sector_size` - Sector size associated with cache data to clear.
 /// * `cache_path` - Path to directory where cached data is stored.
-pub fn clear_cache(sector_size: u64, cache_path: &Path) -> Result<()> {
-    use filecoin_proofs_v1::clear_cache;
-
-    with_shape!(sector_size, clear_cache, cache_path)
+pub fn clear_cache(cache_path: &Path) -> Result<()> {
+    filecoin_proofs_v1::clear_cache(cache_path)
 }
 
 /// Generate and persist synthetic Merkle tree proofs for sector replica. Must be called with output from [`seal_pre_commit_phase2`].
@@ -424,12 +421,9 @@ fn generate_synth_proofs_inner<Tree: 'static + MerkleTreeTrait>(
 ///
 /// # Arguments
 ///
-/// * `sector_size` - Sector size associated with cache data to clear.
 /// * `cache_path` - Path to directory where cached data is stored.
-pub fn clear_synthetic_proofs(sector_size: u64, cache_path: &Path) -> Result<()> {
-    use filecoin_proofs_v1::clear_synthetic_proofs;
-
-    with_shape!(sector_size, clear_synthetic_proofs, cache_path)
+pub fn clear_synthetic_proofs(cache_path: &Path) -> Result<()> {
+    filecoin_proofs_v1::clear_synthetic_proofs(cache_path)
 }
 
 /// First step in sector sealing process. Called before [`seal_pre_commit_phase2`].
