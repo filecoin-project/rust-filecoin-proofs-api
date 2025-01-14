@@ -1073,8 +1073,7 @@ pub fn aggregate_seal_commit_proofs(
     )
 }
 
-// TODO: Does this need to be public?
-pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
+fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
     registered_proof: RegisteredSealProof,
     comm_rs: &[Commitment],
     seeds: &[Ticket],
@@ -1793,7 +1792,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
 ///
 /// * `registered_proof` - Selected seal proof for this byte source.
 /// * `source` - A readable source of unprocessed piece bytes. The piece's commitment will be
-/// generated for the bytes read from the source plus any added padding.
+///    generated for the bytes read from the source plus any added padding.
 /// * `piece_size` - The number of unpadded user-bytes which can be read from source before EOF.
 ///
 /// Returns piece commitment in [`PieceInfo`] struct.
