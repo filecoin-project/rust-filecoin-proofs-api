@@ -1787,7 +1787,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
 ///
 /// * `registered_proof` - Selected seal proof for this byte source.
 /// * `source` - A readable source of unprocessed piece bytes. The piece's commitment will be
-/// generated for the bytes read from the source plus any added padding.
+///    generated for the bytes read from the source plus any added padding.
 /// * `piece_size` - The number of unpadded user-bytes which can be read from source before EOF.
 ///
 /// Returns piece commitment in [`PieceInfo`] struct.

@@ -30,7 +30,7 @@ big-tests = []
 fixed-rows-to-discard = ["filecoin-proofs-v1/fixed-rows-to-discard", "storage-proofs-core/fixed-rows-to-discard"]
 
 [patch.crates-io]
-filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "clear-api-cleanup" }
-fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "clear-api-cleanup" }
-filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "clear-api-cleanup" }
-storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs", branch = "clear-api-cleanup" }
+filecoin-proofs = { git = "https://github.com/filecoin-project/rust-fil-proofs" }
+fr32 = { git = "https://github.com/filecoin-project/rust-fil-proofs" }
+filecoin-hashers = { git = "https://github.com/filecoin-project/rust-fil-proofs" }
+storage-proofs-core = { git = "https://github.com/filecoin-project/rust-fil-proofs" }
