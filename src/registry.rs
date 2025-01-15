@@ -982,6 +982,8 @@ mod tests {
     }
 
     fn test_porep_id_aux(rsp: &RegisteredSealProof) {
+        use std::fmt::Write;
+
         let expected_porep_id = match rsp {
             RegisteredSealProof::StackedDrg2KiBV1 => {
                 "0000000000000000000000000000000000000000000000000000000000000000"
@@ -1044,11 +1046,10 @@ mod tests {
                 "1300000000000000000000000000000000000000000000000000000000000000"
             }
         };
-        let hex: String = rsp
-            .porep_id()
-            .iter()
-            .map(|x| format!("{:01$x}", x, 2))
-            .collect();
+        let hex: String = rsp.porep_id().iter().fold(String::new(), |mut output, x| {
+            let _ = write!(output, "{:01$x}", x, 2);
+            output
+        });
 
         assert_eq!(expected_porep_id, &hex);
     }
