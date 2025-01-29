@@ -3,7 +3,6 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use anyhow::{ensure, Result};
-use bellperson::groth16::aggregate::AggregateVersion;
 use blstrs::Scalar as Fr;
 
 use filecoin_proofs_v1::types::{
@@ -13,7 +12,7 @@ use filecoin_proofs_v1::types::{
 use filecoin_proofs_v1::with_shape;
 
 use crate::{
-    types::PartitionProofBytes, AggregateSnarkProof, Commitment, PieceInfo,
+    types::PartitionProofBytes, AggregateSnarkProof, AggregateVersion, Commitment, PieceInfo,
     RegisteredAggregationProof, RegisteredUpdateProof,
 };
 
