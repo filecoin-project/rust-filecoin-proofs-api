@@ -32,7 +32,7 @@ jobs:
       - name: Install required packages
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends --yes libhwloc-dev ocl-icd-opencl-dev
+          sudo apt-get install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
       - name: Install cargo clippy
         run: rustup component add clippy
       - name: Run cargo clippy
