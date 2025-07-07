@@ -1,6 +1,6 @@
 [package]
 name = "filecoin-proofs-api"
-version = "18.1.0"
+version = "19.0.0"
 description = "API to interact with the proofs system in Filecoin"
 authors = ["dignifiedquire <me@dignifiedquire.com>"]
 edition = "2018"
@@ -14,9 +14,9 @@ bincode = "1.1.2"
 blstrs = "0.7"
 lazy_static = "1.2"
 serde = "1.0.104"
-filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~18.1.0", default-features = false }
-fr32 = { version = "~11.1.0", default-features = false }
-storage-proofs-core = { version = "~18.1.0", default-features = false }
+filecoin-proofs-v1 = { package = "filecoin-proofs", version = "~19.0.0", default-features = false }
+fr32 = { version = "~12.0.0", default-features = false }
+storage-proofs-core = { version = "~19.0.0", default-features = false }
 
 [features]
 default = ["opencl", "cuda"]
