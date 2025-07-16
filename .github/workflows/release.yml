@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  # TODO: Remove this after testing
+  push:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run'
+        required: true
+        default: true
+        type: boolean
+      level:
+        description: 'Release level'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # The permissions should allow the user to:
+    # 1. Push to the branch of the repository that triggered the workflow.
+    # 2. Create a tag.
+    # 3. Push to crates.io.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install required packages
+        run: sudo apt install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
+      - name: Install cargo release
+        run: cargo install --version 0.25.17 cargo-release
+      - name: Run cargo release
+        # TODO: Uncomment this after testing
+        # run: cargo release ${{ (!github.event.inputs.dry_run) && '--execute' || '' }} --no-confirm ${{ github.event.inputs.level }}
+        # TODO: Remove this after testing
+        run: cargo release major
