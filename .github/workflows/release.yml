@@ -37,6 +37,6 @@ jobs:
         run: cargo install --version 0.25.17 cargo-release
       - name: Run cargo release
         # TODO: Uncomment this after testing
-        # run: cargo release ${{ (!github.event.inputs.dry_run) && '--execute' || '' }} --no-confirm ${{ github.event.inputs.level }}
+        # run: cargo release ${{ github.event.inputs.level }} ${{ github.event.inputs.dry_run && '--no-push' || '' }} ${{ github.event.inputs.dry_run && '--no-publish' || '' }} --no-confirm --execute
         # TODO: Remove this after testing
-        run: cargo release major
+        run: cargo release major --no-push --no-publish --no-confirm --execute
