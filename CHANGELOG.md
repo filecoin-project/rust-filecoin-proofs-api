@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [19.0.0] - 2025-07-29
+
+- Fix remove clear_layer_data call [#95](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/95)
+- Fix update cache clearing calls [#106](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/106)
+
 ## [18.1.0] - 2024-06-18
 
 - Update API doc comments [#101](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/101)
@@ -168,7 +173,8 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 - Initial stable release
 
-[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v18.1.0...HEAD
+[Unreleased]: https://github.com/filecoin-project/rust-filecoin-proofs-api/compare/v19.0.0...HEAD
+[19.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v19.0.0
 [18.1.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v18.1.0
 [18.0.1]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v18.0.1
 [18.0.0]: https://github.com/filecoin-project/rust-filecoin-proofs-api/tree/v18.0.0
