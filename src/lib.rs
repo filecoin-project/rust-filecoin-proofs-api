@@ -30,8 +30,9 @@ pub use crate::registry::{
 pub use crate::types::{PartitionProofBytes, PrivateReplicaInfo, PublicReplicaInfo};
 
 pub use filecoin_proofs_v1::types::{
-    AggregateSnarkProof, ChallengeSeed, Commitment, PaddedBytesAmount, PartitionSnarkProof,
-    PieceInfo, PoStType, ProverId, Ticket, UnpaddedByteIndex, UnpaddedBytesAmount,
+    AggregateSnarkProof, ChallengeSeed, Commitment, EmptySectorUpdateProof, PaddedBytesAmount,
+    PartitionSnarkProof, PieceInfo, PoStType, ProverId, SectorUpdateProofInputs, Ticket,
+    UnpaddedByteIndex, UnpaddedBytesAmount,
 };
 pub use filecoin_proofs_v1::{FallbackPoStSectorProof, SnarkProof, VanillaProof};
 pub use fr32;
