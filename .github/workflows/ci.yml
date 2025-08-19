@@ -58,7 +58,7 @@ jobs:
       # https://www.nvidia.com/en-us/drivers/
       - name: Install CUDA drivers
         run: |
-          curl -L -o nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb https://us.download.nvidia.com/tesla/570.148.08/nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb
+          curl -L --fail -o nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb https://us.download.nvidia.com/tesla/570.148.08/nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb
           echo "26188e02a028874c653a6072666fd267d597a3fd3db67cdfb66b1398626a512f" nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb | sha256sum --check
           sudo dpkg -i nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb
           sudo cp /var/nvidia-driver-local-repo-ubuntu2404-570.148.08/nvidia-driver-local-*-keyring.gpg /usr/share/keyrings/
