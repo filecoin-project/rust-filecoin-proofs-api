@@ -438,8 +438,8 @@ pub fn clear_synthetic_proofs(cache_path: &Path) -> Result<()> {
 /// * `prover_id` - Unique ID of the storage provider.
 /// * `sector_id` - ID of the sector, usually relative to the miner.
 /// * `ticket` - The ticket used to generate this sector's replica-id. For Filecoin this
-///              randomness drawn from the Filecoin blockchain’s verifiable random function
-///              (VRF), which generates tickets with each new block.
+///   randomness drawn from the Filecoin blockchain’s verifiable random function
+///   (VRF), which generates tickets with each new block.
 /// * `piece_infos` - The piece info (commitment and byte length) for each piece in the sector.
 ///
 /// Returns Merkle tree labels and commitment for use by [`seal_pre_commit_phase2`].
@@ -1103,7 +1103,7 @@ pub fn aggregate_seal_commit_proofs_inner<Tree: 'static + MerkleTreeTrait>(
 /// * `comm_rs` - Ordered list of sector replica commitments.
 /// * `seeds` - Ordered list of seeds used to derive the PoRep challenges.
 /// * `commit_inputs` - A flattened/combined and ordered list of all public inputs, which must match
-///    the ordering of the seal proofs when aggregated.
+///   the ordering of the seal proofs when aggregated.
 ///
 /// Returns true if proof is validated.
 pub fn verify_aggregate_seal_commit_proofs(
@@ -1787,7 +1787,7 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
 ///
 /// * `registered_proof` - Selected seal proof for this byte source.
 /// * `source` - A readable source of unprocessed piece bytes. The piece's commitment will be
-///    generated for the bytes read from the source plus any added padding.
+///   generated for the bytes read from the source plus any added padding.
 /// * `piece_size` - The number of unpadded user-bytes which can be read from source before EOF.
 ///
 /// Returns piece commitment in [`PieceInfo`] struct.
