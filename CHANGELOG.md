@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [19.1.0] - 2026-03-09
+
+- Updated to latest proofs and dependencies [#112](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/112)
+
 ## [19.0.0] - 2025-07-29
 
 - Fix remove clear_layer_data call [#95](https://github.com/filecoin-project/rust-filecoin-proofs-api/pull/95)
