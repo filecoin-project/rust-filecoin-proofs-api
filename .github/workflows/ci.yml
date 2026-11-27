@@ -12,6 +12,9 @@ concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   CARGO_INCREMENTAL: 0
   RUST_BACKTRACE: 1
@@ -27,53 +30,57 @@ jobs:
   check_clippy:
     runs-on: ubuntu-24.04
     name: Clippy
+    strategy:
+      matrix:
+        cargo-args: ['', '--no-default-features']
+      fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install required packages
         run: |
           sudo apt-get update
           sudo apt-get install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
-      - name: Install cargo clippy
-        run: rustup component add clippy
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - name: Run cargo clippy
-        run: cargo clippy --all-targets --workspace -- -D warnings
+        run: cargo clippy --all-targets ${{ matrix.cargo-args }} -- -D warnings
 
   check_fmt:
     runs-on: ubuntu-24.04
     name: Checking fmt
     steps:
-      - uses: actions/checkout@v4
-      - name: Install cargo fmt
-        run: rustup component add rustfmt
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
 
-  test:
-    runs-on: ['self-hosted', 'linux', 'x64', '2xlarge+gpu']
-    name: Test
+  check_msrv:
+    runs-on: ubuntu-24.04
+    name: Clippy on MSRV
     steps:
-      - uses: actions/checkout@v4
-      # TODO: Move the driver installation to the AMI.
-      # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html
-      # https://www.nvidia.com/en-us/drivers/
-      - name: Install CUDA drivers
-        run: |
-          curl -L --fail -o nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb https://us.download.nvidia.com/tesla/570.148.08/nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb
-          echo "26188e02a028874c653a6072666fd267d597a3fd3db67cdfb66b1398626a512f" nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb | sha256sum --check
-          sudo dpkg -i nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb
-          sudo cp /var/nvidia-driver-local-repo-ubuntu2404-570.148.08/nvidia-driver-local-*-keyring.gpg /usr/share/keyrings/
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends --yes cuda-drivers
-          rm nvidia-driver-local-repo-ubuntu2404-570.148.08_1.0-1_amd64.deb
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install required packages
         run: |
           sudo apt-get update
           sudo apt-get install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
-      # TODO: Remove this and other rust installation directives from jobs running
-      # on self-hosted runners once rust is available on these machines by default
-      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
-        with:
-          toolchain: 1.93.1
+      - name: Install MSRV toolchain
+        id: msrv
+        run: |
+          msrv=$(sed -n 's/^rust-version = "\(.*\)"$/\1/p' Cargo.toml)
+          rustup toolchain install "$msrv" --profile minimal --component clippy
+          echo "toolchain=$msrv" | tee --append "$GITHUB_OUTPUT"
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Run cargo clippy
+        run: cargo +${{ steps.msrv.outputs.toolchain }} clippy --all-targets -- -D warnings
+
+  test:
+    runs-on: ubuntu-24.04
+    name: Test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install required packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes libhwloc-dev nvidia-cuda-toolkit ocl-icd-opencl-dev
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - name: Test
         run: cargo test --verbose
 
@@ -81,7 +88,7 @@ jobs:
     runs-on: macos-latest
     name: Test in release mode on MacOS
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install required packages
         run: HOMEBREW_NO_AUTO_UPDATE=1 brew install hwloc
 

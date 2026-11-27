@@ -403,7 +403,7 @@ impl RegisteredSealProof {
             ApiVersion::V1_0_0 | ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_verifying_key_data(&id);
-                ensure!(params.is_some(), "missing params for {}", &id);
+                ensure!(params.is_some(), "missing params for {}", id);
 
                 Ok(params
                     .expect("verifying key cid params failure")
@@ -419,7 +419,7 @@ impl RegisteredSealProof {
             ApiVersion::V1_0_0 | ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_parameter_data(&id);
-                ensure!(params.is_some(), "missing params for {}", &id);
+                ensure!(params.is_some(), "missing params for {}", id);
 
                 Ok(params.expect("param cid failure").cid.clone())
             }
@@ -733,7 +733,7 @@ impl RegisteredPoStProof {
             ApiVersion::V1_0_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_verifying_key_data(&id);
-                ensure!(params.is_some(), "missing params for {}", &id);
+                ensure!(params.is_some(), "missing params for {}", id);
 
                 Ok(params
                     .expect("verifying key cid params failure")
@@ -750,7 +750,7 @@ impl RegisteredPoStProof {
             ApiVersion::V1_0_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_parameter_data(&id);
-                ensure!(params.is_some(), "missing params for {}", &id);
+                ensure!(params.is_some(), "missing params for {}", id);
 
                 Ok(params.expect("params cid failure").cid.clone())
             }
@@ -921,7 +921,7 @@ impl RegisteredUpdateProof {
             ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_verifying_key_data(&id);
-                ensure!(params.is_some(), "missing params for {}", &id);
+                ensure!(params.is_some(), "missing params for {}", id);
 
                 Ok(params
                     .expect("verifying key cid params failure")
@@ -938,7 +938,7 @@ impl RegisteredUpdateProof {
             ApiVersion::V1_1_0 | ApiVersion::V1_2_0 => {
                 let id = self.circuit_identifier()?;
                 let params = get_parameter_data(&id);
-                ensure!(params.is_some(), "missing params for {}", &id);
+                ensure!(params.is_some(), "missing params for {}", id);
 
                 Ok(params.expect("param cid failure").cid.clone())
             }
